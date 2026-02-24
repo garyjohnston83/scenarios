@@ -1,0 +1,15 @@
+databaseChangeLog:
+  - changeSet:
+      id: 021-add-policy-id-to-signoff-case
+      author: scenarios-team
+      changes:
+        - addColumn:
+            tableName: signoff_case
+            columns:
+              - column:
+                  name: policy_id
+                  type: uuid
+                  constraints:
+                    nullable: true
+                    foreignKeyName: fk_signoff_case_policy
+                    references: signoff_policy(id)

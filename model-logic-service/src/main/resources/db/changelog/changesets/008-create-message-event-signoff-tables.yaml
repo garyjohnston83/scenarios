@@ -1,0 +1,106 @@
+databaseChangeLog:
+  - changeSet:
+      id: 008-create-scenario-message-table
+      author: scenarios-team
+      changes:
+        - createTable:
+            tableName: scenario_message
+            columns:
+              - column:
+                  name: id
+                  type: uuid
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: scenario_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_scenario_message_scenario
+                    references: scenario(id)
+              - column:
+                  name: author_display_name
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: text
+                  type: text
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: timestamp
+                  constraints:
+                    nullable: false
+  - changeSet:
+      id: 008-create-scenario-event-table
+      author: scenarios-team
+      changes:
+        - createTable:
+            tableName: scenario_event
+            columns:
+              - column:
+                  name: id
+                  type: uuid
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: scenario_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_scenario_event_scenario
+                    references: scenario(id)
+              - column:
+                  name: actor_display_name
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: event_type
+                  type: varchar(50)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: timestamp
+                  constraints:
+                    nullable: false
+              - column:
+                  name: payload_json
+                  type: jsonb
+  - changeSet:
+      id: 008-create-signoff-case-table
+      author: scenarios-team
+      changes:
+        - createTable:
+            tableName: signoff_case
+            columns:
+              - column:
+                  name: id
+                  type: uuid
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: scenario_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_signoff_case_scenario
+                    references: scenario(id)
+                    unique: true
+              - column:
+                  name: status
+                  type: varchar(50)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: commenced_at
+                  type: timestamp
+              - column:
+                  name: completed_at
+                  type: timestamp

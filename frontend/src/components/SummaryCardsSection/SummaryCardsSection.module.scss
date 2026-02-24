@@ -1,0 +1,60 @@
+.cardsContainer {
+  display: flex;
+  flex-direction: row;
+  gap: 16px;
+  padding: 16px 24px;
+}
+
+.card {
+  flex: 1;
+  min-width: 0;
+}
+
+.cardContent {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.cardBody {
+  flex: 1;
+}
+
+.cardTitle {
+  display: block;
+  font-size: 11px;
+  color: #666;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 12px;
+}
+
+.fieldsGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px 24px;
+}
+
+.fieldItem {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.fieldLabel {
+  font-size: 11px;
+  color: #666;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.fieldValue {
+  font-size: 13px;
+  color: #242424;
+}
+
+.ctaContainer {
+  margin-top: 16px;
+  display: flex;
+  justify-content: flex-start;
+}

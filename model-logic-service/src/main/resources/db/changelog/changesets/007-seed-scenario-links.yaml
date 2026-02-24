@@ -1,0 +1,15 @@
+databaseChangeLog:
+  - changeSet:
+      id: 007-seed-scenario-links
+      author: scenarios-team
+      changes:
+        - sql:
+            sql: |
+              INSERT INTO scenario_link (id, scenario_id, link_type, label, url, created_at)
+              VALUES
+                ('1a2b3c4d-5e6f-4a7b-8c9d-0e1f2a3b4c01', 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d', 'DIRECT_CHANGES', NULL, 'https://marketdata.example.com/scenarios/a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d/changes', '2026-02-20 14:00:00'),
+                ('2b3c4d5e-6f7a-4b8c-9d0e-1f2a3b4c5d02', 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d', 'IMPACT_REPORTS', NULL, 'https://marketdata.example.com/scenarios/a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d/impact-reports', '2026-02-20 14:00:00'),
+                ('3c4d5e6f-7a8b-4c9d-0e1f-2a3b4c5d6e03', 'b2c3d4e5-f6a7-4b8c-9d0e-1f2a3b4c5d6e', 'DIRECT_CHANGES', NULL, 'https://marketdata.example.com/scenarios/b2c3d4e5-f6a7-4b8c-9d0e-1f2a3b4c5d6e/changes', '2026-02-19 16:00:00'),
+                ('4d5e6f7a-8b9c-4d0e-1f2a-3b4c5d6e7f04', 'b2c3d4e5-f6a7-4b8c-9d0e-1f2a3b4c5d6e', 'IMPACT_REPORTS', NULL, 'https://marketdata.example.com/scenarios/b2c3d4e5-f6a7-4b8c-9d0e-1f2a3b4c5d6e/impact-reports', '2026-02-19 16:00:00'),
+                ('5e6f7a8b-9c0d-4e1f-2a3b-4c5d6e7f8005', 'c3d4e5f6-a7b8-4c9d-0e1f-2a3b4c5d6e7f', 'DIRECT_CHANGES', NULL, 'https://marketdata.example.com/scenarios/c3d4e5f6-a7b8-4c9d-0e1f-2a3b4c5d6e7f/changes', '2026-02-18 09:45:00'),
+                ('6f7a8b9c-0d1e-4f2a-3b4c-5d6e7f800106', 'c3d4e5f6-a7b8-4c9d-0e1f-2a3b4c5d6e7f', 'IMPACT_REPORTS', NULL, 'https://marketdata.example.com/scenarios/c3d4e5f6-a7b8-4c9d-0e1f-2a3b4c5d6e7f/impact-reports', '2026-02-18 09:45:00');

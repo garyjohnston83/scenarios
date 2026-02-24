@@ -1,0 +1,35 @@
+databaseChangeLog:
+  - changeSet:
+      id: 011-seed-participants
+      author: scenarios-team
+      changes:
+        - sql:
+            sql: |
+              -- ============================================================
+              -- Scenario: FX Curve Recalibration (IMPACT_AVAILABLE)
+              -- UUID: a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d
+              -- 2 APPROVERs + 1 OWNER
+              -- ============================================================
+
+              INSERT INTO scenario_participant (id, scenario_id, user_id, user_display_name, role, created_at)
+              VALUES
+                ('d1a2b3c4-e5f6-4a7b-8c9d-111111111101', 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d', 'approver-1', 'Jane Smith', 'APPROVER', '2026-02-15 09:00:00'),
+                ('d2a2b3c4-e5f6-4a7b-8c9d-111111111102', 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d', 'approver-2', 'John Doe', 'APPROVER', '2026-02-15 09:00:00'),
+                ('d3a2b3c4-e5f6-4a7b-8c9d-111111111103', 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d', 'owner-1', 'Alice Johnson', 'OWNER', '2026-02-15 09:00:00');
+
+              -- ============================================================
+              -- Scenario: IR Vol Surface Update (SIGNOFF_IN_PROGRESS)
+              -- UUID: b2c3d4e5-f6a7-4b8c-9d0e-1f2a3b4c5d6e
+              -- 1 APPROVER + 1 OWNER
+              -- Update signoff_case to reflect partial sign-off
+              -- ============================================================
+
+              INSERT INTO scenario_participant (id, scenario_id, user_id, user_display_name, role, created_at)
+              VALUES
+                ('d4a2b3c4-e5f6-4a7b-8c9d-111111111104', 'b2c3d4e5-f6a7-4b8c-9d0e-1f2a3b4c5d6e', 'approver-3', 'Bob Williams', 'APPROVER', '2026-02-17 11:00:00'),
+                ('d5a2b3c4-e5f6-4a7b-8c9d-111111111105', 'b2c3d4e5-f6a7-4b8c-9d0e-1f2a3b4c5d6e', 'owner-2', 'Carol Davis', 'OWNER', '2026-02-17 11:00:00');
+
+              -- Update the existing signoff_case for SIGNOFF_IN_PROGRESS scenario
+              UPDATE signoff_case
+              SET required_approvals = 2, approvals_received = 1
+              WHERE scenario_id = 'b2c3d4e5-f6a7-4b8c-9d0e-1f2a3b4c5d6e';

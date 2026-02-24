@@ -1,0 +1,16 @@
+databaseChangeLog:
+  - changeSet:
+      id: 005-seed-impact-run-and-exceptions
+      author: scenarios-team
+      changes:
+        - sql:
+            sql: |
+              INSERT INTO impact_run (id, scenario_id, run_ref, status, started_at, completed_at)
+              VALUES
+                ('d4e5f6a7-b8c9-4d0e-1f2a-3b4c5d6e7f80', 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d', 'RUN-2026-0220-001', 'SUCCEEDED', '2026-02-20 13:30:00', '2026-02-20 14:00:00'),
+                ('e5f6a7b8-c9d0-4e1f-2a3b-4c5d6e7f8091', 'b2c3d4e5-f6a7-4b8c-9d0e-1f2a3b4c5d6e', 'RUN-2026-0219-001', 'SUCCEEDED', '2026-02-19 14:00:00', '2026-02-19 14:30:00'),
+                ('f6a7b8c9-d0e1-4f2a-3b4c-5d6e7f809102', 'b2c3d4e5-f6a7-4b8c-9d0e-1f2a3b4c5d6e', 'RUN-2026-0219-002', 'SUCCEEDED', '2026-02-19 15:30:00', '2026-02-19 16:00:00'),
+                ('a7b8c9d0-e1f2-4a3b-4c5d-6e7f80910213', 'c3d4e5f6-a7b8-4c9d-0e1f-2a3b4c5d6e7f', 'RUN-2026-0218-003', 'SUCCEEDED', '2026-02-18 09:00:00', '2026-02-18 09:45:00');
+
+              UPDATE scenario_summary SET exceptions_count = 0 WHERE id = 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d';
+              UPDATE scenario_summary SET exceptions_count = 3 WHERE id = 'b2c3d4e5-f6a7-4b8c-9d0e-1f2a3b4c5d6e';

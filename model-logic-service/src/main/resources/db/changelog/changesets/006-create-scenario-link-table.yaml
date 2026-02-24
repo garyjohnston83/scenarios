@@ -1,0 +1,39 @@
+databaseChangeLog:
+  - changeSet:
+      id: 006-create-scenario-link-table
+      author: scenarios-team
+      changes:
+        - createTable:
+            tableName: scenario_link
+            columns:
+              - column:
+                  name: id
+                  type: uuid
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: scenario_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_scenario_link_scenario
+                    references: scenario(id)
+              - column:
+                  name: link_type
+                  type: varchar(50)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: label
+                  type: varchar(255)
+              - column:
+                  name: url
+                  type: varchar(2048)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: timestamp
+                  constraints:
+                    nullable: false

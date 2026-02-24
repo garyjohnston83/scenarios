@@ -1,0 +1,52 @@
+databaseChangeLog:
+  - changeSet:
+      id: 019-create-signoff-policy-table
+      author: scenarios-team
+      changes:
+        - createTable:
+            tableName: signoff_policy
+            columns:
+              - column:
+                  name: id
+                  type: uuid
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: scenario_type_code
+                  type: varchar(50)
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_signoff_policy_scenario_type
+                    references: scenario_type(code)
+              - column:
+                  name: name
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: required_approver_count
+                  type: int
+                  constraints:
+                    nullable: false
+              - column:
+                  name: is_enabled
+                  type: boolean
+                  defaultValueBoolean: true
+                  constraints:
+                    nullable: false
+              - column:
+                  name: priority
+                  type: int
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: timestamp
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: timestamp
+                  constraints:
+                    nullable: false

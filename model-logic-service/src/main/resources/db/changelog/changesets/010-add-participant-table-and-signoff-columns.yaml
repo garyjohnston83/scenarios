@@ -1,0 +1,64 @@
+databaseChangeLog:
+  - changeSet:
+      id: 010-create-scenario-participant-table
+      author: scenarios-team
+      changes:
+        - createTable:
+            tableName: scenario_participant
+            columns:
+              - column:
+                  name: id
+                  type: uuid
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: scenario_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_scenario_participant_scenario
+                    references: scenario(id)
+              - column:
+                  name: user_id
+                  type: varchar(100)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: user_display_name
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: role
+                  type: varchar(50)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: timestamp
+                  constraints:
+                    nullable: false
+        - addUniqueConstraint:
+            tableName: scenario_participant
+            columnNames: scenario_id, user_id
+            constraintName: uq_scenario_participant_scenario_user
+  - changeSet:
+      id: 010-add-signoff-case-approval-columns
+      author: scenarios-team
+      changes:
+        - addColumn:
+            tableName: signoff_case
+            columns:
+              - column:
+                  name: required_approvals
+                  type: int
+                  defaultValueNumeric: 1
+                  constraints:
+                    nullable: false
+              - column:
+                  name: approvals_received
+                  type: int
+                  defaultValueNumeric: 0
+                  constraints:
+                    nullable: false

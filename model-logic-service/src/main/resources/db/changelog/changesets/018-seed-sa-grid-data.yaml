@@ -1,0 +1,39 @@
+databaseChangeLog:
+  - changeSet:
+      id: 018-seed-sa-grid-data
+      author: scenarios-team
+      changes:
+        - sql:
+            sql: |
+              -- Direct Changes dataset
+              INSERT INTO scenario_grid_dataset (id, scenario_id, dataset_type, columns_json, created_at)
+              VALUES
+                ('aa111111-1111-4111-8111-111111111111', 'd4e5f6a7-b8c9-4d0e-1f2a-3b4c5d6e7f80', 'DIRECT_CHANGES', '["Risk Factor","Risk Class","Sensitivity Type","Current Value","Proposed Value","Delta"]', '2026-02-21 15:00:00');
+
+              -- Impact Data dataset
+              INSERT INTO scenario_grid_dataset (id, scenario_id, dataset_type, columns_json, created_at)
+              VALUES
+                ('bb222222-2222-4222-8222-222222222222', 'd4e5f6a7-b8c9-4d0e-1f2a-3b4c5d6e7f80', 'IMPACT_DATA', '["Risk Class","Risk Measure","Base Value","Stressed Value","Capital Charge"]', '2026-02-21 15:00:00');
+
+              -- Direct Changes rows (5 rows)
+              INSERT INTO scenario_grid_row (id, dataset_id, row_payload_json, created_at)
+              VALUES
+                ('cc000001-0001-4001-8001-000000000001', 'aa111111-1111-4111-8111-111111111111', '{"Risk Factor":"FX_USDJPY","Risk Class":"FX","Sensitivity Type":"Delta","Current Value":1.35,"Proposed Value":1.38,"Delta":0.03}', '2026-02-21 15:01:00'),
+                ('cc000002-0002-4002-8002-000000000002', 'aa111111-1111-4111-8111-111111111111', '{"Risk Factor":"FX_EURUSD","Risk Class":"FX","Sensitivity Type":"Vega","Current Value":0.12,"Proposed Value":0.15,"Delta":0.03}', '2026-02-21 15:02:00'),
+                ('cc000003-0003-4003-8003-000000000003', 'aa111111-1111-4111-8111-111111111111', '{"Risk Factor":"IR_TENOR_5Y","Risk Class":"IR","Sensitivity Type":"Delta","Current Value":2.45,"Proposed Value":2.52,"Delta":0.07}', '2026-02-21 15:03:00'),
+                ('cc000004-0004-4004-8004-000000000004', 'aa111111-1111-4111-8111-111111111111', '{"Risk Factor":"IR_TENOR_10Y","Risk Class":"IR","Sensitivity Type":"Curvature","Current Value":3.10,"Proposed Value":3.25,"Delta":0.15}', '2026-02-21 15:04:00'),
+                ('cc000005-0005-4005-8005-000000000005', 'aa111111-1111-4111-8111-111111111111', '{"Risk Factor":"CR_SPREAD_IG","Risk Class":"Credit","Sensitivity Type":"Delta","Current Value":0.85,"Proposed Value":0.92,"Delta":0.07}', '2026-02-21 15:05:00');
+
+              -- Impact Data rows (5 rows)
+              INSERT INTO scenario_grid_row (id, dataset_id, row_payload_json, created_at)
+              VALUES
+                ('dd000001-0001-4001-8001-000000000001', 'bb222222-2222-4222-8222-222222222222', '{"Risk Class":"FX","Risk Measure":"IMCC","Base Value":1250000,"Stressed Value":1380000,"Capital Charge":130000}', '2026-02-21 15:01:00'),
+                ('dd000002-0002-4002-8002-000000000002', 'bb222222-2222-4222-8222-222222222222', '{"Risk Class":"IR","Risk Measure":"SBA","Base Value":2100000,"Stressed Value":2350000,"Capital Charge":250000}', '2026-02-21 15:02:00'),
+                ('dd000003-0003-4003-8003-000000000003', 'bb222222-2222-4222-8222-222222222222', '{"Risk Class":"Credit","Risk Measure":"DRC","Base Value":890000,"Stressed Value":945000,"Capital Charge":55000}', '2026-02-21 15:03:00'),
+                ('dd000004-0004-4004-8004-000000000004', 'bb222222-2222-4222-8222-222222222222', '{"Risk Class":"FX","Risk Measure":"RRAO","Base Value":320000,"Stressed Value":385000,"Capital Charge":65000}', '2026-02-21 15:04:00'),
+                ('dd000005-0005-4005-8005-000000000005', 'bb222222-2222-4222-8222-222222222222', '{"Risk Class":"IR","Risk Measure":"CVA","Base Value":1750000,"Stressed Value":1920000,"Capital Charge":170000}', '2026-02-21 15:05:00');
+
+              -- Compare link for the SA scenario
+              INSERT INTO scenario_link (id, scenario_id, link_type, label, url, created_at)
+              VALUES
+                ('ee000001-0001-4001-8001-000000000001', 'd4e5f6a7-b8c9-4d0e-1f2a-3b4c5d6e7f80', 'COMPARE', 'Compare results', 'https://frtb.example.com/compare/d4e5f6a7-b8c9-4d0e-1f2a-3b4c5d6e7f80', '2026-02-21 15:00:00');

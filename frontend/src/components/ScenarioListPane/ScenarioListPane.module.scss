@@ -1,0 +1,92 @@
+.container {
+  padding: 16px;
+  height: 100%;
+  box-sizing: border-box;
+  overflow-y: auto;
+}
+
+.header {
+  margin-bottom: 12px;
+}
+
+.emptyState {
+  color: #666;
+}
+
+.toolbar {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.listItem {
+  padding: 10px 12px;
+  cursor: pointer;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.listItem:hover {
+  background-color: #f5f5f5;
+}
+
+.listItemActive {
+  background-color: #e8f0fe;
+}
+
+.scenarioNameRow {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 4px;
+}
+
+.typeBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1px 5px;
+  border-radius: 3px;
+  font-size: 10px;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: 0.3px;
+  flex-shrink: 0;
+  line-height: 1.4;
+}
+
+.typeBadgeMD {
+  background-color: #1b3a6b;
+}
+
+.typeBadgeSA {
+  background-color: #1a6b2a;
+}
+
+.scenarioName {
+  font-weight: 600;
+}
+
+.scenarioMeta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: #666;
+}
+
+.badge {
+  display: inline-block;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background-color: #e8e8e8;
+  font-size: 11px;
+}
+
+.errorState {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+}

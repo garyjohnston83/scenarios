@@ -1,0 +1,15 @@
+databaseChangeLog:
+  - changeSet:
+      id: 012-add-related-message-id-to-event
+      author: scenarios-team
+      changes:
+        - addColumn:
+            tableName: scenario_event
+            columns:
+              - column:
+                  name: related_message_id
+                  type: uuid
+                  constraints:
+                    nullable: true
+                    foreignKeyName: fk_scenario_event_related_message
+                    references: scenario_message(id)

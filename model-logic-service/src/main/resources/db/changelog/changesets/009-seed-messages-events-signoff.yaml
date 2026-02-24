@@ -1,0 +1,55 @@
+databaseChangeLog:
+  - changeSet:
+      id: 009-seed-messages-events-signoff
+      author: scenarios-team
+      changes:
+        - sql:
+            sql: |
+              -- ============================================================
+              -- Scenario: IR Vol Surface Update (SIGNOFF_IN_PROGRESS)
+              -- UUID: b2c3d4e5-f6a7-4b8c-9d0e-1f2a3b4c5d6e
+              -- ============================================================
+
+              -- signoff_case: IN_PROGRESS (commenced, not completed)
+              INSERT INTO signoff_case (id, scenario_id, status, commenced_at, completed_at)
+              VALUES
+                ('a0a1b2c3-d4e5-4f6a-b7c8-d9e0f1a2b301', 'b2c3d4e5-f6a7-4b8c-9d0e-1f2a3b4c5d6e', 'IN_PROGRESS', '2026-02-19 17:00:00', NULL);
+
+              -- messages (2 messages, chronologically ordered)
+              INSERT INTO scenario_message (id, scenario_id, author_display_name, text, created_at)
+              VALUES
+                ('b1b2c3d4-e5f6-4a7b-8c9d-1e2f3a4b5c01', 'b2c3d4e5-f6a7-4b8c-9d0e-1f2a3b4c5d6e', 'Jane Smith', 'I have reviewed the impact results for the IR Vol Surface Update. The PnL impact of -1.8M on the IR Desk needs further discussion before we can proceed with sign-off.', '2026-02-19 17:15:00'),
+                ('c2c3d4e5-f6a7-4b8c-9d0e-2f3a4b5c6d02', 'b2c3d4e5-f6a7-4b8c-9d0e-1f2a3b4c5d6e', 'John Doe', 'Agreed. I have spoken with the IR Desk head and they are comfortable with the delta. We can proceed with the sign-off once the validation warnings are resolved.', '2026-02-19 17:45:00');
+
+              -- events (5 events, chronologically ordered)
+              INSERT INTO scenario_event (id, scenario_id, actor_display_name, event_type, created_at, payload_json)
+              VALUES
+                ('d3d4e5f6-a7b8-4c9d-0e1f-3a4b5c6d7e01', 'b2c3d4e5-f6a7-4b8c-9d0e-1f2a3b4c5d6e', 'Bob Smith', 'SCENARIO_CREATED', '2026-02-17 11:00:00', NULL),
+                ('e4e5f6a7-b8c9-4d0e-1f2a-4b5c6d7e8f02', 'b2c3d4e5-f6a7-4b8c-9d0e-1f2a3b4c5d6e', 'System', 'IMPACT_COMPLETED', '2026-02-19 16:00:00', NULL),
+                ('f5f6a7b8-c9d0-4e1f-2a3b-5c6d7e8f9003', 'b2c3d4e5-f6a7-4b8c-9d0e-1f2a3b4c5d6e', 'Jane Smith', 'MESSAGE_POSTED', '2026-02-19 17:15:00', NULL),
+                ('a6a7b8c9-d0e1-4f2a-3b4c-6d7e8f900104', 'b2c3d4e5-f6a7-4b8c-9d0e-1f2a3b4c5d6e', 'Jane Smith', 'SIGNOFF_COMMENCED', '2026-02-19 17:00:00', NULL),
+                ('b7b8c9d0-e1f2-4a3b-4c5d-7e8f90010205', 'b2c3d4e5-f6a7-4b8c-9d0e-1f2a3b4c5d6e', 'John Doe', 'MESSAGE_POSTED', '2026-02-19 17:45:00', NULL);
+
+              -- ============================================================
+              -- Scenario: Credit Spread Adjustment (SIGNED_OFF)
+              -- UUID: c3d4e5f6-a7b8-4c9d-0e1f-2a3b4c5d6e7f
+              -- ============================================================
+
+              -- signoff_case: COMPLETED (both commenced and completed set)
+              INSERT INTO signoff_case (id, scenario_id, status, commenced_at, completed_at)
+              VALUES
+                ('c8c9d0e1-f2a3-4b4c-5d6e-8f9001020306', 'c3d4e5f6-a7b8-4c9d-0e1f-2a3b4c5d6e7f', 'COMPLETED', '2026-02-18 10:00:00', '2026-02-18 10:15:00');
+
+              -- events (4 events, chronologically ordered)
+              INSERT INTO scenario_event (id, scenario_id, actor_display_name, event_type, created_at, payload_json)
+              VALUES
+                ('d9d0e1f2-a3b4-4c5d-6e7f-9001020304a7', 'c3d4e5f6-a7b8-4c9d-0e1f-2a3b4c5d6e7f', 'Carol Davis', 'SCENARIO_CREATED', '2026-02-16 08:30:00', NULL),
+                ('e0e1f2a3-b4c5-4d6e-7f80-0102030405b8', 'c3d4e5f6-a7b8-4c9d-0e1f-2a3b4c5d6e7f', 'System', 'IMPACT_COMPLETED', '2026-02-18 09:45:00', NULL),
+                ('f1f2a3b4-c5d6-4e7f-8091-02030405c609', 'c3d4e5f6-a7b8-4c9d-0e1f-2a3b4c5d6e7f', 'Carol Davis', 'SIGNOFF_COMMENCED', '2026-02-18 10:00:00', NULL),
+                ('a2a3b4c5-d6e7-4f80-9102-030405d70a10', 'c3d4e5f6-a7b8-4c9d-0e1f-2a3b4c5d6e7f', 'Carol Davis', 'SIGNOFF_APPROVED', '2026-02-18 10:15:00', NULL);
+
+              -- ============================================================
+              -- Scenario: FX Curve Recalibration (IMPACT_AVAILABLE)
+              -- UUID: a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d
+              -- No messages, no events, no signoff_case (empty state demo)
+              -- ============================================================

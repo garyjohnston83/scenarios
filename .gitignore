@@ -1,0 +1,91 @@
+#######################################
+# ===== OS FILES =====
+#######################################
+.DS_Store
+Thumbs.db
+
+#######################################
+# ===== IDE / EDITOR =====
+#######################################
+.idea/
+*.iml
+.vscode/
+.classpath
+.project
+.settings/
+
+#######################################
+# ===== LOG FILES =====
+#######################################
+*.log
+logs/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+#######################################
+# ===== ENV FILES (IMPORTANT) =====
+#######################################
+.env
+.env.*
+!.env.example
+
+#######################################
+# ===== JAVA / MAVEN =====
+#######################################
+# Maven build output
+**/target/
+
+# Maven wrapper jar
+.mvn/wrapper/maven-wrapper.jar
+
+# Compiled class files
+*.class
+
+#######################################
+# ===== NODE / REACT / TYPESCRIPT =====
+#######################################
+# Node dependencies
+node_modules/
+
+# Build outputs
+build/
+dist/
+.next/
+out/
+
+# Cache
+.cache/
+.parcel-cache/
+.eslintcache
+*.tsbuildinfo
+
+#######################################
+# ===== SPECS =====
+#######################################
+raw-idea.md
+initialization.md
+requirements.md
+spec.md
+tasks.md
+final-verification.md
+
+#######################################
+# ===== TEST / COVERAGE =====
+#######################################
+coverage/
+*.lcov
+
+#######################################
+# ===== DOCKER =====
+#######################################
+docker-compose.override.yml
+*.local.yml
+
+#######################################
+# ===== MISC =====
+#######################################
+*.tmp
+*.swp
+*.swo
+nul

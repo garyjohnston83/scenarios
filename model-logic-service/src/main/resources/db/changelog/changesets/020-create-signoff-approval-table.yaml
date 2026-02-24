@@ -1,0 +1,37 @@
+databaseChangeLog:
+  - changeSet:
+      id: 020-create-signoff-approval-table
+      author: scenarios-team
+      changes:
+        - createTable:
+            tableName: signoff_approval
+            columns:
+              - column:
+                  name: id
+                  type: uuid
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: signoff_case_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_signoff_approval_signoff_case
+                    references: signoff_case(id)
+              - column:
+                  name: user_id
+                  type: varchar(100)
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_signoff_approval_user_ref
+                    references: user_ref(id)
+              - column:
+                  name: approved_at
+                  type: timestamp
+                  constraints:
+                    nullable: false
+        - addUniqueConstraint:
+            tableName: signoff_approval
+            columnNames: signoff_case_id, user_id
+            constraintName: uq_signoff_approval_case_user

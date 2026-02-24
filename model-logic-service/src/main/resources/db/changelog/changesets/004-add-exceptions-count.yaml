@@ -1,0 +1,11 @@
+databaseChangeLog:
+  - changeSet:
+      id: 004-add-exceptions-count
+      author: scenarios-team
+      changes:
+        - addColumn:
+            tableName: scenario_summary
+            columns:
+              - column:
+                  name: exceptions_count
+                  type: int

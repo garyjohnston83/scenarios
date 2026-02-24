@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Write(./**)",
+      "Edit(./**)",
+      "Bash(*)",
+      "Read(./**)",
+      "Glob(./**)",
+      "WebFetch(*)",
+      "TodoWrite(./**)",
+      "TaskOutput(./**)"
+    ]
+  }
+}

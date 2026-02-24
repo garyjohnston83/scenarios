@@ -1,0 +1,84 @@
+databaseChangeLog:
+  - changeSet:
+      id: 016-create-scenario-grid-dataset-table
+      author: scenarios-team
+      changes:
+        - createTable:
+            tableName: scenario_grid_dataset
+            columns:
+              - column:
+                  name: id
+                  type: uuid
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: scenario_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_grid_dataset_scenario
+                    references: scenario(id)
+              - column:
+                  name: dataset_type
+                  type: varchar(50)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: columns_json
+                  type: text
+              - column:
+                  name: created_at
+                  type: timestamp
+                  constraints:
+                    nullable: false
+  - changeSet:
+      id: 016-create-scenario-grid-row-table
+      author: scenarios-team
+      changes:
+        - createTable:
+            tableName: scenario_grid_row
+            columns:
+              - column:
+                  name: id
+                  type: uuid
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: dataset_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_grid_row_dataset
+                    references: scenario_grid_dataset(id)
+              - column:
+                  name: row_payload_json
+                  type: text
+              - column:
+                  name: created_at
+                  type: timestamp
+                  constraints:
+                    nullable: false
+  - changeSet:
+      id: 016-create-grid-dataset-index
+      author: scenarios-team
+      changes:
+        - createIndex:
+            indexName: idx_grid_dataset_scenario_type
+            tableName: scenario_grid_dataset
+            columns:
+              - column:
+                  name: scenario_id
+              - column:
+                  name: dataset_type
+  - changeSet:
+      id: 016-create-grid-row-index
+      author: scenarios-team
+      changes:
+        - createIndex:
+            indexName: idx_grid_row_dataset
+            tableName: scenario_grid_row
+            columns:
+              - column:
+                  name: dataset_id

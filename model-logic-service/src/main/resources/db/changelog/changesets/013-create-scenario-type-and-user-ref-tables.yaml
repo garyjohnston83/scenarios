@@ -1,0 +1,58 @@
+databaseChangeLog:
+  - changeSet:
+      id: 013-create-scenario-type-table
+      author: scenarios-team
+      changes:
+        - createTable:
+            tableName: scenario_type
+            columns:
+              - column:
+                  name: code
+                  type: varchar(50)
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: name
+                  type: varchar(255)
+              - column:
+                  name: icon
+                  type: varchar(100)
+              - column:
+                  name: direct_changes_mode
+                  type: varchar(50)
+              - column:
+                  name: impact_data_mode
+                  type: varchar(50)
+              - column:
+                  name: is_enabled
+                  type: boolean
+                  defaultValueBoolean: true
+              - column:
+                  name: sort_order
+                  type: int
+  - changeSet:
+      id: 013-create-user-ref-table
+      author: scenarios-team
+      changes:
+        - createTable:
+            tableName: user_ref
+            columns:
+              - column:
+                  name: id
+                  type: varchar(100)
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: display_name
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: email
+                  type: varchar(255)
+              - column:
+                  name: is_active
+                  type: boolean
+                  defaultValueBoolean: true

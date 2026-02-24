@@ -1,0 +1,32 @@
+databaseChangeLog:
+  - changeSet:
+      id: 014-seed-scenario-type-and-user-ref
+      author: scenarios-team
+      changes:
+        - sql:
+            sql: |
+              INSERT INTO scenario_type (code, name, icon, direct_changes_mode, impact_data_mode, is_enabled, sort_order)
+              VALUES
+                ('MARKET_DATA', 'Market Data', 'ChartMultiple', 'LINK_OUT', 'LINK_OUT', true, 1),
+                ('RISK_FACTOR', 'Risk Factor', 'Pulse', 'LINK_OUT', 'LINK_OUT', true, 2);
+
+              INSERT INTO user_ref (id, display_name, email, is_active)
+              VALUES
+                ('approver-1', 'Jane Smith', NULL, true),
+                ('approver-2', 'John Doe', NULL, true),
+                ('approver-3', 'Bob Williams', NULL, true),
+                ('owner-1', 'Alice Johnson', NULL, true),
+                ('owner-2', 'Carol Davis', NULL, true),
+                ('owner-3', 'Bob Smith', NULL, true),
+                ('system', 'System', NULL, true),
+                ('current-user', 'Current User', NULL, true);
+  - changeSet:
+      id: 014-add-scenario-type-fk
+      author: scenarios-team
+      changes:
+        - addForeignKeyConstraint:
+            baseTableName: scenario
+            baseColumnNames: scenario_type_code
+            referencedTableName: scenario_type
+            referencedColumnNames: code
+            constraintName: fk_scenario_scenario_type

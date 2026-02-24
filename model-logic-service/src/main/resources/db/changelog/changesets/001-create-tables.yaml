@@ -1,0 +1,102 @@
+databaseChangeLog:
+  - changeSet:
+      id: 001-create-scenario-table
+      author: scenarios-team
+      changes:
+        - createTable:
+            tableName: scenario
+            columns:
+              - column:
+                  name: id
+                  type: uuid
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: scenario_type_code
+                  type: varchar(50)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: name
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: owner_display_name
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: timestamp
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: timestamp
+                  constraints:
+                    nullable: false
+
+  - changeSet:
+      id: 001-create-scenario-summary-table
+      author: scenarios-team
+      changes:
+        - createTable:
+            tableName: scenario_summary
+            columns:
+              - column:
+                  name: id
+                  type: uuid
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+                    foreignKeyName: fk_scenario_summary_scenario
+                    references: scenario(id)
+              - column:
+                  name: workflow_state
+                  type: varchar(50)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: impact
+                  type: varchar(50)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: last_impact_at
+                  type: timestamp
+              - column:
+                  name: impact_run_ref
+                  type: varchar(255)
+              - column:
+                  name: headline_delta_text
+                  type: varchar(255)
+              - column:
+                  name: changes_total
+                  type: int
+                  defaultValueNumeric: 0
+                  constraints:
+                    nullable: false
+              - column:
+                  name: changes_direct
+                  type: int
+                  defaultValueNumeric: 0
+                  constraints:
+                    nullable: false
+              - column:
+                  name: changes_indirect
+                  type: int
+                  defaultValueNumeric: 0
+                  constraints:
+                    nullable: false
+              - column:
+                  name: entities_summary
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: validation_status
+                  type: varchar(50)
+                  constraints:
+                    nullable: false
