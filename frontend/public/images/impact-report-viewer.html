@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Impact Reports</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: #f4f4f4;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+    .container {
+      width: 95vw;
+      max-width: 1400px;
+      text-align: center;
+    }
+    .container img {
+      width: 100%;
+      height: auto;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.1);
+    }
+    .placeholder {
+      background: #fff;
+      border: 2px dashed #999;
+      border-radius: 8px;
+      padding: 80px 40px;
+      color: #666;
+      font-size: 20px;
+    }
+    .placeholder .title {
+      font-size: 28px;
+      font-weight: 700;
+      color: #333;
+      margin-bottom: 12px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <img
+      src="impact-data-report-screen.png"
+      alt="Impact Reports"
+      onerror="this.style.display='none';document.getElementById('fallback').style.display='block';"
+    />
+    <div id="fallback" class="placeholder" style="display:none;">
+      <div class="title">Impact Reports</div>
+      <p>Replace <code>impact-data-report-screen.png</code> in this folder with your screenshot.</p>
+    </div>
+  </div>
+</body>
+</html>

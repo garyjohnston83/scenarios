@@ -16,7 +16,7 @@ export async function fetchScenarioDetail(
   id: string
 ): Promise<ScenarioDetail> {
   const response = await axios.get<ScenarioDetail>(
-    `${API_BASE_URL}/scenarios/${id}?expand=header,summaryCards,reviewApproval`
+    `${API_BASE_URL}/scenarios/${id}?expand=header,summaryCards,events`
   );
   return response.data;
 }

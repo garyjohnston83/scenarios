@@ -31,6 +31,7 @@ function* handleFetchScenarioList() {
 
 export function* handleFetchScenarioDetail(action: PayloadAction<string>) {
   try {
+    // Phase 1: Fetch header, summaryCards, and events (sticky header data)
     const detail: ScenarioDetail = yield call(fetchScenarioDetail, action.payload);
     yield put(fetchScenarioDetailSuccess(detail));
 
@@ -70,7 +71,7 @@ export function* handleFetchScenarioDetail(action: PayloadAction<string>) {
   }
 }
 
-function* handlePostMessage(action: PayloadAction<{ scenarioId: string; text: string }>) {
+export function* handlePostMessage(action: PayloadAction<{ scenarioId: string; text: string }>) {
   try {
     const message: MessageData = yield call(
       postMessage,
@@ -78,6 +79,8 @@ function* handlePostMessage(action: PayloadAction<{ scenarioId: string; text: st
       action.payload.text
     );
     yield put(postMessageSuccess(message));
+    // Re-fetch scenario detail so the new MESSAGE_POSTED event appears in the activity stream
+    yield put(fetchScenarioDetailRequest(action.payload.scenarioId));
   } catch (error: unknown) {
     const message =
       error instanceof Error ? error.message : 'Failed to post message';

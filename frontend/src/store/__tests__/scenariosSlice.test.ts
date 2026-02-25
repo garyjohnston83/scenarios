@@ -106,9 +106,11 @@ describe('scenariosSlice', () => {
 
   // ========================================================================
   // Gap tests for message posting reducers
+  // (Updated for Increment 13: postMessageSuccess no longer appends to
+  //  reviewApproval.messages -- it only clears messagePosting flag)
   // ========================================================================
 
-  it('postMessageSuccess appends message to selectedDetail.reviewApproval.messages', () => {
+  it('postMessageSuccess clears messagePosting and does NOT append to reviewApproval.messages', () => {
     const prevState: ScenariosState = {
       ...initialState,
       messagePosting: true,
@@ -148,8 +150,10 @@ describe('scenariosSlice', () => {
     const state = scenariosReducer(prevState, postMessageSuccess(newMessage));
 
     expect(state.messagePosting).toBe(false);
-    expect(state.selectedDetail?.reviewApproval?.messages).toHaveLength(2);
-    expect(state.selectedDetail?.reviewApproval?.messages[1]).toEqual(newMessage);
+    // In Increment 13, postMessageSuccess no longer appends to reviewApproval.messages.
+    // The reviewApproval.messages should remain unchanged (length 1).
+    expect(state.selectedDetail?.reviewApproval?.messages).toHaveLength(1);
+    expect(state.selectedDetail?.reviewApproval?.messages[0].id).toBe('existing-msg-1');
   });
 
   it('postMessageFailure sets messagePostError and clears messagePosting', () => {

@@ -95,6 +95,7 @@ class ScenarioControllerTest {
                 null,
                 null,
                 null,
+                null,
                 null
         );
     }
@@ -119,6 +120,7 @@ class ScenarioControllerTest {
                 LocalDateTime.of(2026, 2, 18, 8, 0, 0),
                 LocalDateTime.of(2026, 2, 20, 14, 30, 0),
                 header,
+                null,
                 null,
                 null,
                 null,
@@ -149,6 +151,7 @@ class ScenarioControllerTest {
                 LocalDateTime.of(2026, 2, 20, 14, 30, 0),
                 null,
                 summaryCards,
+                null,
                 null,
                 null,
                 null
@@ -187,6 +190,7 @@ class ScenarioControllerTest {
                 summaryCards,
                 null,
                 null,
+                null,
                 null
         );
     }
@@ -216,6 +220,7 @@ class ScenarioControllerTest {
                 LocalDateTime.of(2026, 2, 20, 14, 30, 0),
                 null,
                 summaryCards,
+                null,
                 null,
                 null,
                 null
@@ -248,6 +253,7 @@ class ScenarioControllerTest {
                 summaryCards,
                 null,
                 null,
+                null,
                 null
         );
     }
@@ -274,6 +280,7 @@ class ScenarioControllerTest {
                 LocalDateTime.of(2026, 2, 20, 14, 30, 0),
                 null,
                 summaryCards,
+                null,
                 null,
                 null,
                 null
@@ -305,6 +312,7 @@ class ScenarioControllerTest {
                 summaryCards,
                 null,
                 null,
+                null,
                 null
         );
     }
@@ -332,6 +340,7 @@ class ScenarioControllerTest {
                 LocalDateTime.of(2026, 2, 20, 14, 30, 0),
                 null,
                 summaryCards,
+                null,
                 null,
                 null,
                 null
@@ -452,6 +461,7 @@ class ScenarioControllerTest {
                 null,
                 buildReviewApprovalDto(),
                 null,
+                null,
                 null
         );
     }
@@ -489,6 +499,7 @@ class ScenarioControllerTest {
                 summaryCards,
                 buildReviewApprovalDto(),
                 null,
+                null,
                 null
         );
     }
@@ -510,6 +521,7 @@ class ScenarioControllerTest {
                 null,
                 null,
                 reviewApproval,
+                null,
                 null,
                 null
         );
@@ -1111,6 +1123,7 @@ class ScenarioControllerTest {
                 null,
                 buildReviewApprovalDtoWithRelatedMessageId(),
                 null,
+                null,
                 null
         );
 
@@ -1186,6 +1199,7 @@ class ScenarioControllerTest {
                 LocalDateTime.of(2026, 2, 18, 8, 0, 0),
                 LocalDateTime.of(2026, 2, 20, 14, 30, 0),
                 header,
+                null,
                 null,
                 null,
                 null,
@@ -1285,6 +1299,7 @@ class ScenarioControllerTest {
                 null,
                 null,
                 null,
+                null,
                 directChanges,
                 null
         );
@@ -1345,6 +1360,7 @@ class ScenarioControllerTest {
                 "Risk Manager",
                 LocalDateTime.of(2026, 2, 21, 9, 0, 0),
                 LocalDateTime.of(2026, 2, 21, 15, 0, 0),
+                null,
                 null,
                 null,
                 null,

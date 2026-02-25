@@ -43,3 +43,5 @@ databaseChangeLog:
       file: db/changelog/changesets/021-add-policy-id-to-signoff-case.yaml
   - include:
       file: db/changelog/changesets/022-seed-signoff-policies.yaml
+  - include:
+      file: db/changelog/changesets/023-align-message-posted-events.yaml

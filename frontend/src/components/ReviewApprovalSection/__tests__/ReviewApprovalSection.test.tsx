@@ -111,9 +111,9 @@ describe('ReviewApprovalSection', () => {
     expect(screen.getByText('Alice Smith')).toBeInTheDocument();
     expect(screen.getByText('Bob Jones')).toBeInTheDocument();
 
-    // Formatted dates (en-GB format: "18 Feb 2026", "19 Feb 2026")
-    expect(screen.getByText('18 Feb 2026')).toBeInTheDocument();
-    expect(screen.getByText('19 Feb 2026')).toBeInTheDocument();
+    // Formatted dates (dd/MM/yyyy HH:mm:ss format -- updated in Increment 13)
+    expect(screen.getByText('18/02/2026 09:00:00')).toBeInTheDocument();
+    expect(screen.getByText('19/02/2026 11:30:00')).toBeInTheDocument();
 
     // Message text
     expect(
@@ -139,10 +139,10 @@ describe('ReviewApprovalSection', () => {
     expect(screen.getByText('Jane Doe')).toBeInTheDocument();
     expect(screen.getByText('Carlos Rivera')).toBeInTheDocument();
 
-    // Formatted event dates
-    expect(screen.getByText('15 Feb 2026')).toBeInTheDocument();
-    expect(screen.getByText('16 Feb 2026')).toBeInTheDocument();
-    expect(screen.getByText('17 Feb 2026')).toBeInTheDocument();
+    // Formatted event dates (dd/MM/yyyy HH:mm:ss format -- updated in Increment 13)
+    expect(screen.getByText('15/02/2026 08:00:00')).toBeInTheDocument();
+    expect(screen.getByText('16/02/2026 10:00:00')).toBeInTheDocument();
+    expect(screen.getByText('17/02/2026 14:00:00')).toBeInTheDocument();
   });
 
   it('renders "No messages" when messages array is empty', () => {

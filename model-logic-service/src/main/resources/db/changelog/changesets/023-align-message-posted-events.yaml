@@ -1,0 +1,71 @@
+databaseChangeLog:
+  - changeSet:
+      id: 023-align-message-posted-related-message-ids
+      author: scenarios-team
+      comment: >
+        Link the two existing MESSAGE_POSTED seed events for IR Vol Surface Update
+        to their corresponding scenario_message rows via the related_message_id FK.
+      changes:
+        - sql:
+            sql: |
+              -- IR Vol Surface Update: link MESSAGE_POSTED event f5f6a7b8-... to message b1b2c3d4-... (Jane Smith, 17:15)
+              UPDATE scenario_event
+              SET related_message_id = 'b1b2c3d4-e5f6-4a7b-8c9d-1e2f3a4b5c01'
+              WHERE id = 'f5f6a7b8-c9d0-4e1f-2a3b-5c6d7e8f9003';
+
+              -- IR Vol Surface Update: link MESSAGE_POSTED event b7b8c9d0-... to message c2c3d4e5-... (John Doe, 17:45)
+              UPDATE scenario_event
+              SET related_message_id = 'c2c3d4e5-f6a7-4b8c-9d0e-2f3a4b5c6d02'
+              WHERE id = 'b7b8c9d0-e1f2-4a3b-4c5d-7e8f90010205';
+
+  - changeSet:
+      id: 023-populate-state-transition-payload-json
+      author: scenarios-team
+      comment: >
+        Populate payload_json with oldState/newState on existing seed events
+        that imply a workflow state transition.
+      changes:
+        - sql:
+            sql: |
+              -- ============================================================
+              -- IR Vol Surface Update scenario events
+              -- ============================================================
+
+              -- SCENARIO_CREATED: transition from (no prior state) to DRAFT
+              UPDATE scenario_event
+              SET payload_json = '{"oldState":"DRAFT","newState":"DRAFT"}'
+              WHERE id = 'd3d4e5f6-a7b8-4c9d-0e1f-3a4b5c6d7e01';
+
+              -- IMPACT_COMPLETED: DRAFT -> IMPACT_AVAILABLE
+              UPDATE scenario_event
+              SET payload_json = '{"oldState":"DRAFT","newState":"IMPACT_AVAILABLE"}'
+              WHERE id = 'e4e5f6a7-b8c9-4d0e-1f2a-4b5c6d7e8f02';
+
+              -- SIGNOFF_COMMENCED: IMPACT_AVAILABLE -> SIGNOFF_IN_PROGRESS
+              UPDATE scenario_event
+              SET payload_json = '{"oldState":"IMPACT_AVAILABLE","newState":"SIGNOFF_IN_PROGRESS"}'
+              WHERE id = 'a6a7b8c9-d0e1-4f2a-3b4c-6d7e8f900104';
+
+              -- ============================================================
+              -- Credit Spread Adjustment scenario events
+              -- ============================================================
+
+              -- SCENARIO_CREATED: transition to DRAFT
+              UPDATE scenario_event
+              SET payload_json = '{"oldState":"DRAFT","newState":"DRAFT"}'
+              WHERE id = 'd9d0e1f2-a3b4-4c5d-6e7f-9001020304a7';
+
+              -- IMPACT_COMPLETED: DRAFT -> IMPACT_AVAILABLE
+              UPDATE scenario_event
+              SET payload_json = '{"oldState":"DRAFT","newState":"IMPACT_AVAILABLE"}'
+              WHERE id = 'e0e1f2a3-b4c5-4d6e-7f80-0102030405b8';
+
+              -- SIGNOFF_COMMENCED: IMPACT_AVAILABLE -> SIGNOFF_IN_PROGRESS
+              UPDATE scenario_event
+              SET payload_json = '{"oldState":"IMPACT_AVAILABLE","newState":"SIGNOFF_IN_PROGRESS"}'
+              WHERE id = 'f1f2a3b4-c5d6-4e7f-8091-02030405c609';
+
+              -- SIGNOFF_APPROVED: SIGNOFF_IN_PROGRESS -> SIGNED_OFF
+              UPDATE scenario_event
+              SET payload_json = '{"oldState":"SIGNOFF_IN_PROGRESS","newState":"SIGNED_OFF"}'
+              WHERE id = 'a2a3b4c5-d6e7-4f80-9102-030405d70a10';

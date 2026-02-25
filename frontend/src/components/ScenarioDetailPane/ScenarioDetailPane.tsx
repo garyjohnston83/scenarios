@@ -16,7 +16,6 @@ import {
   DialogActions,
   Link,
 } from '@fluentui/react-components';
-import { ArrowRightRegular } from '@fluentui/react-icons';
 import { useAppSelector, useAppDispatch } from '../../store/hooks';
 import {
   fetchScenarioDetailRequest,
@@ -31,7 +30,7 @@ import {
 } from '../../utils/labelMappings';
 import { DirectChangesSection } from '../DirectChangesSection';
 import { ImpactDataSection } from '../ImpactDataSection';
-import { ReviewApprovalSection } from '../ReviewApprovalSection';
+import { ActivityTable } from '../ActivityTable';
 import styles from './ScenarioDetailPane.module.scss';
 
 const EM_DASH = '\u2014';
@@ -160,7 +159,7 @@ export const ScenarioDetailPane: React.FC = () => {
   }
 
   if (selectedDetail) {
-    const { header, summaryCards, directChanges, impactData, reviewApproval } =
+    const { header, summaryCards, directChanges, impactData } =
       selectedDetail;
 
     const buttonEnabled = header
@@ -221,6 +220,14 @@ export const ScenarioDetailPane: React.FC = () => {
     const formatExceptionsCount = (value: number | null): string =>
       value === null ? EM_DASH : String(value);
 
+    const approvalsReceived = selectedDetail.events?.approvalsReceived;
+    const approvalsRequired = selectedDetail.events?.approvalsRequired;
+    const showApprovals =
+      approvalsReceived !== undefined &&
+      approvalsReceived !== null &&
+      approvalsRequired !== undefined &&
+      approvalsRequired !== null;
+
     return (
       <div className={styles.container}>
         <div className={styles.stickyHeader}>
@@ -270,6 +277,14 @@ export const ScenarioDetailPane: React.FC = () => {
                       {formatDate(header.updatedAt)}
                     </span>
                   </div>
+                  {showApprovals && (
+                    <div className={styles.fieldRow}>
+                      <span className={styles.fieldName}>Approvals</span>
+                      <span className={styles.fieldValue}>
+                        {approvalsReceived}/{approvalsRequired}
+                      </span>
+                    </div>
+                  )}
                 </>
               )}
             </div>
@@ -300,13 +315,13 @@ export const ScenarioDetailPane: React.FC = () => {
                   {summaryCards.changesSummary.cta && (
                     <div className={styles.ctaRow}>
                       <Link
-                        href={summaryCards.changesSummary.cta.url}
+                        href="/images/direct-changes-viewer.html"
                         target="_blank"
                         rel="noopener noreferrer"
-                        appearance="subtle"
+                        inline
+                        style={{ color: '#5c2d91' }}
                       >
                         {summaryCards.changesSummary.cta.label}
-                        <ArrowRightRegular />
                       </Link>
                     </div>
                   )}
@@ -353,13 +368,13 @@ export const ScenarioDetailPane: React.FC = () => {
                   {summaryCards.impactSummary.cta && (
                     <div className={styles.ctaRow}>
                       <Link
-                        href={summaryCards.impactSummary.cta.url}
+                        href="/images/impact-report-viewer.html"
                         target="_blank"
                         rel="noopener noreferrer"
-                        appearance="subtle"
+                        inline
+                        style={{ color: '#5c2d91' }}
                       >
                         {summaryCards.impactSummary.cta.label}
-                        <ArrowRightRegular />
                       </Link>
                     </div>
                   )}
@@ -376,6 +391,7 @@ export const ScenarioDetailPane: React.FC = () => {
               value={quickMessageText}
               onChange={(_e, data) => setQuickMessageText(data.value)}
               resize="vertical"
+              rows={3}
             />
             <div className={styles.quickMessageButtons}>
               <div className={styles.quickMessageButtonsTopRow}>
@@ -492,19 +508,14 @@ export const ScenarioDetailPane: React.FC = () => {
               </Text>
             </div>
           )}
+
+          <ActivityTable rows={selectedDetail.events?.rows ?? []} />
         </div>
 
         {/* Content sections — no more standalone SummaryCardsSection */}
         {directChanges && <DirectChangesSection data={directChanges} />}
 
         {impactData && <ImpactDataSection data={impactData} />}
-
-        {reviewApproval && (
-          <ReviewApprovalSection
-            data={reviewApproval}
-            scenarioId={selectedDetail.id}
-          />
-        )}
       </div>
     );
   }

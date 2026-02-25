@@ -16,6 +16,7 @@ public record ScenarioDetailDto(
         ScenarioHeaderDto header,
         SummaryCardsDto summaryCards,
         ReviewApprovalDto reviewApproval,
+        ActivityStreamDto events,
         DirectChangesDto directChanges,
         ImpactDataDto impactData
 ) {

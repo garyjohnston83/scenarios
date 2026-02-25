@@ -86,6 +86,21 @@ export interface ReviewApprovalData {
   approvalsRequired?: number;
 }
 
+export interface ActivityRowData {
+  id: string;
+  bucketType: "MESSAGE" | "USER" | "SYSTEM";
+  occurredAt: string;
+  authorDisplayName: string;
+  details: string;
+  statusTransition: string | null;
+}
+
+export interface ActivityStreamData {
+  rows: ActivityRowData[];
+  approvalsReceived?: number;
+  approvalsRequired?: number;
+}
+
 export interface GridRowData {
   rowId: string;
   payload: Record<string, unknown>;
@@ -112,6 +127,7 @@ export interface ScenarioDetail {
   header?: ScenarioHeaderData;
   summaryCards?: SummaryCardsData;
   reviewApproval?: ReviewApprovalData;
+  events?: ActivityStreamData;
   directChanges?: DirectChangesData;
   impactData?: ImpactDataData;
 }
@@ -184,11 +200,8 @@ const scenariosSlice = createSlice({
       state.messagePosting = true;
       state.messagePostError = null;
     },
-    postMessageSuccess(state, action: PayloadAction<MessageData>) {
+    postMessageSuccess(state, _action: PayloadAction<MessageData>) {
       state.messagePosting = false;
-      if (state.selectedDetail?.reviewApproval) {
-        state.selectedDetail.reviewApproval.messages.push(action.payload);
-      }
     },
     postMessageFailure(state, action: PayloadAction<string>) {
       state.messagePostError = action.payload;

@@ -44,7 +44,8 @@ describe('SummaryCardsSection', () => {
     // Impact Summary card
     expect(screen.getByText('Impact Summary')).toBeInTheDocument();
     expect(screen.getByText('Moderate')).toBeInTheDocument();
-    expect(screen.getByText('20 Feb 2026')).toBeInTheDocument();
+    // Updated to match dd/MM/yyyy HH:mm:ss format (Increment 13 formatDate change)
+    expect(screen.getByText('20/02/2026 14:00:00')).toBeInTheDocument();
     expect(screen.getByText('Succeeded')).toBeInTheDocument();
     expect(screen.getByText('3')).toBeInTheDocument();
   });

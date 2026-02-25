@@ -2,6 +2,8 @@ package com.prototypes.scenarios.service;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.prototypes.scenarios.dto.ActivityRowDto;
+import com.prototypes.scenarios.dto.ActivityStreamDto;
 import com.prototypes.scenarios.dto.ChangesSummaryDto;
 import com.prototypes.scenarios.dto.CtaDto;
 import com.prototypes.scenarios.dto.DirectChangesDto;
@@ -129,6 +131,10 @@ public class ScenarioDetailService {
             "IMPACT_AVAILABLE", "SIGNOFF_IN_PROGRESS", "SIGNED_OFF"
     );
 
+    private static final Set<String> MESSAGE_DETAIL_EVENT_TYPES = Set.of(
+            "MESSAGE_POSTED", "SCENARIO_RECALLED", "SCENARIO_REJECTED"
+    );
+
     private final ScenarioRepository scenarioRepository;
     private final ImpactRunRepository impactRunRepository;
     private final ScenarioLinkRepository scenarioLinkRepository;
@@ -185,15 +191,28 @@ public class ScenarioDetailService {
         String displayName = resolveActorDisplayName(actorId);
         UserRef authorUser = resolveUserRef(actorId);
 
+        LocalDateTime now = LocalDateTime.now();
+
         ScenarioMessage message = new ScenarioMessage();
         message.setId(UUID.randomUUID());
         message.setScenario(scenario);
         message.setAuthorDisplayName(displayName);
         message.setAuthorUser(authorUser);
         message.setText(text);
-        message.setCreatedAt(LocalDateTime.now());
+        message.setCreatedAt(now);
 
-        scenarioMessageRepository.save(message);
+        ScenarioMessage savedMessage = scenarioMessageRepository.save(message);
+
+        // Create MESSAGE_POSTED ScenarioEvent linked to the saved message
+        ScenarioEvent event = new ScenarioEvent();
+        event.setId(UUID.randomUUID());
+        event.setScenario(scenario);
+        event.setEventType("MESSAGE_POSTED");
+        event.setActorDisplayName(displayName);
+        event.setActorUser(authorUser);
+        event.setCreatedAt(now);
+        event.setRelatedMessage(savedMessage);
+        scenarioEventRepository.save(event);
 
         return new MessageDto(
                 message.getId(),
@@ -261,6 +280,39 @@ public class ScenarioDetailService {
                 .orElseGet(() -> userRefRepository.findById("current-user").orElse(null));
     }
 
+    private String buildPayloadJson(String oldState, String newState) {
+        try {
+            return objectMapper.writeValueAsString(Map.of("oldState", oldState, "newState", newState));
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to serialize state transition payload", e);
+        }
+    }
+
+    /**
+     * Normalizes a payloadJson string that may be double-encoded by H2's jsonb column type.
+     * H2 in PostgreSQL mode can return jsonb values as escaped JSON strings (e.g.,
+     * "{\"oldState\":\"DRAFT\"}" instead of {"oldState":"DRAFT"}).
+     * This method unwraps the outer string encoding if present, so the result is always
+     * a plain JSON object string ready for deserialization.
+     */
+    private String normalizePayloadJson(String raw) {
+        if (raw == null || raw.isBlank()) {
+            return null;
+        }
+        String trimmed = raw.trim();
+        // If the string starts with a quote but not a brace, it is a JSON-encoded string
+        // that wraps the actual JSON object. Unwrap it.
+        if (trimmed.startsWith("\"") && !trimmed.startsWith("{")) {
+            try {
+                // Use ObjectMapper to decode the JSON string value into a plain string
+                return objectMapper.readValue(trimmed, String.class);
+            } catch (Exception e) {
+                // Fall through to return the raw value
+            }
+        }
+        return trimmed;
+    }
+
     private void handleRecall(Scenario scenario, String workflowState, String message,
                               String actorDisplayName, UserRef actorUser) {
         if (message == null || message.isBlank()) {
@@ -269,6 +321,8 @@ public class ScenarioDetailService {
         if (!RECALL_ALLOWED_STATES.contains(workflowState)) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "RECALL is not allowed from state: " + workflowState);
         }
+
+        String oldState = workflowState;
 
         ScenarioMessage scenarioMessage = new ScenarioMessage();
         scenarioMessage.setId(UUID.randomUUID());
@@ -279,6 +333,8 @@ public class ScenarioDetailService {
         scenarioMessage.setCreatedAt(LocalDateTime.now());
         ScenarioMessage savedMessage = scenarioMessageRepository.save(scenarioMessage);
 
+        scenario.getSummary().setWorkflowState("DRAFT");
+
         ScenarioEvent event = new ScenarioEvent();
         event.setId(UUID.randomUUID());
         event.setScenario(scenario);
@@ -287,9 +343,8 @@ public class ScenarioDetailService {
         event.setActorUser(actorUser);
         event.setCreatedAt(LocalDateTime.now());
         event.setRelatedMessage(savedMessage);
+        event.setPayloadJson(buildPayloadJson(oldState, "DRAFT"));
         scenarioEventRepository.save(event);
-
-        scenario.getSummary().setWorkflowState("DRAFT");
     }
 
     private void handleReject(Scenario scenario, String workflowState, String message,
@@ -301,6 +356,8 @@ public class ScenarioDetailService {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "REJECT is not allowed from state: " + workflowState);
         }
 
+        String oldState = workflowState;
+
         ScenarioMessage scenarioMessage = new ScenarioMessage();
         scenarioMessage.setId(UUID.randomUUID());
         scenarioMessage.setScenario(scenario);
@@ -310,6 +367,8 @@ public class ScenarioDetailService {
         scenarioMessage.setCreatedAt(LocalDateTime.now());
         ScenarioMessage savedMessage = scenarioMessageRepository.save(scenarioMessage);
 
+        scenario.getSummary().setWorkflowState("REJECTED");
+
         ScenarioEvent event = new ScenarioEvent();
         event.setId(UUID.randomUUID());
         event.setScenario(scenario);
@@ -318,9 +377,8 @@ public class ScenarioDetailService {
         event.setActorUser(actorUser);
         event.setCreatedAt(LocalDateTime.now());
         event.setRelatedMessage(savedMessage);
+        event.setPayloadJson(buildPayloadJson(oldState, "REJECTED"));
         scenarioEventRepository.save(event);
-
-        scenario.getSummary().setWorkflowState("REJECTED");
     }
 
     private void handleSignoff(Scenario scenario, UUID scenarioId, String workflowState,
@@ -329,6 +387,7 @@ public class ScenarioDetailService {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "SIGNOFF is not allowed from state: " + workflowState);
         }
 
+        String oldState = workflowState;
         String scenarioTypeCode = scenario.getScenarioTypeCode();
 
         // Find or create the SignoffCase
@@ -374,15 +433,18 @@ public class ScenarioDetailService {
         int requiredApprovals = signoffCase.getRequiredApprovals();
 
         String eventType;
+        String newState;
         if (signoffCase.getApprovalsReceived() == 1) {
             eventType = "SIGNOFF_STARTED";
-            scenario.getSummary().setWorkflowState("SIGNOFF_IN_PROGRESS");
+            newState = "SIGNOFF_IN_PROGRESS";
+            scenario.getSummary().setWorkflowState(newState);
         } else if (signoffCase.getApprovalsReceived() < requiredApprovals) {
             eventType = "SIGNOFF_APPROVAL_RECORDED";
-            // stay at SIGNOFF_IN_PROGRESS
+            newState = workflowState; // stay at SIGNOFF_IN_PROGRESS
         } else {
             eventType = "SIGNOFF_COMPLETED";
-            scenario.getSummary().setWorkflowState("SIGNED_OFF");
+            newState = "SIGNED_OFF";
+            scenario.getSummary().setWorkflowState(newState);
             signoffCase.setStatus("COMPLETED");
             signoffCase.setCompletedAt(LocalDateTime.now());
         }
@@ -396,6 +458,7 @@ public class ScenarioDetailService {
         event.setActorDisplayName(actorDisplayName);
         event.setActorUser(actorUser);
         event.setCreatedAt(LocalDateTime.now());
+        event.setPayloadJson(buildPayloadJson(oldState, newState));
         scenarioEventRepository.save(event);
     }
 
@@ -410,6 +473,8 @@ public class ScenarioDetailService {
                     "impactRun payload is required for IMPACT_COMPLETED");
         }
 
+        String oldState = workflowState;
+
         createImpactRun(scenario, impactRun);
         applySummaryPatch(scenario.getSummary(), summaryPatch);
         scenario.getSummary().setWorkflowState("IMPACT_AVAILABLE");
@@ -423,6 +488,7 @@ public class ScenarioDetailService {
         event.setActorDisplayName("System");
         event.setActorUser(systemUser);
         event.setCreatedAt(LocalDateTime.now());
+        event.setPayloadJson(buildPayloadJson(oldState, "IMPACT_AVAILABLE"));
         scenarioEventRepository.save(event);
     }
 
@@ -437,6 +503,8 @@ public class ScenarioDetailService {
                     "impactRun payload is required for IMPACT_DATA_REFRESHED");
         }
 
+        String oldState = workflowState;
+
         createImpactRun(scenario, impactRun);
         applySummaryPatch(scenario.getSummary(), summaryPatch);
         scenario.getSummary().setWorkflowState("IMPACT_AVAILABLE");
@@ -450,6 +518,7 @@ public class ScenarioDetailService {
         event.setActorDisplayName("System");
         event.setActorUser(systemUser);
         event.setCreatedAt(LocalDateTime.now());
+        event.setPayloadJson(buildPayloadJson(oldState, "IMPACT_AVAILABLE"));
         scenarioEventRepository.save(event);
     }
 
@@ -458,6 +527,8 @@ public class ScenarioDetailService {
             throw new ResponseStatusException(HttpStatus.CONFLICT,
                     "IMPACT_INVALIDATED is not allowed from state: " + workflowState);
         }
+
+        String oldState = workflowState;
 
         scenario.getSummary().setWorkflowState("IMPACT_EXPIRED");
 
@@ -470,6 +541,7 @@ public class ScenarioDetailService {
         event.setActorDisplayName("System");
         event.setActorUser(systemUser);
         event.setCreatedAt(LocalDateTime.now());
+        event.setPayloadJson(buildPayloadJson(oldState, "IMPACT_EXPIRED"));
         scenarioEventRepository.save(event);
     }
 
@@ -478,6 +550,8 @@ public class ScenarioDetailService {
             throw new ResponseStatusException(HttpStatus.CONFLICT,
                     "PROMOTION_COMPLETED is not allowed from state: " + workflowState);
         }
+
+        String oldState = workflowState;
 
         scenario.getSummary().setWorkflowState("PROMOTED");
 
@@ -490,6 +564,7 @@ public class ScenarioDetailService {
         event.setActorDisplayName("System");
         event.setActorUser(systemUser);
         event.setCreatedAt(LocalDateTime.now());
+        event.setPayloadJson(buildPayloadJson(oldState, "PROMOTED"));
         scenarioEventRepository.save(event);
     }
 
@@ -556,6 +631,11 @@ public class ScenarioDetailService {
             reviewApproval = buildReviewApproval(scenario);
         }
 
+        ActivityStreamDto events = null;
+        if (expandSections.contains("events")) {
+            events = buildActivityStream(scenario);
+        }
+
         DirectChangesDto directChanges = null;
         if (expandSections.contains("directChanges")) {
             directChanges = buildDirectChanges(scenario);
@@ -576,8 +656,79 @@ public class ScenarioDetailService {
                 header,
                 summaryCards,
                 reviewApproval,
+                events,
                 directChanges,
                 impactData
+        );
+    }
+
+    private ActivityStreamDto buildActivityStream(Scenario scenario) {
+        UUID scenarioId = scenario.getId();
+
+        List<ScenarioEvent> scenarioEvents = scenarioEventRepository
+                .findByScenarioIdOrderByCreatedAtAsc(scenarioId);
+
+        List<ActivityRowDto> rows = scenarioEvents.stream()
+                .map(this::mapEventToActivityRow)
+                .toList();
+
+        // Query SignoffCase for approval progress (same pattern as buildReviewApproval)
+        Optional<SignoffCase> signoffCaseOpt = signoffCaseRepository.findByScenarioId(scenarioId);
+        Integer approvalsReceived = signoffCaseOpt.map(SignoffCase::getApprovalsReceived).orElse(null);
+        Integer approvalsRequired = signoffCaseOpt.map(SignoffCase::getRequiredApprovals).orElse(null);
+
+        return new ActivityStreamDto(rows, approvalsReceived, approvalsRequired);
+    }
+
+    private ActivityRowDto mapEventToActivityRow(ScenarioEvent evt) {
+        String eventType = evt.getEventType();
+
+        // Classify bucketType
+        String bucketType;
+        if ("MESSAGE_POSTED".equals(eventType)) {
+            bucketType = "MESSAGE";
+        } else if (evt.getActorUser() != null && "system".equals(evt.getActorUser().getId())) {
+            bucketType = "SYSTEM";
+        } else {
+            bucketType = "USER";
+        }
+
+        // Derive details
+        String details;
+        if (MESSAGE_DETAIL_EVENT_TYPES.contains(eventType) && evt.getRelatedMessage() != null) {
+            details = evt.getRelatedMessage().getText();
+        } else {
+            details = EVENT_LABELS.getOrDefault(eventType, eventType);
+        }
+
+        // Derive statusTransition from payloadJson
+        String statusTransition = null;
+        String normalizedPayload = normalizePayloadJson(evt.getPayloadJson());
+        if (normalizedPayload != null && !normalizedPayload.isBlank()) {
+            try {
+                Map<String, String> payload = objectMapper.readValue(
+                        normalizedPayload, new TypeReference<Map<String, String>>() {});
+                String oldState = payload.get("oldState");
+                String newState = payload.get("newState");
+                if (oldState != null && newState != null) {
+                    String oldLabel = oldState.equals(newState)
+                            ? "[Start]"
+                            : WORKFLOW_STATE_LABELS.getOrDefault(oldState, oldState);
+                    String newLabel = WORKFLOW_STATE_LABELS.getOrDefault(newState, newState);
+                    statusTransition = oldLabel + " -> " + newLabel;
+                }
+            } catch (Exception e) {
+                // If payload cannot be parsed, leave statusTransition as null
+            }
+        }
+
+        return new ActivityRowDto(
+                evt.getId(),
+                bucketType,
+                evt.getCreatedAt(),
+                evt.getActorDisplayName(),
+                details,
+                statusTransition
         );
     }
 

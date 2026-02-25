@@ -84,8 +84,9 @@ describe('ScenarioDetailPane', () => {
     expect(screen.getByText('Sign-off In Progress')).toBeInTheDocument();
     expect(screen.getByText('Moderate')).toBeInTheDocument();
     expect(screen.getByText('John Doe')).toBeInTheDocument();
-    expect(screen.getByText('18 Feb 2026')).toBeInTheDocument();
-    expect(screen.getByText('20 Feb 2026')).toBeInTheDocument();
+    // Updated to match dd/MM/yyyy HH:mm:ss format (Increment 13 formatDate change)
+    expect(screen.getByText('18/02/2026 08:00:00')).toBeInTheDocument();
+    expect(screen.getByText('20/02/2026 14:30:00')).toBeInTheDocument();
   });
 
   it('renders three action buttons as enabled Fluent UI Buttons', () => {
@@ -143,10 +144,14 @@ describe('ScenarioDetailPane', () => {
       );
     });
     expect(screen.getByText('Scenario: Base Only Scenario')).toBeInTheDocument();
-    // Action buttons should not be present when header is missing
-    expect(screen.queryByText('Sign-off')).not.toBeInTheDocument();
-    expect(screen.queryByText('Recall')).not.toBeInTheDocument();
-    expect(screen.queryByText('Reject')).not.toBeInTheDocument();
+    // Action buttons are always rendered but should be disabled when header is missing
+    // (buttonEnabled defaults to all false when header is undefined)
+    const signoffBtn = screen.getByRole('button', { name: /Sign-off/i });
+    const recallBtn = screen.getByRole('button', { name: /Recall/i });
+    const rejectBtn = screen.getByRole('button', { name: /Reject/i });
+    expect(signoffBtn).toBeDisabled();
+    expect(recallBtn).toBeDisabled();
+    expect(rejectBtn).toBeDisabled();
   });
 
   it('renders "Loading..." when detailLoading is true', () => {
@@ -226,7 +231,7 @@ describe('ScenarioDetailPane', () => {
     expect(impactLink).toHaveAttribute('href', 'https://marketdata.example.com/impacts');
   });
 
-  it('does NOT render summary cards when summaryCards is absent from selectedDetail', () => {
+  it('does NOT render summary card field values when summaryCards is absent from selectedDetail', () => {
     const store: EnhancedStore = renderWithProviders('/scenarios/sc-1');
     act(() => {
       store.dispatch(
@@ -252,20 +257,27 @@ describe('ScenarioDetailPane', () => {
     expect(screen.getByText('Scenario: No Cards Scenario')).toBeInTheDocument();
     expect(screen.getByText('Draft')).toBeInTheDocument();
 
-    // Verify summary cards content is NOT present
-    expect(screen.queryByText('Changes Summary')).not.toBeInTheDocument();
-    expect(screen.queryByText('Impact Summary')).not.toBeInTheDocument();
+    // Card headings are always rendered as part of the three-card layout.
+    // When summaryCards is absent, the card bodies (field rows, CTA links) are empty.
+    expect(screen.getByText('Changes Summary')).toBeInTheDocument();
+    expect(screen.getByText('Impact Summary')).toBeInTheDocument();
 
-    // Verify no CTA links are present
+    // Verify no CTA links are present (no summaryCards data means no field values)
     const links = screen.queryAllByRole('link');
     expect(links).toHaveLength(0);
+
+    // Verify specific field labels that only appear when summaryCards data is provided
+    expect(screen.queryByText('Total Changes')).not.toBeInTheDocument();
+    expect(screen.queryByText('Exceptions')).not.toBeInTheDocument();
   });
 
   // ========================================================================
   // Gap tests for ReviewApprovalSection integration
+  // (Updated for Increment 13: ReviewApprovalSection is no longer rendered
+  //  by ScenarioDetailPane -- it was replaced by ActivityTable in TG6)
   // ========================================================================
 
-  it('renders ReviewApprovalSection when reviewApproval data is present in selectedDetail', () => {
+  it('does NOT render ReviewApprovalSection even when reviewApproval data is present in selectedDetail', () => {
     const store: EnhancedStore = renderWithProviders('/scenarios/sc-1');
     act(() => {
       store.dispatch(
@@ -311,19 +323,12 @@ describe('ScenarioDetailPane', () => {
       );
     });
 
-    // Verify ReviewApprovalSection renders with workflow status
-    expect(screen.getByText('Step 3 of 5')).toBeInTheDocument();
-
-    // Verify Messages heading and message content
-    expect(screen.getByText('Messages')).toBeInTheDocument();
-    expect(screen.getByText('Please review the curve data.')).toBeInTheDocument();
-
-    // Verify Events heading and event content
-    expect(screen.getByText('Events')).toBeInTheDocument();
-    expect(screen.getByText('Scenario created')).toBeInTheDocument();
-
-    // Verify Export History button
-    expect(screen.getByRole('button', { name: /export history/i })).toBeInTheDocument();
+    // ReviewApprovalSection headings should NOT be present (removed in Increment 13 TG6)
+    expect(screen.queryByText('Workflow Status')).not.toBeInTheDocument();
+    expect(screen.queryByText('Messages')).not.toBeInTheDocument();
+    expect(screen.queryByText('Events')).not.toBeInTheDocument();
+    expect(screen.queryByText('Step 3 of 5')).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /export history/i })).not.toBeInTheDocument();
   });
 
   it('does NOT render ReviewApprovalSection when reviewApproval is absent from selectedDetail', () => {

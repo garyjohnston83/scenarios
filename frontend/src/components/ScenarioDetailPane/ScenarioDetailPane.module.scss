@@ -35,6 +35,8 @@
   border-radius: 6px;
   padding: 10px 14px;
   background-color: #fafafa;
+  display: flex;
+  flex-direction: column;
 }
 
 .headerCardTitle {
@@ -68,7 +70,8 @@
 }
 
 .ctaRow {
-  margin-top: 6px;
+  margin-top: auto;
+  padding-top: 6px;
 }
 
 /* --- Quick message + action buttons row --- */

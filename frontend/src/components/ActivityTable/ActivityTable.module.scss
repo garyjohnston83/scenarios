@@ -1,0 +1,92 @@
+.section {
+  padding: 16px 24px 24px;
+}
+
+.sectionHeading {
+  display: block;
+  font-size: 11px;
+  color: #666;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 12px;
+}
+
+.tableContainer {
+  max-height: 300px;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+  table-layout: fixed;
+}
+
+.table th,
+.table td {
+  padding: 5px 8px;
+  text-align: left;
+  border-bottom: 1px solid #e0e0e0;
+  vertical-align: top;
+}
+
+.table th {
+  font-size: 11px;
+  font-weight: 600;
+  color: #666;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  white-space: nowrap;
+  vertical-align: middle;
+}
+
+.typeColumn {
+  width: 44px;
+  text-align: center;
+}
+
+.dateColumn {
+  width: 150px;
+  white-space: nowrap;
+}
+
+.authorColumn {
+  width: 100px;
+}
+
+.detailsColumn {
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  white-space: normal;
+}
+
+.statusColumn {
+  width: 190px;
+  white-space: nowrap;
+}
+
+/* --- Icon colours --- */
+.iconMessage {
+  font-size: 18px;
+  color: #0078d4;
+}
+
+.iconUser {
+  font-size: 18px;
+  color: #1a6b2a;
+}
+
+.iconSystem {
+  font-size: 18px;
+  color: #8a6900;
+}
+
+.emptyState {
+  font-size: 13px;
+  color: #999;
+  font-style: italic;
+  text-align: center;
+  padding: 24px 0;
+}
