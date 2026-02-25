@@ -1,5 +1,6 @@
 package com.prototypes.scenarios.controller;
 
+import com.prototypes.scenarios.dto.CombineScenariosRequestDto;
 import com.prototypes.scenarios.dto.MessageDto;
 import com.prototypes.scenarios.dto.PostEventRequestDto;
 import com.prototypes.scenarios.dto.PostMessageRequestDto;
@@ -72,6 +73,14 @@ public class ScenarioController {
             @RequestHeader(value = "X-Actor-Id", required = false) String actorId) {
         scenarioDetailService.processEvent(id, request, actor, actorId);
         return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/scenarios/combine")
+    public ResponseEntity<ScenarioListItemDto> combineScenarios(
+            @RequestBody CombineScenariosRequestDto request,
+            @RequestHeader(value = "X-Actor-Id", required = false) String actorId) {
+        ScenarioListItemDto result = scenarioDetailService.combineScenarios(request, actorId);
+        return ResponseEntity.status(HttpStatus.CREATED).body(result);
     }
 
     private Set<String> parseExpand(String expand) {

@@ -1,5 +1,5 @@
 import axios from 'axios';
-import type { ScenarioListItem, ScenarioDetail, MessageData } from '../store/scenariosSlice';
+import type { ScenarioListItem, ScenarioDetail, MessageData, CombineScenariosRequest } from '../store/scenariosSlice';
 import { CURRENT_USER_ID } from '../constants/user';
 
 const API_BASE_URL =
@@ -57,4 +57,15 @@ export async function postEvent(
     body,
     { headers: { "X-Actor-Id": CURRENT_USER_ID } }
   );
+}
+
+export async function combineScenarios(
+  request: CombineScenariosRequest
+): Promise<ScenarioListItem> {
+  const response = await axios.post<ScenarioListItem>(
+    `${API_BASE_URL}/scenarios/combine`,
+    request,
+    { headers: { "X-Actor-Id": CURRENT_USER_ID } }
+  );
+  return response.data;
 }

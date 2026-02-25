@@ -6,6 +6,9 @@
 }
 
 .header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   margin-bottom: 12px;
 }
 
@@ -62,6 +65,10 @@
 
 .typeBadgeSA {
   background-color: #1a6b2a;
+}
+
+.typeBadgeRF {
+  background-color: #7a3b10;
 }
 
 .scenarioName {

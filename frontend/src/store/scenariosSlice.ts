@@ -132,6 +132,12 @@ export interface ScenarioDetail {
   impactData?: ImpactDataData;
 }
 
+export interface CombineScenariosRequest {
+  name: string;
+  scenarioTypeCode: string;
+  sourceScenarioIds: string[];
+}
+
 export interface ScenariosState {
   items: ScenarioListItem[];
   listLoading: boolean;
@@ -145,6 +151,8 @@ export interface ScenariosState {
   messagePostError: string | null;
   eventPosting: boolean;
   eventPostError: string | null;
+  combinePosting: boolean;
+  combinePostError: string | null;
 }
 
 const initialState: ScenariosState = {
@@ -160,6 +168,8 @@ const initialState: ScenariosState = {
   messagePostError: null,
   eventPosting: false,
   eventPostError: null,
+  combinePosting: false,
+  combinePostError: null,
 };
 
 const scenariosSlice = createSlice({
@@ -227,6 +237,17 @@ const scenariosSlice = createSlice({
         ...action.payload,
       };
     },
+    combineScenariosRequest(state, _action: PayloadAction<CombineScenariosRequest>) {
+      state.combinePosting = true;
+      state.combinePostError = null;
+    },
+    combineScenariosSuccess(state, _action: PayloadAction<ScenarioListItem>) {
+      state.combinePosting = false;
+    },
+    combineScenariosFailure(state, action: PayloadAction<string>) {
+      state.combinePosting = false;
+      state.combinePostError = action.payload;
+    },
   },
 });
 
@@ -246,6 +267,9 @@ export const {
   postEventSuccess,
   postEventFailure,
   mergeGridSections,
+  combineScenariosRequest,
+  combineScenariosSuccess,
+  combineScenariosFailure,
 } = scenariosSlice.actions;
 
 export default scenariosSlice.reducer;

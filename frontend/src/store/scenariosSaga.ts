@@ -1,5 +1,5 @@
 import { call, put, takeLatest } from 'redux-saga/effects';
-import { fetchScenarioList, fetchScenarioDetail, fetchScenarioGridSections, postMessage, postEvent } from '../services/scenarioApi';
+import { fetchScenarioList, fetchScenarioDetail, fetchScenarioGridSections, postMessage, postEvent, combineScenarios } from '../services/scenarioApi';
 import {
   fetchScenarioListRequest,
   fetchScenarioListSuccess,
@@ -14,9 +14,12 @@ import {
   postEventRequest,
   postEventSuccess,
   postEventFailure,
+  combineScenariosRequest,
+  combineScenariosSuccess,
+  combineScenariosFailure,
 } from './scenariosSlice';
 import type { PayloadAction } from '@reduxjs/toolkit';
-import type { ScenarioListItem, ScenarioDetail, MessageData } from './scenariosSlice';
+import type { ScenarioListItem, ScenarioDetail, MessageData, CombineScenariosRequest } from './scenariosSlice';
 
 function* handleFetchScenarioList() {
   try {
@@ -115,4 +118,21 @@ export function* watchPostMessage() {
 
 export function* watchPostEvent() {
   yield takeLatest(postEventRequest.type, handlePostEvent);
+}
+
+function* handleCombineScenarios(action: PayloadAction<CombineScenariosRequest>) {
+  try {
+    const result: ScenarioListItem = yield call(combineScenarios, action.payload);
+    yield put(combineScenariosSuccess(result));
+    yield put(fetchScenarioListRequest());
+  } catch (error: unknown) {
+    const err = error as { response?: { data?: { message?: string } } };
+    const errorMessage =
+      err.response?.data?.message || 'Failed to combine scenarios';
+    yield put(combineScenariosFailure(errorMessage));
+  }
+}
+
+export function* watchCombineScenarios() {
+  yield takeLatest(combineScenariosRequest.type, handleCombineScenarios);
 }

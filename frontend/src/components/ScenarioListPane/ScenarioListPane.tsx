@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import {
   Text,
@@ -8,6 +8,7 @@ import {
   makeStyles,
   tokens,
 } from '@fluentui/react-components';
+import { AddRegular } from '@fluentui/react-icons';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import {
   fetchScenarioListRequest,
@@ -16,6 +17,7 @@ import {
 } from '../../store/scenariosSlice';
 import type { ScenarioListItem } from '../../store/scenariosSlice';
 import { formatDate } from '../../utils/formatDate';
+import { CombineScenariosDialog } from '../CombineScenariosDialog';
 import styles from './ScenarioListPane.module.scss';
 
 const useFluentStyles = makeStyles({
@@ -73,6 +75,7 @@ export const ScenarioListPane: React.FC = () => {
   const navigate = useNavigate();
   const { id: selectedId } = useParams<{ id: string }>();
   const fluentStyles = useFluentStyles();
+  const [combineDialogOpen, setCombineDialogOpen] = useState(false);
 
   const items = useAppSelector((state) => state.scenarios.items);
   const listLoading = useAppSelector((state) => state.scenarios.listLoading);
@@ -104,12 +107,21 @@ export const ScenarioListPane: React.FC = () => {
             className={fluentStyles.header}
             size={400}
             weight="semibold"
-            block
           >
             Scenarios
           </Text>
+          <Button
+            appearance="subtle"
+            icon={<AddRegular />}
+            size="small"
+            onClick={() => setCombineDialogOpen(true)}
+          />
         </div>
         <Text size={300}>Loading...</Text>
+        <CombineScenariosDialog
+          open={combineDialogOpen}
+          onClose={() => setCombineDialogOpen(false)}
+        />
       </div>
     );
   }
@@ -122,10 +134,15 @@ export const ScenarioListPane: React.FC = () => {
             className={fluentStyles.header}
             size={400}
             weight="semibold"
-            block
           >
             Scenarios
           </Text>
+          <Button
+            appearance="subtle"
+            icon={<AddRegular />}
+            size="small"
+            onClick={() => setCombineDialogOpen(true)}
+          />
         </div>
         <div className={styles.errorState}>
           <Text size={300}>{listError}</Text>
@@ -137,6 +154,10 @@ export const ScenarioListPane: React.FC = () => {
             Retry
           </Button>
         </div>
+        <CombineScenariosDialog
+          open={combineDialogOpen}
+          onClose={() => setCombineDialogOpen(false)}
+        />
       </div>
     );
   }
@@ -149,14 +170,23 @@ export const ScenarioListPane: React.FC = () => {
             className={fluentStyles.header}
             size={400}
             weight="semibold"
-            block
           >
             Scenarios
           </Text>
+          <Button
+            appearance="subtle"
+            icon={<AddRegular />}
+            size="small"
+            onClick={() => setCombineDialogOpen(true)}
+          />
         </div>
         <Text className={`${styles.emptyState} ${fluentStyles.emptyState}`} size={300}>
           No scenarios
         </Text>
+        <CombineScenariosDialog
+          open={combineDialogOpen}
+          onClose={() => setCombineDialogOpen(false)}
+        />
       </div>
     );
   }
@@ -168,10 +198,15 @@ export const ScenarioListPane: React.FC = () => {
           className={fluentStyles.header}
           size={400}
           weight="semibold"
-          block
         >
           Scenarios
         </Text>
+        <Button
+          appearance="subtle"
+          icon={<AddRegular />}
+          size="small"
+          onClick={() => setCombineDialogOpen(true)}
+        />
       </div>
 
       <div className={styles.toolbar}>
@@ -230,10 +265,16 @@ export const ScenarioListPane: React.FC = () => {
                   className={`${styles.typeBadge} ${
                     item.scenarioTypeCode === 'FRTB_SA'
                       ? styles.typeBadgeSA
-                      : styles.typeBadgeMD
+                      : item.scenarioTypeCode === 'RISK_FACTOR'
+                        ? styles.typeBadgeRF
+                        : styles.typeBadgeMD
                   }`}
                 >
-                  {item.scenarioTypeCode === 'FRTB_SA' ? 'SA' : 'MD'}
+                  {item.scenarioTypeCode === 'FRTB_SA'
+                    ? 'SA'
+                    : item.scenarioTypeCode === 'RISK_FACTOR'
+                      ? 'RF'
+                      : 'MD'}
                 </span>
               )}
               <span className={styles.scenarioName}>{item.name}</span>
@@ -245,6 +286,10 @@ export const ScenarioListPane: React.FC = () => {
           </div>
         ))}
       </div>
+      <CombineScenariosDialog
+        open={combineDialogOpen}
+        onClose={() => setCombineDialogOpen(false)}
+      />
     </div>
   );
 };

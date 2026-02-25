@@ -16,4 +16,7 @@ public interface ScenarioRepository extends JpaRepository<Scenario, UUID> {
 
     @Query("SELECT s FROM Scenario s JOIN FETCH s.summary JOIN FETCH s.scenarioType WHERE s.id = :id")
     Optional<Scenario> findByIdWithSummary(@Param("id") UUID id);
+
+    @Query("SELECT s FROM Scenario s JOIN FETCH s.summary WHERE s.id IN :ids")
+    List<Scenario> findAllWithSummaryByIds(@Param("ids") List<UUID> ids);
 }

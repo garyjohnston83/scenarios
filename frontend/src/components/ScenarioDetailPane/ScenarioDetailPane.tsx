@@ -416,7 +416,11 @@ export const ScenarioDetailPane: React.FC = () => {
                   open={recallDialogOpen}
                   onOpenChange={(_event, data) => {
                     setRecallDialogOpen(data.open);
-                    if (!data.open) setRecallMessage('');
+                    if (data.open) {
+                      setRecallMessage(quickMessageText);
+                    } else {
+                      setRecallMessage('');
+                    }
                   }}
                 >
                   <DialogTrigger disableButtonEnhancement>
@@ -459,7 +463,11 @@ export const ScenarioDetailPane: React.FC = () => {
                   open={rejectDialogOpen}
                   onOpenChange={(_event, data) => {
                     setRejectDialogOpen(data.open);
-                    if (!data.open) setRejectMessage('');
+                    if (data.open) {
+                      setRejectMessage(quickMessageText);
+                    } else {
+                      setRejectMessage('');
+                    }
                   }}
                 >
                   <DialogTrigger disableButtonEnhancement>

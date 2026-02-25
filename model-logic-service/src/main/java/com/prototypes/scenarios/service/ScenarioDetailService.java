@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.prototypes.scenarios.dto.ActivityRowDto;
 import com.prototypes.scenarios.dto.ActivityStreamDto;
 import com.prototypes.scenarios.dto.ChangesSummaryDto;
+import com.prototypes.scenarios.dto.CombineScenariosRequestDto;
 import com.prototypes.scenarios.dto.CtaDto;
 import com.prototypes.scenarios.dto.DirectChangesDto;
 import com.prototypes.scenarios.dto.EventDto;
@@ -18,6 +19,7 @@ import com.prototypes.scenarios.dto.ProgressDto;
 import com.prototypes.scenarios.dto.ReviewApprovalDto;
 import com.prototypes.scenarios.dto.ScenarioDetailDto;
 import com.prototypes.scenarios.dto.ScenarioHeaderDto;
+import com.prototypes.scenarios.dto.ScenarioListItemDto;
 import com.prototypes.scenarios.dto.ScenarioTypeDto;
 import com.prototypes.scenarios.dto.SummaryCardsDto;
 import com.prototypes.scenarios.dto.SummaryPatchPayload;
@@ -43,6 +45,7 @@ import com.prototypes.scenarios.repository.ScenarioLinkRepository;
 import com.prototypes.scenarios.repository.ScenarioMessageRepository;
 import com.prototypes.scenarios.repository.ScenarioParticipantRepository;
 import com.prototypes.scenarios.repository.ScenarioRepository;
+import com.prototypes.scenarios.repository.ScenarioSummaryRepository;
 import com.prototypes.scenarios.repository.SignoffApprovalRepository;
 import com.prototypes.scenarios.repository.SignoffCaseRepository;
 import com.prototypes.scenarios.repository.SignoffPolicyRepository;
@@ -108,11 +111,11 @@ public class ScenarioDetailService {
     );
 
     private static final Set<String> RECALL_ALLOWED_STATES = Set.of(
-            "DRAFT", "IMPACT_AVAILABLE", "SIGNOFF_IN_PROGRESS"
+            "DRAFT", "IMPACT_PENDING", "IMPACT_AVAILABLE", "SIGNOFF_IN_PROGRESS"
     );
 
     private static final Set<String> REJECT_ALLOWED_STATES = Set.of(
-            "DRAFT", "IMPACT_AVAILABLE", "SIGNOFF_IN_PROGRESS"
+            "DRAFT", "IMPACT_PENDING", "IMPACT_AVAILABLE", "SIGNOFF_IN_PROGRESS"
     );
 
     private static final Set<String> SIGNOFF_ALLOWED_STATES = Set.of(
@@ -148,6 +151,7 @@ public class ScenarioDetailService {
     private final ScenarioGridRowRepository scenarioGridRowRepository;
     private final SignoffPolicyRepository signoffPolicyRepository;
     private final SignoffApprovalRepository signoffApprovalRepository;
+    private final ScenarioSummaryRepository scenarioSummaryRepository;
 
     public ScenarioDetailService(ScenarioRepository scenarioRepository,
                                  ImpactRunRepository impactRunRepository,
@@ -161,7 +165,8 @@ public class ScenarioDetailService {
                                  ScenarioGridDatasetRepository scenarioGridDatasetRepository,
                                  ScenarioGridRowRepository scenarioGridRowRepository,
                                  SignoffPolicyRepository signoffPolicyRepository,
-                                 SignoffApprovalRepository signoffApprovalRepository) {
+                                 SignoffApprovalRepository signoffApprovalRepository,
+                                 ScenarioSummaryRepository scenarioSummaryRepository) {
         this.scenarioRepository = scenarioRepository;
         this.impactRunRepository = impactRunRepository;
         this.scenarioLinkRepository = scenarioLinkRepository;
@@ -175,6 +180,7 @@ public class ScenarioDetailService {
         this.scenarioGridRowRepository = scenarioGridRowRepository;
         this.signoffPolicyRepository = signoffPolicyRepository;
         this.signoffApprovalRepository = signoffApprovalRepository;
+        this.scenarioSummaryRepository = scenarioSummaryRepository;
     }
 
     @Transactional(readOnly = true)
@@ -219,6 +225,110 @@ public class ScenarioDetailService {
                 message.getAuthorDisplayName(),
                 message.getCreatedAt(),
                 message.getText()
+        );
+    }
+
+    @Transactional
+    public ScenarioListItemDto combineScenarios(CombineScenariosRequestDto request, String actorId) {
+        // Validate request
+        if (request.name() == null || request.name().isBlank()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Name is required");
+        }
+        if (request.sourceScenarioIds() == null || request.sourceScenarioIds().size() < 2) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "At least 2 source scenario IDs are required");
+        }
+        if (request.scenarioTypeCode() == null || request.scenarioTypeCode().isBlank()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Scenario type code is required");
+        }
+
+        // Load source scenarios
+        List<Scenario> sources = scenarioRepository.findAllWithSummaryByIds(request.sourceScenarioIds());
+        if (sources.size() != request.sourceScenarioIds().size()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "One or more source scenarios not found");
+        }
+
+        // Validate all sources have the same scenario type code
+        for (Scenario source : sources) {
+            if (!request.scenarioTypeCode().equals(source.getScenarioTypeCode())) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                        "All source scenarios must have the same scenario type code: " + request.scenarioTypeCode());
+            }
+        }
+
+        // Aggregate changes totals
+        int totalChangesTotal = 0;
+        int totalChangesDirect = 0;
+        int totalChangesIndirect = 0;
+        for (Scenario source : sources) {
+            ScenarioSummary srcSummary = source.getSummary();
+            totalChangesTotal += srcSummary.getChangesTotal();
+            totalChangesDirect += srcSummary.getChangesDirect();
+            totalChangesIndirect += srcSummary.getChangesIndirect();
+        }
+
+        // Resolve actor
+        String displayName = resolveActorDisplayName(actorId);
+        UserRef ownerUser = resolveUserRef(actorId);
+
+        LocalDateTime now = LocalDateTime.now();
+
+        // Create Scenario + ScenarioSummary together.
+        // Summary uses @MapsId so its ID is derived from the Scenario.
+        // Scenario has cascade = CascadeType.ALL on summary, so we link
+        // both sides and save only the Scenario — the cascade persists
+        // the summary automatically, avoiding StaleObjectStateException.
+        Scenario scenario = new Scenario();
+        UUID scenarioId = UUID.randomUUID();
+        scenario.setId(scenarioId);
+        scenario.setName(request.name());
+        scenario.setScenarioTypeCode(request.scenarioTypeCode());
+        scenario.setOwnerDisplayName(displayName);
+        scenario.setOwnerUser(ownerUser);
+        scenario.setCreatedAt(now);
+        scenario.setUpdatedAt(now);
+
+        ScenarioSummary summary = new ScenarioSummary();
+        summary.setScenario(scenario);
+        summary.setWorkflowState("IMPACT_PENDING");
+        summary.setImpact("NONE");
+        summary.setChangesTotal(totalChangesTotal);
+        summary.setChangesDirect(totalChangesDirect);
+        summary.setChangesIndirect(totalChangesIndirect);
+        summary.setEntitiesSummary("");
+        summary.setValidationStatus("PASS");
+        summary.setExceptionsCount(0);
+        scenario.setSummary(summary);
+
+        scenarioRepository.saveAndFlush(scenario);
+
+        // Create ScenarioLink (DIRECT_CHANGES CTA)
+        ScenarioLink link = new ScenarioLink();
+        link.setId(UUID.randomUUID());
+        link.setScenario(scenario);
+        link.setLinkType("DIRECT_CHANGES");
+        link.setLabel("Open in Market Data UI \u2192");
+        link.setUrl("https://market-data-ui.example.com/scenarios/" + scenarioId);
+        link.setCreatedAt(now);
+        scenarioLinkRepository.save(link);
+
+        // Create ScenarioEvent (SCENARIO_CREATED)
+        ScenarioEvent event = new ScenarioEvent();
+        event.setId(UUID.randomUUID());
+        event.setScenario(scenario);
+        event.setEventType("SCENARIO_CREATED");
+        event.setActorDisplayName(displayName);
+        event.setActorUser(ownerUser);
+        event.setCreatedAt(now);
+        event.setPayloadJson(buildPayloadJson("IMPACT_PENDING", "IMPACT_PENDING"));
+        scenarioEventRepository.save(event);
+
+        return new ScenarioListItemDto(
+                scenario.getId(),
+                scenario.getName(),
+                scenario.getScenarioTypeCode(),
+                summary.getWorkflowState(),
+                summary.getImpact(),
+                scenario.getUpdatedAt()
         );
     }
 
