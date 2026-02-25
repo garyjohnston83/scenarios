@@ -1,5 +1,8 @@
-import { ChatRegular, PersonRegular, SettingsRegular } from '@fluentui/react-icons';
+import { useState } from 'react';
+import { Button } from '@fluentui/react-components';
+import { ChatRegular, PersonRegular, SettingsRegular, ArrowDownloadRegular } from '@fluentui/react-icons';
 import { formatDate } from '../../utils/formatDate';
+import { ExportActivityDialog } from '../ExportActivityDialog';
 import styles from './ActivityTable.module.scss';
 
 export interface ActivityRowData {
@@ -25,9 +28,21 @@ const ICON_CONFIG: Record<
 };
 
 export const ActivityTable: React.FC<ActivityTableProps> = ({ rows }) => {
+  const [exportDialogOpen, setExportDialogOpen] = useState(false);
+
   return (
     <div className={styles.section}>
-      <span className={styles.sectionHeading}>Activity</span>
+      <div className={styles.sectionHeadingRow}>
+        <span className={styles.sectionHeading}>Activity</span>
+        <Button
+          appearance="subtle"
+          size="small"
+          icon={<ArrowDownloadRegular />}
+          onClick={() => setExportDialogOpen(true)}
+        >
+          Export Activity
+        </Button>
+      </div>
       {rows.length === 0 ? (
         <div className={styles.emptyState}>No activity recorded</div>
       ) : (
@@ -67,6 +82,10 @@ export const ActivityTable: React.FC<ActivityTableProps> = ({ rows }) => {
           </table>
         </div>
       )}
+      <ExportActivityDialog
+        open={exportDialogOpen}
+        onClose={() => setExportDialogOpen(false)}
+      />
     </div>
   );
 };

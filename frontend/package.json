@@ -43,7 +43,8 @@
     "react-resizable-panels": "^3.0.6",
     "react-router-dom": "^7.6.2",
     "redux-saga": "^1.2.3",
-    "uuid": "^11.1.0"
+    "uuid": "^11.1.0",
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "@babel/core": "^7.24.0",
