@@ -45,3 +45,11 @@ databaseChangeLog:
       file: db/changelog/changesets/022-seed-signoff-policies.yaml
   - include:
       file: db/changelog/changesets/023-align-message-posted-events.yaml
+  - include:
+      file: db/changelog/changesets/024-rename-mode-values.yaml
+  - include:
+      file: db/changelog/changesets/025-add-impact-run-id-to-grid-dataset.yaml
+  - include:
+      file: db/changelog/changesets/026-seed-impact-grid-datasets.yaml
+  - include:
+      file: db/changelog/changesets/027-seed-internal-scenario-links.yaml

@@ -1,5 +1,5 @@
 import axios from 'axios';
-import type { ScenarioListItem, ScenarioDetail, MessageData, CombineScenariosRequest } from '../store/scenariosSlice';
+import type { ScenarioListItem, ScenarioDetail, MessageData, CombineScenariosRequest, DirectChangesData, ScenarioTypeData, SummaryCardsData, ImpactDataResponse } from '../store/scenariosSlice';
 import { CURRENT_USER_ID } from '../constants/user';
 
 const API_BASE_URL =
@@ -17,16 +17,6 @@ export async function fetchScenarioDetail(
 ): Promise<ScenarioDetail> {
   const response = await axios.get<ScenarioDetail>(
     `${API_BASE_URL}/scenarios/${id}?expand=header,summaryCards,events`
-  );
-  return response.data;
-}
-
-export async function fetchScenarioGridSections(
-  id: string,
-  expandSections: string
-): Promise<Partial<ScenarioDetail>> {
-  const response = await axios.get<Partial<ScenarioDetail>>(
-    `${API_BASE_URL}/scenarios/${id}?expand=${expandSections}`
   );
   return response.data;
 }
@@ -68,4 +58,35 @@ export async function combineScenarios(
     { headers: { "X-Actor-Id": CURRENT_USER_ID } }
   );
   return response.data;
+}
+
+export async function fetchDirectChanges(id: string): Promise<DirectChangesData> {
+  const response = await axios.get<{ directChanges: DirectChangesData }>(
+    `${API_BASE_URL}/scenarios/${id}?expand=directChanges`
+  );
+  return response.data.directChanges;
+}
+
+export async function fetchImpactData(id: string): Promise<ImpactDataResponse> {
+  const response = await axios.get<{ impactData: ImpactDataResponse }>(
+    `${API_BASE_URL}/scenarios/${id}?expand=impactData`
+  );
+  return response.data.impactData;
+}
+
+export async function fetchAnalysisHeader(id: string): Promise<{
+  name: string;
+  workflowState: string;
+  scenarioType: ScenarioTypeData | null;
+  summaryCards: SummaryCardsData | null;
+}> {
+  const response = await axios.get(
+    `${API_BASE_URL}/scenarios/${id}?expand=header,summaryCards`
+  );
+  return {
+    name: response.data.name,
+    workflowState: response.data.header?.workflowState ?? '',
+    scenarioType: response.data.header?.scenarioType ?? null,
+    summaryCards: response.data.summaryCards ?? null,
+  };
 }

@@ -71,11 +71,11 @@ describe('Increment 13 TG7 Gap-Filling Tests', () => {
   });
 
   // ========================================================================
-  // Gap Test 2: Saga correctly chains Phase 1 (events) and Phase 2
-  //             (directChanges,impactData) without requesting reviewApproval
+  // Gap Test 2: Saga correctly fetches in a single phase without requesting
+  //             reviewApproval
   // ========================================================================
 
-  it('Saga Phase 1 and Phase 2 do not request reviewApproval in expand params', async () => {
+  it('Saga does not request reviewApproval and does not perform a phase-2 grid fetch', async () => {
     const detailWithEvents: ScenarioDetail = {
       id: 'sc-ir-1',
       name: 'IR Vol Surface Update',
@@ -93,40 +93,30 @@ describe('Increment 13 TG7 Gap-Filling Tests', () => {
           code: 'INTEREST_RATE',
           name: 'Interest Rate',
           icon: 'Calculator',
-          directChangesMode: 'GRID',
-          impactDataMode: 'GRID',
+          directChangesMode: 'INTERNAL',
+          impactDataMode: 'INTERNAL',
         },
       },
       events: { rows: [] },
     };
 
-    const gridResponse: Partial<ScenarioDetail> = {
-      directChanges: { columns: ['Col1'], rows: [] },
-      impactData: { columns: ['Col1'], rows: [], compareCta: null },
-    };
-
     mockedApi.fetchScenarioDetail.mockResolvedValue(detailWithEvents);
-    mockedApi.fetchScenarioGridSections.mockResolvedValue(gridResponse);
 
-    await runTestSaga(
+    const dispatched = await runTestSaga(
       handleFetchScenarioDetail as (...args: unknown[]) => Generator,
       { type: 'scenarios/fetchScenarioDetailRequest', payload: 'sc-ir-1' } as PayloadAction<string>
     );
 
-    // Phase 1: fetchScenarioDetail is called (internally uses expand=header,summaryCards,events)
+    // fetchScenarioDetail is called (internally uses expand=header,summaryCards,events)
     expect(mockedApi.fetchScenarioDetail).toHaveBeenCalledWith('sc-ir-1');
 
-    // Phase 2: fetchScenarioGridSections called with directChanges,impactData only
-    expect(mockedApi.fetchScenarioGridSections).toHaveBeenCalledWith(
-      'sc-ir-1',
-      'directChanges,impactData'
-    );
+    // Only one API call — no phase-2 grid sections fetch
+    expect(mockedApi.fetchScenarioDetail).toHaveBeenCalledTimes(1);
 
-    // Verify neither call mentions reviewApproval
-    // The fetchScenarioDetail was called with just the id (the expand is inside the function)
-    // The grid sections expand string should NOT contain reviewApproval
-    const gridExpandArg = mockedApi.fetchScenarioGridSections.mock.calls[0][1];
-    expect(gridExpandArg).not.toContain('reviewApproval');
+    // Only fetchScenarioDetailSuccess dispatched
+    const actionTypes = dispatched.map((a) => a.type);
+    expect(actionTypes).toContain(fetchScenarioDetailSuccess.type);
+    expect(actionTypes).toHaveLength(1);
   });
 
   // ========================================================================

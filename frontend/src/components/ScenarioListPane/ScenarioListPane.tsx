@@ -8,7 +8,7 @@ import {
   makeStyles,
   tokens,
 } from '@fluentui/react-components';
-import { AddRegular } from '@fluentui/react-icons';
+import { AddRegular, ChevronLeft24Regular } from '@fluentui/react-icons';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import {
   fetchScenarioListRequest,
@@ -70,7 +70,11 @@ function applySortAndFilter(
   return sorted;
 }
 
-export const ScenarioListPane: React.FC = () => {
+export interface ScenarioListPaneProps {
+  onCollapse?: () => void;
+}
+
+export const ScenarioListPane: React.FC<ScenarioListPaneProps> = ({ onCollapse }) => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const { id: selectedId } = useParams<{ id: string }>();
@@ -110,12 +114,23 @@ export const ScenarioListPane: React.FC = () => {
           >
             Scenarios
           </Text>
-          <Button
-            appearance="subtle"
-            icon={<AddRegular />}
-            size="small"
-            onClick={() => setCombineDialogOpen(true)}
-          />
+          <div style={{ display: 'flex', gap: 0 }}>
+            <Button
+              appearance="subtle"
+              icon={<AddRegular />}
+              size="small"
+              onClick={() => setCombineDialogOpen(true)}
+            />
+            {onCollapse && (
+              <Button
+                appearance="subtle"
+                icon={<ChevronLeft24Regular />}
+                size="small"
+                onClick={onCollapse}
+                aria-label="Collapse panel"
+              />
+            )}
+          </div>
         </div>
         <Text size={300}>Loading...</Text>
         <CombineScenariosDialog
@@ -137,12 +152,23 @@ export const ScenarioListPane: React.FC = () => {
           >
             Scenarios
           </Text>
-          <Button
-            appearance="subtle"
-            icon={<AddRegular />}
-            size="small"
-            onClick={() => setCombineDialogOpen(true)}
-          />
+          <div style={{ display: 'flex', gap: 0 }}>
+            <Button
+              appearance="subtle"
+              icon={<AddRegular />}
+              size="small"
+              onClick={() => setCombineDialogOpen(true)}
+            />
+            {onCollapse && (
+              <Button
+                appearance="subtle"
+                icon={<ChevronLeft24Regular />}
+                size="small"
+                onClick={onCollapse}
+                aria-label="Collapse panel"
+              />
+            )}
+          </div>
         </div>
         <div className={styles.errorState}>
           <Text size={300}>{listError}</Text>
@@ -173,12 +199,23 @@ export const ScenarioListPane: React.FC = () => {
           >
             Scenarios
           </Text>
-          <Button
-            appearance="subtle"
-            icon={<AddRegular />}
-            size="small"
-            onClick={() => setCombineDialogOpen(true)}
-          />
+          <div style={{ display: 'flex', gap: 0 }}>
+            <Button
+              appearance="subtle"
+              icon={<AddRegular />}
+              size="small"
+              onClick={() => setCombineDialogOpen(true)}
+            />
+            {onCollapse && (
+              <Button
+                appearance="subtle"
+                icon={<ChevronLeft24Regular />}
+                size="small"
+                onClick={onCollapse}
+                aria-label="Collapse panel"
+              />
+            )}
+          </div>
         </div>
         <Text className={`${styles.emptyState} ${fluentStyles.emptyState}`} size={300}>
           No scenarios
@@ -201,12 +238,23 @@ export const ScenarioListPane: React.FC = () => {
         >
           Scenarios
         </Text>
-        <Button
-          appearance="subtle"
-          icon={<AddRegular />}
-          size="small"
-          onClick={() => setCombineDialogOpen(true)}
-        />
+        <div style={{ display: 'flex', gap: 0 }}>
+          <Button
+            appearance="subtle"
+            icon={<AddRegular />}
+            size="small"
+            onClick={() => setCombineDialogOpen(true)}
+          />
+          {onCollapse && (
+            <Button
+              appearance="subtle"
+              icon={<ChevronLeft24Regular />}
+              size="small"
+              onClick={onCollapse}
+              aria-label="Collapse panel"
+            />
+          )}
+        </div>
       </div>
 
       <div className={styles.toolbar}>

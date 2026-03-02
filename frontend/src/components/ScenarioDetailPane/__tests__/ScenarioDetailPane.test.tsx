@@ -8,6 +8,8 @@ import scenariosReducer, {
   fetchScenarioDetailSuccess,
   fetchScenarioDetailFailure,
 } from '../../../store/scenariosSlice';
+import adminReducer from '../../../store/adminSlice';
+import analysisReducer from '../../../store/analysisSlice';
 import { ScenarioDetailPane } from '../ScenarioDetailPane';
 
 const defaultState: ScenariosState = {
@@ -23,12 +25,17 @@ const defaultState: ScenariosState = {
   messagePostError: null,
   eventPosting: false,
   eventPostError: null,
+  combinePosting: false,
+  combinePostError: null,
+  lhsCollapsed: false,
 };
 
 const createTestStore = (overrides?: Partial<ScenariosState>) => {
   return configureStore({
     reducer: {
       scenarios: scenariosReducer,
+      admin: adminReducer,
+      analysis: analysisReducer,
     },
     preloadedState: {
       scenarios: { ...defaultState, ...overrides },
@@ -185,6 +192,13 @@ describe('ScenarioDetailPane', () => {
             ownerDisplayName: 'Alice Smith',
             createdAt: '2026-02-10T08:00:00',
             updatedAt: '2026-02-15T10:00:00',
+            scenarioType: {
+              code: 'FX',
+              name: 'FX',
+              icon: 'ChartMultiple',
+              directChangesMode: 'EXTERNAL',
+              impactDataMode: 'EXTERNAL',
+            },
           },
           summaryCards: {
             changesSummary: {
@@ -364,10 +378,10 @@ describe('ScenarioDetailPane', () => {
   });
 
   // ========================================================================
-  // Increment 11 Gap Test: LINK_OUT scenario does not render grid sections
+  // Increment 11 Gap Test: EXTERNAL scenario does not render grid sections
   // ========================================================================
 
-  it('does NOT render DirectChangesSection or ImpactDataSection when data fields are absent (LINK_OUT scenario integration)', () => {
+  it('does NOT render DirectChangesSection or ImpactDataSection for an EXTERNAL mode scenario', () => {
     const store: EnhancedStore = renderWithProviders('/scenarios/sc-md-1');
     act(() => {
       store.dispatch(
@@ -388,8 +402,8 @@ describe('ScenarioDetailPane', () => {
               code: 'MARKET_DATA',
               name: 'Market Data',
               icon: 'ChartMultiple',
-              directChangesMode: 'LINK_OUT',
-              impactDataMode: 'LINK_OUT',
+              directChangesMode: 'EXTERNAL',
+              impactDataMode: 'EXTERNAL',
             },
           },
           summaryCards: {
@@ -409,7 +423,6 @@ describe('ScenarioDetailPane', () => {
               exceptionsCount: 0,
             },
           },
-          // No directChanges or impactData fields -- LINK_OUT scenarios never have them
         })
       );
     });
@@ -417,7 +430,7 @@ describe('ScenarioDetailPane', () => {
     // Verify scenario name renders
     expect(screen.getByText('Scenario: FX Curve Recalibration')).toBeInTheDocument();
 
-    // Verify summary cards section still renders (LINK_OUT has summaryCards)
+    // Verify summary cards section still renders (EXTERNAL has summaryCards)
     expect(screen.getByText('Changes Summary')).toBeInTheDocument();
 
     // Verify Direct Changes section heading is NOT rendered
@@ -426,8 +439,7 @@ describe('ScenarioDetailPane', () => {
     // Verify Impact Data section heading is NOT rendered
     expect(screen.queryByText('Impact Data')).not.toBeInTheDocument();
 
-    // Verify no DataGridTable is rendered (no table elements from grid sections)
-    // The summary cards may have tables, so we specifically check for grid-related text
+    // Verify no grid-related placeholder text is rendered
     expect(screen.queryByText('No direct changes data available')).not.toBeInTheDocument();
     expect(screen.queryByText('No impact data available')).not.toBeInTheDocument();
   });

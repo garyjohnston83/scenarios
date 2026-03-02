@@ -37,6 +37,10 @@ public class ScenarioGridDataset {
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "impact_run_id")
+    private ImpactRun impactRun;
+
     @OneToMany(mappedBy = "dataset", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @OrderBy("createdAt ASC")
     private List<ScenarioGridRow> rows = new ArrayList<>();
@@ -82,6 +86,14 @@ public class ScenarioGridDataset {
 
     public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
+    }
+
+    public ImpactRun getImpactRun() {
+        return impactRun;
+    }
+
+    public void setImpactRun(ImpactRun impactRun) {
+        this.impactRun = impactRun;
     }
 
     public List<ScenarioGridRow> getRows() {

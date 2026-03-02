@@ -5,7 +5,9 @@ import com.prototypes.scenarios.dto.CtaDto;
 import com.prototypes.scenarios.dto.DirectChangesDto;
 import com.prototypes.scenarios.dto.EventDto;
 import com.prototypes.scenarios.dto.GridRowDto;
+import com.prototypes.scenarios.dto.DatasetDto;
 import com.prototypes.scenarios.dto.ImpactDataDto;
+import com.prototypes.scenarios.dto.ImpactReportDto;
 import com.prototypes.scenarios.dto.ImpactSummaryDto;
 import com.prototypes.scenarios.dto.MessageDto;
 import com.prototypes.scenarios.dto.PostEventRequestDto;
@@ -1181,7 +1183,7 @@ class ScenarioControllerTest {
     @Test
     void getScenario_expandHeader_withScenarioType_returnsScenarioTypeBlockInHeader() throws Exception {
         ScenarioTypeDto scenarioTypeDto = new ScenarioTypeDto(
-                "MARKET_DATA", "Market Data", "ChartMultiple", "LINK_OUT", "LINK_OUT"
+                "MARKET_DATA", "Market Data", "ChartMultiple", "EXTERNAL", "EXTERNAL"
         );
         ScenarioHeaderDto header = new ScenarioHeaderDto(
                 "IMPACT_AVAILABLE",
@@ -1214,8 +1216,8 @@ class ScenarioControllerTest {
                 .andExpect(jsonPath("$.header.scenarioType.code", is("MARKET_DATA")))
                 .andExpect(jsonPath("$.header.scenarioType.name", is("Market Data")))
                 .andExpect(jsonPath("$.header.scenarioType.icon", is("ChartMultiple")))
-                .andExpect(jsonPath("$.header.scenarioType.directChangesMode", is("LINK_OUT")))
-                .andExpect(jsonPath("$.header.scenarioType.impactDataMode", is("LINK_OUT")));
+                .andExpect(jsonPath("$.header.scenarioType.directChangesMode", is("EXTERNAL")))
+                .andExpect(jsonPath("$.header.scenarioType.impactDataMode", is("EXTERNAL")));
     }
 
     // Test 4: POST /messages with X-Actor-Id header passes actorId to service
@@ -1273,9 +1275,9 @@ class ScenarioControllerTest {
     // Increment 11 Task Group 3: Tests for directChanges/impactData expand
     // ========================================================================
 
-    // Test: GET /scenarios/{saId}?expand=directChanges returns 200 with grid JSON structure
+    // Test: GET /scenarios/{saId}?expand=directChanges returns 200 with grid JSON structure (INTERNAL mode)
     @Test
-    void getScenario_expandDirectChanges_gridModeScenario_returns200WithGridJsonStructure() throws Exception {
+    void getScenario_expandDirectChanges_internalModeScenario_returns200WithGridJsonStructure() throws Exception {
         UUID saScenarioId = UUID.fromString("d4e5f6a7-b8c9-4d0e-1f2a-3b4c5d6e7f80");
 
         List<GridRowDto> rows = List.of(
@@ -1316,14 +1318,14 @@ class ScenarioControllerTest {
                 .andExpect(jsonPath("$.directChanges.rows[0].payload.Delta", is(0.03)));
     }
 
-    // Test: GET /scenarios/{mdId}?expand=directChanges returns 400 status
+    // Test: GET /scenarios/{mdId}?expand=directChanges returns 400 status for EXTERNAL-mode scenario
     @Test
-    void getScenario_expandDirectChanges_linkOutModeScenario_returns400() throws Exception {
+    void getScenario_expandDirectChanges_externalModeScenario_returns400() throws Exception {
         UUID mdScenarioId = UUID.fromString("a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d");
 
         when(scenarioDetailService.getScenarioDetail(mdScenarioId, Set.of("directChanges")))
                 .thenThrow(new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                        "directChanges expand not supported for LINK_OUT mode"));
+                        "directChanges expand not supported for EXTERNAL mode"));
 
         mockMvc.perform(get("/scenarios/{id}", mdScenarioId).param("expand", "directChanges"))
                 .andExpect(status().isBadRequest());
@@ -1335,7 +1337,7 @@ class ScenarioControllerTest {
     // ========================================================================
 
     @Test
-    void getScenario_expandImpactData_gridModeScenario_returns200WithCompareCtaInResponseBody() throws Exception {
+    void getScenario_expandImpactData_internalModeScenario_returns200WithCompareCtaInResponseBody() throws Exception {
         UUID saScenarioId = UUID.fromString("d4e5f6a7-b8c9-4d0e-1f2a-3b4c5d6e7f80");
 
         List<GridRowDto> rows = List.of(
@@ -1347,11 +1349,14 @@ class ScenarioControllerTest {
                                 "Stressed Value", 950000, "Capital Charge", 150000))
         );
         CtaDto compareCta = new CtaDto("Compare results", "https://compare.example.com/sa-results");
-        ImpactDataDto impactData = new ImpactDataDto(
+        DatasetDto dataset = new DatasetDto(
                 List.of("Risk Class", "Risk Measure", "Base Value", "Stressed Value", "Capital Charge"),
-                rows,
-                compareCta
+                rows
         );
+        ImpactReportDto report = new ImpactReportDto(
+                "run-001", "RUN-2026-0219-001", "2026-02-19T10:00:00", dataset, compareCta
+        );
+        ImpactDataDto impactData = new ImpactDataDto(List.of(report));
 
         ScenarioDetailDto dto = new ScenarioDetailDto(
                 saScenarioId,
@@ -1373,16 +1378,17 @@ class ScenarioControllerTest {
 
         mockMvc.perform(get("/scenarios/{id}", saScenarioId).param("expand", "impactData"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.impactData.columns", hasSize(5)))
-                .andExpect(jsonPath("$.impactData.columns[0]", is("Risk Class")))
-                .andExpect(jsonPath("$.impactData.columns[1]", is("Risk Measure")))
-                .andExpect(jsonPath("$.impactData.rows", hasSize(2)))
-                .andExpect(jsonPath("$.impactData.rows[0].rowId", is("dd000001-0001-4001-8001-000000000001")))
-                .andExpect(jsonPath("$.impactData.rows[0].payload.['Risk Class']", is("FX")))
-                .andExpect(jsonPath("$.impactData.rows[0].payload.['Risk Measure']", is("IMCC")))
-                .andExpect(jsonPath("$.impactData.rows[0].payload.['Capital Charge']", is(300000)))
-                .andExpect(jsonPath("$.impactData.compareCta.label", is("Compare results")))
-                .andExpect(jsonPath("$.impactData.compareCta.url", is("https://compare.example.com/sa-results")))
+                .andExpect(jsonPath("$.impactData.reports", hasSize(1)))
+                .andExpect(jsonPath("$.impactData.reports[0].impactRunId", is("run-001")))
+                .andExpect(jsonPath("$.impactData.reports[0].name", is("RUN-2026-0219-001")))
+                .andExpect(jsonPath("$.impactData.reports[0].dataset.columns", hasSize(5)))
+                .andExpect(jsonPath("$.impactData.reports[0].dataset.columns[0]", is("Risk Class")))
+                .andExpect(jsonPath("$.impactData.reports[0].dataset.columns[1]", is("Risk Measure")))
+                .andExpect(jsonPath("$.impactData.reports[0].dataset.rows", hasSize(2)))
+                .andExpect(jsonPath("$.impactData.reports[0].dataset.rows[0].rowId", is("dd000001-0001-4001-8001-000000000001")))
+                .andExpect(jsonPath("$.impactData.reports[0].dataset.rows[0].payload.['Risk Class']", is("FX")))
+                .andExpect(jsonPath("$.impactData.reports[0].compareCta.label", is("Compare results")))
+                .andExpect(jsonPath("$.impactData.reports[0].compareCta.url", is("https://compare.example.com/sa-results")))
                 // Verify directChanges is not present when only impactData is expanded
                 .andExpect(jsonPath("$.directChanges").doesNotExist());
     }

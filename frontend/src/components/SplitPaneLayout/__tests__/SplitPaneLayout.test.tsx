@@ -1,12 +1,29 @@
 import { render, screen } from '@testing-library/react';
 import { FluentProvider, webLightTheme } from '@fluentui/react-components';
+import { Provider } from 'react-redux';
+import { configureStore } from '@reduxjs/toolkit';
+import scenariosReducer from '../../../store/scenariosSlice';
+import adminReducer from '../../../store/adminSlice';
+import analysisReducer from '../../../store/analysisSlice';
 import { SplitPaneLayout } from '../SplitPaneLayout';
 
+const createTestStore = () =>
+  configureStore({
+    reducer: {
+      scenarios: scenariosReducer,
+      admin: adminReducer,
+      analysis: analysisReducer,
+    },
+  });
+
 const renderWithFluent = (ui: React.ReactElement) => {
+  const store = createTestStore();
   return render(
-    <FluentProvider theme={webLightTheme}>
-      {ui}
-    </FluentProvider>
+    <Provider store={store}>
+      <FluentProvider theme={webLightTheme}>
+        {ui}
+      </FluentProvider>
+    </Provider>
   );
 };
 

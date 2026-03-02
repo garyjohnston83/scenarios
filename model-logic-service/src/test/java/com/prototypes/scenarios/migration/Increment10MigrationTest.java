@@ -49,8 +49,8 @@ class Increment10MigrationTest {
         assertEquals("MARKET_DATA", marketData.get("CODE"));
         assertEquals("Market Data", marketData.get("NAME"));
         assertEquals("ChartMultiple", marketData.get("ICON"));
-        assertEquals("LINK_OUT", marketData.get("DIRECT_CHANGES_MODE"));
-        assertEquals("LINK_OUT", marketData.get("IMPACT_DATA_MODE"));
+        assertEquals("EXTERNAL", marketData.get("DIRECT_CHANGES_MODE"));
+        assertEquals("EXTERNAL", marketData.get("IMPACT_DATA_MODE"));
         assertTrue((Boolean) marketData.get("IS_ENABLED"));
         assertEquals(1, marketData.get("SORT_ORDER"));
 
@@ -59,8 +59,8 @@ class Increment10MigrationTest {
         assertEquals("RISK_FACTOR", riskFactor.get("CODE"));
         assertEquals("Risk Factor", riskFactor.get("NAME"));
         assertEquals("Pulse", riskFactor.get("ICON"));
-        assertEquals("LINK_OUT", riskFactor.get("DIRECT_CHANGES_MODE"));
-        assertEquals("LINK_OUT", riskFactor.get("IMPACT_DATA_MODE"));
+        assertEquals("EXTERNAL", riskFactor.get("DIRECT_CHANGES_MODE"));
+        assertEquals("EXTERNAL", riskFactor.get("IMPACT_DATA_MODE"));
         assertTrue((Boolean) riskFactor.get("IS_ENABLED"));
         assertEquals(2, riskFactor.get("SORT_ORDER"));
     }

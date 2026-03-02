@@ -1,0 +1,63 @@
+.gridContainer {
+  width: 100%;
+}
+
+.filterInput {
+  width: 100%;
+  max-width: 320px;
+  margin-bottom: 12px;
+  padding: 6px 10px;
+  font-size: 13px;
+  border: 1px solid #d1d1d1;
+  border-radius: 4px;
+  outline: none;
+  color: #242424;
+  box-sizing: border-box;
+
+  &::placeholder {
+    color: #999;
+  }
+
+  &:focus {
+    border-color: #0078d4;
+  }
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  color: #242424;
+}
+
+.table th,
+.table td {
+  padding: 8px 12px;
+  text-align: left;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.table th {
+  font-size: 11px;
+  font-weight: 600;
+  color: #666;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  user-select: none;
+  white-space: nowrap;
+  background-color: #fafafa;
+}
+
+.table th:hover {
+  background-color: #f0f0f0;
+}
+
+.sortIndicator {
+  margin-left: 4px;
+  font-size: 10px;
+}
+
+.table tbody tr:hover {
+  background-color: #f5f5f5;
+}

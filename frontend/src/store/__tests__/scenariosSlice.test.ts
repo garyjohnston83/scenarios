@@ -11,6 +11,7 @@ import scenariosReducer, {
   postEventRequest,
   postEventSuccess,
   postEventFailure,
+  setLhsCollapsed,
 } from '../scenariosSlice';
 import type { ScenarioListItem, ScenarioDetail, MessageData } from '../scenariosSlice';
 
@@ -28,6 +29,9 @@ describe('scenariosSlice', () => {
     messagePostError: null,
     eventPosting: false,
     eventPostError: null,
+    combinePosting: false,
+    combinePostError: null,
+    lhsCollapsed: false,
   };
 
   it('has correct initial state defaults', () => {
@@ -243,5 +247,13 @@ describe('scenariosSlice', () => {
 
     expect(state.eventPosting).toBe(false);
     expect(state.eventPostError).toBe('SIGNOFF is not allowed from state: SIGNED_OFF');
+  });
+
+  it('setLhsCollapsed updates lhsCollapsed in state', () => {
+    const state = scenariosReducer(initialState, setLhsCollapsed(true));
+    expect(state.lhsCollapsed).toBe(true);
+
+    const state2 = scenariosReducer(state, setLhsCollapsed(false));
+    expect(state2.lhsCollapsed).toBe(false);
   });
 });

@@ -1,5 +1,5 @@
 import { call, put, takeLatest } from 'redux-saga/effects';
-import { fetchScenarioList, fetchScenarioDetail, fetchScenarioGridSections, postMessage, postEvent, combineScenarios } from '../services/scenarioApi';
+import { fetchScenarioList, fetchScenarioDetail, postMessage, postEvent, combineScenarios } from '../services/scenarioApi';
 import {
   fetchScenarioListRequest,
   fetchScenarioListSuccess,
@@ -7,7 +7,6 @@ import {
   fetchScenarioDetailRequest,
   fetchScenarioDetailSuccess,
   fetchScenarioDetailFailure,
-  mergeGridSections,
   postMessageRequest,
   postMessageSuccess,
   postMessageFailure,
@@ -34,39 +33,8 @@ function* handleFetchScenarioList() {
 
 export function* handleFetchScenarioDetail(action: PayloadAction<string>) {
   try {
-    // Phase 1: Fetch header, summaryCards, and events (sticky header data)
     const detail: ScenarioDetail = yield call(fetchScenarioDetail, action.payload);
     yield put(fetchScenarioDetailSuccess(detail));
-
-    // Phase 2: Conditionally fetch grid sections based on scenarioType modes
-    const scenarioType = detail.header?.scenarioType;
-    if (scenarioType) {
-      const sections: string[] = [];
-      if (scenarioType.directChangesMode === 'GRID') {
-        sections.push('directChanges');
-      }
-      if (scenarioType.impactDataMode === 'GRID') {
-        sections.push('impactData');
-      }
-
-      if (sections.length > 0) {
-        const expandSections = sections.join(',');
-        try {
-          const gridData: Partial<ScenarioDetail> = yield call(
-            fetchScenarioGridSections,
-            action.payload,
-            expandSections
-          );
-          yield put(mergeGridSections(gridData));
-        } catch (phase2Error: unknown) {
-          const phase2Message =
-            phase2Error instanceof Error
-              ? phase2Error.message
-              : 'Failed to fetch grid sections';
-          yield put(fetchScenarioDetailFailure(phase2Message));
-        }
-      }
-    }
   } catch (error: unknown) {
     const message =
       error instanceof Error ? error.message : 'Failed to fetch scenario detail';

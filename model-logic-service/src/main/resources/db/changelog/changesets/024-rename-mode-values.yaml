@@ -1,0 +1,23 @@
+databaseChangeLog:
+  - changeSet:
+      id: 024-rename-scenario-type-mode-values
+      author: scenarios-team
+      comment: "Rename LINK_OUT -> EXTERNAL and GRID -> INTERNAL for scenario_type mode columns"
+      changes:
+        - sql:
+            sql: |
+              UPDATE scenario_type
+              SET direct_changes_mode = 'EXTERNAL'
+              WHERE direct_changes_mode = 'LINK_OUT';
+
+              UPDATE scenario_type
+              SET direct_changes_mode = 'INTERNAL'
+              WHERE direct_changes_mode = 'GRID';
+
+              UPDATE scenario_type
+              SET impact_data_mode = 'EXTERNAL'
+              WHERE impact_data_mode = 'LINK_OUT';
+
+              UPDATE scenario_type
+              SET impact_data_mode = 'INTERNAL'
+              WHERE impact_data_mode = 'GRID';

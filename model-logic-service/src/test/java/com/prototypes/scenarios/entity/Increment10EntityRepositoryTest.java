@@ -68,8 +68,8 @@ class Increment10EntityRepositoryTest {
         assertEquals("MARKET_DATA", marketData.getCode());
         assertEquals("Market Data", marketData.getName());
         assertEquals("ChartMultiple", marketData.getIcon());
-        assertEquals("LINK_OUT", marketData.getDirectChangesMode());
-        assertEquals("LINK_OUT", marketData.getImpactDataMode());
+        assertEquals("EXTERNAL", marketData.getDirectChangesMode());
+        assertEquals("EXTERNAL", marketData.getImpactDataMode());
         assertTrue(marketData.isEnabled());
         assertEquals(1, marketData.getSortOrder());
     }
@@ -106,8 +106,8 @@ class Increment10EntityRepositoryTest {
         assertEquals("MARKET_DATA", scenarioType.getCode());
         assertEquals("Market Data", scenarioType.getName());
         assertEquals("ChartMultiple", scenarioType.getIcon());
-        assertEquals("LINK_OUT", scenarioType.getDirectChangesMode());
-        assertEquals("LINK_OUT", scenarioType.getImpactDataMode());
+        assertEquals("EXTERNAL", scenarioType.getDirectChangesMode());
+        assertEquals("EXTERNAL", scenarioType.getImpactDataMode());
     }
 
     // ========================================================================

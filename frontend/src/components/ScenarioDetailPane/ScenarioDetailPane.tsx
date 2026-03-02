@@ -15,6 +15,9 @@ import {
   DialogContent,
   DialogActions,
   Link,
+  useToastController,
+  Toaster,
+  useId,
 } from '@fluentui/react-components';
 import { useAppSelector, useAppDispatch } from '../../store/hooks';
 import {
@@ -28,8 +31,7 @@ import {
   getImpactLabel,
   getRunStatusLabel,
 } from '../../utils/labelMappings';
-import { DirectChangesSection } from '../DirectChangesSection';
-import { ImpactDataSection } from '../ImpactDataSection';
+import { normalizeMode } from '../../utils/normalizeMode';
 import { ActivityTable } from '../ActivityTable';
 import styles from './ScenarioDetailPane.module.scss';
 
@@ -76,6 +78,9 @@ export const ScenarioDetailPane: React.FC = () => {
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
   const fluentStyles = useFluentStyles();
+
+  const toasterId = useId('scenario-detail-toaster');
+  useToastController(toasterId);
 
   const selectedDetail = useAppSelector(
     (state) => state.scenarios.selectedDetail
@@ -159,7 +164,7 @@ export const ScenarioDetailPane: React.FC = () => {
   }
 
   if (selectedDetail) {
-    const { header, summaryCards, directChanges, impactData } =
+    const { header, summaryCards } =
       selectedDetail;
 
     const buttonEnabled = header
@@ -230,6 +235,7 @@ export const ScenarioDetailPane: React.FC = () => {
 
     return (
       <div className={styles.container}>
+        <Toaster toasterId={toasterId} />
         <div className={styles.stickyHeader}>
           <Text
             className={`${styles.title} ${fluentStyles.title}`}
@@ -312,19 +318,46 @@ export const ScenarioDetailPane: React.FC = () => {
                       {summaryCards.changesSummary.changesIndirect}
                     </span>
                   </div>
-                  {summaryCards.changesSummary.cta && (
-                    <div className={styles.ctaRow}>
-                      <Link
-                        href="/images/direct-changes-viewer.html"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        inline
-                        style={{ color: '#5c2d91' }}
-                      >
-                        {summaryCards.changesSummary.cta.label}
-                      </Link>
-                    </div>
-                  )}
+                  {summaryCards.changesSummary.cta && header?.scenarioType && (() => {
+                    const mode = normalizeMode(header.scenarioType.directChangesMode);
+                    if (mode === 'EXTERNAL') {
+                      const url = summaryCards.changesSummary.cta!.url;
+                      return url ? (
+                        <div className={styles.ctaRow}>
+                          <Link
+                            href={url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            inline
+                            style={{ color: '#5c2d91' }}
+                          >
+                            {summaryCards.changesSummary.cta!.label}
+                          </Link>
+                        </div>
+                      ) : (
+                        <div className={styles.ctaRow}>
+                          <span title="No link available" style={{ color: '#999', cursor: 'default' }}>
+                            {summaryCards.changesSummary.cta!.label}
+                          </span>
+                        </div>
+                      );
+                    }
+                    // INTERNAL mode — navigate to analysis
+                    return (
+                      <div className={styles.ctaRow}>
+                        <Link
+                          inline
+                          style={{ color: '#5c2d91', cursor: 'pointer' }}
+                          onClick={(e) => {
+                            e.preventDefault();
+                            navigate(`/scenarios/${selectedDetail.id}/analysis?initial-tab=direct-changes`);
+                          }}
+                        >
+                          {summaryCards.changesSummary.cta!.label}
+                        </Link>
+                      </div>
+                    );
+                  })()}
                 </>
               )}
             </div>
@@ -365,19 +398,46 @@ export const ScenarioDetailPane: React.FC = () => {
                       )}
                     </span>
                   </div>
-                  {summaryCards.impactSummary.cta && (
-                    <div className={styles.ctaRow}>
-                      <Link
-                        href="/images/impact-report-viewer.html"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        inline
-                        style={{ color: '#5c2d91' }}
-                      >
-                        {summaryCards.impactSummary.cta.label}
-                      </Link>
-                    </div>
-                  )}
+                  {summaryCards.impactSummary.cta && header?.scenarioType && (() => {
+                    const mode = normalizeMode(header.scenarioType.impactDataMode);
+                    if (mode === 'EXTERNAL') {
+                      const url = summaryCards.impactSummary.cta!.url;
+                      return url ? (
+                        <div className={styles.ctaRow}>
+                          <Link
+                            href={url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            inline
+                            style={{ color: '#5c2d91' }}
+                          >
+                            {summaryCards.impactSummary.cta!.label}
+                          </Link>
+                        </div>
+                      ) : (
+                        <div className={styles.ctaRow}>
+                          <span title="No link available" style={{ color: '#999', cursor: 'default' }}>
+                            {summaryCards.impactSummary.cta!.label}
+                          </span>
+                        </div>
+                      );
+                    }
+                    // INTERNAL mode — navigate to analysis
+                    return (
+                      <div className={styles.ctaRow}>
+                        <Link
+                          inline
+                          style={{ color: '#5c2d91', cursor: 'pointer' }}
+                          onClick={(e) => {
+                            e.preventDefault();
+                            navigate(`/scenarios/${selectedDetail.id}/analysis?initial-tab=impact-reports`);
+                          }}
+                        >
+                          {summaryCards.impactSummary.cta!.label}
+                        </Link>
+                      </div>
+                    );
+                  })()}
                 </>
               )}
             </div>
@@ -520,10 +580,6 @@ export const ScenarioDetailPane: React.FC = () => {
           <ActivityTable rows={selectedDetail.events?.rows ?? []} />
         </div>
 
-        {/* Content sections — no more standalone SummaryCardsSection */}
-        {directChanges && <DirectChangesSection data={directChanges} />}
-
-        {impactData && <ImpactDataSection data={impactData} />}
       </div>
     );
   }

@@ -1,0 +1,45 @@
+.panelGroup {
+  height: 100%;
+  width: 100%;
+}
+
+.resizeHandle {
+  width: 4px;
+  background-color: #e0e0e0;
+  cursor: col-resize;
+  transition: background-color 0.15s ease;
+  flex-shrink: 0;
+
+  &:hover {
+    background-color: #b0b0b0;
+  }
+
+  &:active {
+    background-color: #0078d4;
+  }
+}
+
+.lhsPanel {
+  height: 100%;
+  overflow: hidden;
+}
+
+.rhsPanel {
+  height: 100%;
+  overflow-y: auto;
+}
+
+.collapsedContainer {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  height: 100%;
+  padding-top: 8px;
+}
+
+.expandButton {
+  min-width: auto;
+  width: 28px;
+  height: 28px;
+  padding: 2px;
+}

@@ -1,8 +1,10 @@
 package com.prototypes.scenarios.service;
 
+import com.prototypes.scenarios.dto.DatasetDto;
 import com.prototypes.scenarios.dto.DirectChangesDto;
 import com.prototypes.scenarios.dto.GridRowDto;
 import com.prototypes.scenarios.dto.ImpactDataDto;
+import com.prototypes.scenarios.dto.ImpactReportDto;
 import com.prototypes.scenarios.dto.ScenarioDetailDto;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,6 +12,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
+
+import org.springframework.jdbc.core.JdbcTemplate;
 
 import java.util.Map;
 import java.util.Optional;
@@ -35,10 +39,13 @@ class Increment11ServiceTest {
     @Autowired
     private ScenarioDetailService scenarioDetailService;
 
-    // FRTB_SA scenario seeded in changeset 017 -- GRID/GRID modes
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
+
+    // FRTB_SA scenario seeded in changeset 017 -- INTERNAL/INTERNAL modes (migrated from GRID by changeset 024)
     private static final UUID SA_SCENARIO_ID = UUID.fromString("d4e5f6a7-b8c9-4d0e-1f2a-3b4c5d6e7f80");
 
-    // FX Curve Recalibration -- MARKET_DATA type, LINK_OUT/LINK_OUT modes
+    // FX Curve Recalibration -- MARKET_DATA type, EXTERNAL/EXTERNAL modes (migrated from LINK_OUT by changeset 024)
     private static final UUID MD_SCENARIO_ID = UUID.fromString("a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d");
 
     // ========================================================================
@@ -73,7 +80,7 @@ class Increment11ServiceTest {
     // ========================================================================
 
     @Test
-    void getScenarioDetail_expandImpactData_gridMode_returnsImpactDataDtoWithColumnsRowsAndCompareCta() {
+    void getScenarioDetail_expandImpactData_gridMode_returnsImpactDataDtoWithReportsArray() {
         Optional<ScenarioDetailDto> result = scenarioDetailService.getScenarioDetail(
                 SA_SCENARIO_ID, Set.of("impactData"));
 
@@ -82,47 +89,56 @@ class Increment11ServiceTest {
         ImpactDataDto impactData = dto.impactData();
         assertNotNull(impactData, "impactData should be populated when expand=impactData for GRID mode");
 
-        assertEquals(5, impactData.columns().size(), "Should have 5 columns");
-        assertEquals("Risk Class", impactData.columns().get(0));
-        assertEquals("Risk Measure", impactData.columns().get(1));
-        assertEquals("Base Value", impactData.columns().get(2));
-        assertEquals("Stressed Value", impactData.columns().get(3));
-        assertEquals("Capital Charge", impactData.columns().get(4));
+        assertNotNull(impactData.reports(), "reports list should not be null");
+        assertTrue(impactData.reports().size() >= 1, "Should have at least 1 report");
 
-        assertEquals(5, impactData.rows().size(), "Should have 5 rows");
+        ImpactReportDto firstReport = impactData.reports().get(0);
+        assertNotNull(firstReport.impactRunId(), "impactRunId should be populated");
+        assertNotNull(firstReport.name(), "name should be populated");
+        assertNotNull(firstReport.dataset(), "dataset should be populated");
 
-        assertNotNull(impactData.compareCta(), "compareCta should be populated from COMPARE link");
-        assertEquals("Compare results", impactData.compareCta().label());
-        assertTrue(impactData.compareCta().url().contains("compare"),
+        DatasetDto dataset = firstReport.dataset();
+        assertEquals(5, dataset.columns().size(), "Should have 5 columns");
+        assertEquals("Risk Class", dataset.columns().get(0));
+        assertEquals("Risk Measure", dataset.columns().get(1));
+        assertEquals("Base Value", dataset.columns().get(2));
+        assertEquals("Stressed Value", dataset.columns().get(3));
+        assertEquals("Capital Charge", dataset.columns().get(4));
+
+        assertTrue(dataset.rows().size() >= 1, "Should have at least 1 row");
+
+        assertNotNull(firstReport.compareCta(), "compareCta should be populated from COMPARE link");
+        assertEquals("Compare results", firstReport.compareCta().label());
+        assertTrue(firstReport.compareCta().url().contains("compare"),
                 "compareCta url should contain 'compare'");
     }
 
     // ========================================================================
     // Test 3: ScenarioDetailService throws ResponseStatusException(400)
-    //         when expand=directChanges requested for a LINK_OUT-mode scenario
+    //         when expand=directChanges requested for an EXTERNAL-mode scenario
     // ========================================================================
 
     @Test
-    void getScenarioDetail_expandDirectChanges_linkOutMode_throws400() {
+    void getScenarioDetail_expandDirectChanges_externalMode_throws400() {
         ResponseStatusException ex = assertThrows(ResponseStatusException.class, () ->
                 scenarioDetailService.getScenarioDetail(MD_SCENARIO_ID, Set.of("directChanges")));
 
         assertEquals(400, ex.getStatusCode().value());
-        assertTrue(ex.getReason().contains("directChanges expand not supported for LINK_OUT mode"));
+        assertTrue(ex.getReason().contains("directChanges expand not supported for EXTERNAL mode"));
     }
 
     // ========================================================================
     // Test 4: ScenarioDetailService throws ResponseStatusException(400)
-    //         when expand=impactData requested for a LINK_OUT-mode scenario
+    //         when expand=impactData requested for an EXTERNAL-mode scenario
     // ========================================================================
 
     @Test
-    void getScenarioDetail_expandImpactData_linkOutMode_throws400() {
+    void getScenarioDetail_expandImpactData_externalMode_throws400() {
         ResponseStatusException ex = assertThrows(ResponseStatusException.class, () ->
                 scenarioDetailService.getScenarioDetail(MD_SCENARIO_ID, Set.of("impactData")));
 
         assertEquals(400, ex.getStatusCode().value());
-        assertTrue(ex.getReason().contains("impactData expand not supported for LINK_OUT mode"));
+        assertTrue(ex.getReason().contains("impactData expand not supported for EXTERNAL mode"));
     }
 
     // ========================================================================
@@ -165,5 +181,41 @@ class Increment11ServiceTest {
         assertNotNull(payload.get("Current Value"), "Current Value should be present");
         assertNotNull(payload.get("Proposed Value"), "Proposed Value should be present");
         assertNotNull(payload.get("Delta"), "Delta should be present");
+    }
+
+    // ========================================================================
+    // Test 7: Backward-compat — guard still rejects legacy LINK_OUT value
+    //         for directChanges expand (transition period)
+    // ========================================================================
+
+    @Test
+    void getScenarioDetail_expandDirectChanges_legacyLinkOutMode_throws400() {
+        // Temporarily revert MARKET_DATA to legacy LINK_OUT value
+        jdbcTemplate.update(
+                "UPDATE scenario_type SET direct_changes_mode = 'LINK_OUT' WHERE code = 'MARKET_DATA'");
+
+        ResponseStatusException ex = assertThrows(ResponseStatusException.class, () ->
+                scenarioDetailService.getScenarioDetail(MD_SCENARIO_ID, Set.of("directChanges")));
+
+        assertEquals(400, ex.getStatusCode().value());
+        assertTrue(ex.getReason().contains("directChanges expand not supported for EXTERNAL mode"));
+    }
+
+    // ========================================================================
+    // Test 8: Backward-compat — guard still rejects legacy LINK_OUT value
+    //         for impactData expand (transition period)
+    // ========================================================================
+
+    @Test
+    void getScenarioDetail_expandImpactData_legacyLinkOutMode_throws400() {
+        // Temporarily revert MARKET_DATA to legacy LINK_OUT value
+        jdbcTemplate.update(
+                "UPDATE scenario_type SET impact_data_mode = 'LINK_OUT' WHERE code = 'MARKET_DATA'");
+
+        ResponseStatusException ex = assertThrows(ResponseStatusException.class, () ->
+                scenarioDetailService.getScenarioDetail(MD_SCENARIO_ID, Set.of("impactData")));
+
+        assertEquals(400, ex.getStatusCode().value());
+        assertTrue(ex.getReason().contains("impactData expand not supported for EXTERNAL mode"));
     }
 }

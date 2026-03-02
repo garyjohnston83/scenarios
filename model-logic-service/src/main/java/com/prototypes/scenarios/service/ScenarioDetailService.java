@@ -7,10 +7,12 @@ import com.prototypes.scenarios.dto.ActivityStreamDto;
 import com.prototypes.scenarios.dto.ChangesSummaryDto;
 import com.prototypes.scenarios.dto.CombineScenariosRequestDto;
 import com.prototypes.scenarios.dto.CtaDto;
+import com.prototypes.scenarios.dto.DatasetDto;
 import com.prototypes.scenarios.dto.DirectChangesDto;
 import com.prototypes.scenarios.dto.EventDto;
 import com.prototypes.scenarios.dto.GridRowDto;
 import com.prototypes.scenarios.dto.ImpactDataDto;
+import com.prototypes.scenarios.dto.ImpactReportDto;
 import com.prototypes.scenarios.dto.ImpactRunPayload;
 import com.prototypes.scenarios.dto.ImpactSummaryDto;
 import com.prototypes.scenarios.dto.MessageDto;
@@ -844,9 +846,10 @@ public class ScenarioDetailService {
 
     private DirectChangesDto buildDirectChanges(Scenario scenario) {
         ScenarioType scenarioType = scenario.getScenarioType();
-        if (scenarioType != null && "LINK_OUT".equals(scenarioType.getDirectChangesMode())) {
+        String dcMode = scenarioType != null ? scenarioType.getDirectChangesMode() : null;
+        if ("LINK_OUT".equals(dcMode) || "EXTERNAL".equals(dcMode)) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                    "directChanges expand not supported for LINK_OUT mode");
+                    "directChanges expand not supported for EXTERNAL mode");
         }
 
         UUID scenarioId = scenario.getId();
@@ -886,51 +889,71 @@ public class ScenarioDetailService {
     }
 
     private ImpactDataDto buildImpactData(Scenario scenario) {
+        // Guard: reject EXTERNAL mode
         ScenarioType scenarioType = scenario.getScenarioType();
-        if (scenarioType != null && "LINK_OUT".equals(scenarioType.getImpactDataMode())) {
+        String idMode = scenarioType != null ? scenarioType.getImpactDataMode() : null;
+        if ("LINK_OUT".equals(idMode) || "EXTERNAL".equals(idMode)) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                    "impactData expand not supported for LINK_OUT mode");
+                    "impactData expand not supported for EXTERNAL mode");
         }
 
         UUID scenarioId = scenario.getId();
-        Optional<ScenarioGridDataset> datasetOpt = scenarioGridDatasetRepository
-                .findByScenarioIdAndDatasetType(scenarioId, "IMPACT_DATA");
 
+        // Fetch all IMPACT_DATA datasets, ordered by createdAt ASC
+        List<ScenarioGridDataset> datasets = scenarioGridDatasetRepository
+                .findByScenarioIdAndDatasetTypeOrderByCreatedAtAsc(scenarioId, "IMPACT_DATA");
+
+        // Fetch optional COMPARE link (shared across reports)
         CtaDto compareCta = scenarioLinkRepository
                 .findByScenarioIdAndLinkType(scenarioId, "COMPARE")
                 .map(link -> new CtaDto(link.getLabel(), link.getUrl()))
                 .orElse(null);
 
-        if (datasetOpt.isEmpty()) {
-            return new ImpactDataDto(List.of(), List.of(), compareCta);
+        if (datasets.isEmpty()) {
+            return new ImpactDataDto(List.of());
         }
 
-        ScenarioGridDataset dataset = datasetOpt.get();
+        List<ImpactReportDto> reports = datasets.stream()
+                .map(dataset -> buildSingleReport(dataset, compareCta))
+                .toList();
+
+        return new ImpactDataDto(reports);
+    }
+
+    private ImpactReportDto buildSingleReport(ScenarioGridDataset dataset, CtaDto compareCta) {
+        ImpactRun impactRun = dataset.getImpactRun();
+
+        String impactRunId = impactRun != null ? impactRun.getId().toString() : dataset.getId().toString();
+        String name = impactRun != null ? impactRun.getRunRef() : "Impact Report";
+        String createdAt = impactRun != null
+                ? impactRun.getStartedAt().toString()
+                : dataset.getCreatedAt().toString();
+
+        List<String> columns;
         try {
-            List<String> columns = objectMapper.readValue(
+            columns = objectMapper.readValue(
                     dataset.getColumnsJson(), new TypeReference<List<String>>() {});
-
-            List<ScenarioGridRow> rows = scenarioGridRowRepository
-                    .findByDatasetIdOrderByCreatedAtAsc(dataset.getId());
-
-            List<GridRowDto> gridRows = rows.stream()
-                    .map(row -> {
-                        try {
-                            Map<String, Object> payload = objectMapper.readValue(
-                                    row.getRowPayloadJson(), new TypeReference<Map<String, Object>>() {});
-                            return new GridRowDto(row.getId(), payload);
-                        } catch (Exception e) {
-                            throw new RuntimeException("Failed to deserialize row payload JSON", e);
-                        }
-                    })
-                    .toList();
-
-            return new ImpactDataDto(columns, gridRows, compareCta);
-        } catch (RuntimeException e) {
-            throw e;
         } catch (Exception e) {
             throw new RuntimeException("Failed to deserialize columns JSON", e);
         }
+
+        List<ScenarioGridRow> rows = scenarioGridRowRepository
+                .findByDatasetIdOrderByCreatedAtAsc(dataset.getId());
+
+        List<GridRowDto> gridRows = rows.stream()
+                .map(row -> {
+                    try {
+                        Map<String, Object> payload = objectMapper.readValue(
+                                row.getRowPayloadJson(), new TypeReference<Map<String, Object>>() {});
+                        return new GridRowDto(row.getId(), payload);
+                    } catch (Exception e) {
+                        throw new RuntimeException("Failed to deserialize row payload JSON", e);
+                    }
+                })
+                .toList();
+
+        DatasetDto datasetDto = new DatasetDto(columns, gridRows);
+        return new ImpactReportDto(impactRunId, name, createdAt, datasetDto, compareCta);
     }
 
     private ReviewApprovalDto buildReviewApproval(Scenario scenario) {

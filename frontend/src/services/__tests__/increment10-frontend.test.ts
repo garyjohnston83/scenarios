@@ -62,8 +62,8 @@ describe('Increment 10 -- Frontend Changes', () => {
       code: 'MARKET_DATA',
       name: 'Market Data',
       icon: 'ChartMultiple',
-      directChangesMode: 'LINK_OUT',
-      impactDataMode: 'LINK_OUT',
+      directChangesMode: 'EXTERNAL',
+      impactDataMode: 'EXTERNAL',
     };
 
     const headerData: ScenarioHeaderData = {
@@ -79,8 +79,8 @@ describe('Increment 10 -- Frontend Changes', () => {
     expect(headerData.scenarioType!.code).toBe('MARKET_DATA');
     expect(headerData.scenarioType!.name).toBe('Market Data');
     expect(headerData.scenarioType!.icon).toBe('ChartMultiple');
-    expect(headerData.scenarioType!.directChangesMode).toBe('LINK_OUT');
-    expect(headerData.scenarioType!.impactDataMode).toBe('LINK_OUT');
+    expect(headerData.scenarioType!.directChangesMode).toBe('EXTERNAL');
+    expect(headerData.scenarioType!.impactDataMode).toBe('EXTERNAL');
   });
 
   // ========================================================================
@@ -127,8 +127,8 @@ describe('Increment 10 -- Frontend Changes', () => {
             code: 'MARKET_DATA',
             name: 'Market Data',
             icon: 'ChartMultiple',
-            directChangesMode: 'LINK_OUT',
-            impactDataMode: 'LINK_OUT',
+            directChangesMode: 'EXTERNAL',
+            impactDataMode: 'EXTERNAL',
           },
         },
       };
@@ -141,8 +141,8 @@ describe('Increment 10 -- Frontend Changes', () => {
       expect(state.selectedDetail!.header!.scenarioType!.code).toBe('MARKET_DATA');
       expect(state.selectedDetail!.header!.scenarioType!.name).toBe('Market Data');
       expect(state.selectedDetail!.header!.scenarioType!.icon).toBe('ChartMultiple');
-      expect(state.selectedDetail!.header!.scenarioType!.directChangesMode).toBe('LINK_OUT');
-      expect(state.selectedDetail!.header!.scenarioType!.impactDataMode).toBe('LINK_OUT');
+      expect(state.selectedDetail!.header!.scenarioType!.directChangesMode).toBe('EXTERNAL');
+      expect(state.selectedDetail!.header!.scenarioType!.impactDataMode).toBe('EXTERNAL');
       expect(state.detailLoading).toBe(false);
     });
 

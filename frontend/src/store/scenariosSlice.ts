@@ -9,12 +9,14 @@ export interface ScenarioListItem {
   updatedAt: string;
 }
 
+export type DataMode = 'EXTERNAL' | 'INTERNAL';
+
 export interface ScenarioTypeData {
   code: string;
   name: string;
   icon: string;
-  directChangesMode: string;
-  impactDataMode: string;
+  directChangesMode: DataMode;
+  impactDataMode: DataMode;
 }
 
 export interface ScenarioHeaderData {
@@ -117,6 +119,18 @@ export interface ImpactDataData {
   compareCta: CtaData | null;
 }
 
+export interface ImpactReportData {
+  impactRunId: string;
+  name: string;
+  createdAt: string;
+  dataset: DirectChangesData;
+  compareCta: CtaData | null;
+}
+
+export interface ImpactDataResponse {
+  reports: ImpactReportData[];
+}
+
 export interface ScenarioDetail {
   id: string;
   name: string;
@@ -128,8 +142,7 @@ export interface ScenarioDetail {
   summaryCards?: SummaryCardsData;
   reviewApproval?: ReviewApprovalData;
   events?: ActivityStreamData;
-  directChanges?: DirectChangesData;
-  impactData?: ImpactDataData;
+  // directChanges and impactData removed — governance mode does not render grids
 }
 
 export interface CombineScenariosRequest {
@@ -153,6 +166,7 @@ export interface ScenariosState {
   eventPostError: string | null;
   combinePosting: boolean;
   combinePostError: string | null;
+  lhsCollapsed: boolean;
 }
 
 const initialState: ScenariosState = {
@@ -170,6 +184,7 @@ const initialState: ScenariosState = {
   eventPostError: null,
   combinePosting: false,
   combinePostError: null,
+  lhsCollapsed: false,
 };
 
 const scenariosSlice = createSlice({
@@ -228,15 +243,6 @@ const scenariosSlice = createSlice({
       state.eventPosting = false;
       state.eventPostError = action.payload;
     },
-    mergeGridSections(state, action: PayloadAction<Partial<ScenarioDetail>>) {
-      if (state.selectedDetail === null) {
-        return;
-      }
-      state.selectedDetail = {
-        ...state.selectedDetail,
-        ...action.payload,
-      };
-    },
     combineScenariosRequest(state, _action: PayloadAction<CombineScenariosRequest>) {
       state.combinePosting = true;
       state.combinePostError = null;
@@ -247,6 +253,9 @@ const scenariosSlice = createSlice({
     combineScenariosFailure(state, action: PayloadAction<string>) {
       state.combinePosting = false;
       state.combinePostError = action.payload;
+    },
+    setLhsCollapsed(state, action: PayloadAction<boolean>) {
+      state.lhsCollapsed = action.payload;
     },
   },
 });
@@ -266,10 +275,10 @@ export const {
   postEventRequest,
   postEventSuccess,
   postEventFailure,
-  mergeGridSections,
   combineScenariosRequest,
   combineScenariosSuccess,
   combineScenariosFailure,
+  setLhsCollapsed,
 } = scenariosSlice.actions;
 
 export default scenariosSlice.reducer;

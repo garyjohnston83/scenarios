@@ -1,0 +1,119 @@
+databaseChangeLog:
+  - changeSet:
+      id: 026-seed-impact-grid-datasets
+      author: scenarios-team
+      comment: "Wire impact runs to grid datasets for scenarios 1-4. Scenario 2 demonstrates multi-report."
+      changes:
+        - sql:
+            sql: |
+              -- ============================================================
+              -- Scenario 1: FX Curve Recalibration (a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d)
+              -- Impact Run: d4e5f6a7-b8c9-4d0e-1f2a-3b4c5d6e7f80 (RUN-2026-0220-001)
+              -- Single report
+              -- ============================================================
+
+              INSERT INTO scenario_grid_dataset (id, scenario_id, dataset_type, columns_json, impact_run_id, created_at)
+              VALUES
+                ('11111111-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d', 'IMPACT_DATA',
+                 '["Currency Pair","Risk Measure","Base Value","Stressed Value","PnL Impact"]',
+                 'd4e5f6a7-b8c9-4d0e-1f2a-3b4c5d6e7f80',
+                 '2026-02-20 14:00:00');
+
+              INSERT INTO scenario_grid_row (id, dataset_id, row_payload_json, created_at)
+              VALUES
+                ('11111111-bb01-4b01-8b01-000000000001', '11111111-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+                 '{"Currency Pair":"USD/JPY","Risk Measure":"VaR 99%","Base Value":1250000,"Stressed Value":1290000,"PnL Impact":40000}',
+                 '2026-02-20 14:01:00'),
+                ('11111111-bb02-4b02-8b02-000000000002', '11111111-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+                 '{"Currency Pair":"EUR/USD","Risk Measure":"VaR 99%","Base Value":980000,"Stressed Value":1015000,"PnL Impact":35000}',
+                 '2026-02-20 14:02:00'),
+                ('11111111-bb03-4b03-8b03-000000000003', '11111111-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+                 '{"Currency Pair":"GBP/USD","Risk Measure":"Expected Shortfall","Base Value":1450000,"Stressed Value":1510000,"PnL Impact":60000}',
+                 '2026-02-20 14:03:00');
+
+              -- ============================================================
+              -- Scenario 2: IR Vol Surface Update (b2c3d4e5-f6a7-4b8c-9d0e-1f2a3b4c5d6e)
+              -- Impact Run 1: e5f6a7b8-c9d0-4e1f-2a3b-4c5d6e7f8091 (RUN-2026-0219-001)
+              -- Impact Run 2: f6a7b8c9-d0e1-4f2a-3b4c-5d6e7f809102 (RUN-2026-0219-002)
+              -- Multi-report (2 datasets)
+              -- ============================================================
+
+              -- Dataset for impact run 1
+              INSERT INTO scenario_grid_dataset (id, scenario_id, dataset_type, columns_json, impact_run_id, created_at)
+              VALUES
+                ('22222222-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 'b2c3d4e5-f6a7-4b8c-9d0e-1f2a3b4c5d6e', 'IMPACT_DATA',
+                 '["Tenor","Risk Measure","Base Value","Stressed Value","PnL Impact"]',
+                 'e5f6a7b8-c9d0-4e1f-2a3b-4c5d6e7f8091',
+                 '2026-02-19 14:30:00');
+
+              INSERT INTO scenario_grid_row (id, dataset_id, row_payload_json, created_at)
+              VALUES
+                ('22222222-bb01-4b01-8b01-000000000001', '22222222-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+                 '{"Tenor":"1Y","Risk Measure":"VaR 99%","Base Value":2100000,"Stressed Value":2250000,"PnL Impact":150000}',
+                 '2026-02-19 14:31:00'),
+                ('22222222-bb02-4b02-8b02-000000000002', '22222222-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+                 '{"Tenor":"5Y","Risk Measure":"VaR 99%","Base Value":3400000,"Stressed Value":3620000,"PnL Impact":220000}',
+                 '2026-02-19 14:32:00'),
+                ('22222222-bb03-4b03-8b03-000000000003', '22222222-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+                 '{"Tenor":"10Y","Risk Measure":"Expected Shortfall","Base Value":4500000,"Stressed Value":4850000,"PnL Impact":350000}',
+                 '2026-02-19 14:33:00');
+
+              -- Dataset for impact run 2
+              INSERT INTO scenario_grid_dataset (id, scenario_id, dataset_type, columns_json, impact_run_id, created_at)
+              VALUES
+                ('33333333-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 'b2c3d4e5-f6a7-4b8c-9d0e-1f2a3b4c5d6e', 'IMPACT_DATA',
+                 '["Tenor","Risk Measure","Base Value","Stressed Value","PnL Impact"]',
+                 'f6a7b8c9-d0e1-4f2a-3b4c-5d6e7f809102',
+                 '2026-02-19 16:00:00');
+
+              INSERT INTO scenario_grid_row (id, dataset_id, row_payload_json, created_at)
+              VALUES
+                ('33333333-bb01-4b01-8b01-000000000001', '33333333-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+                 '{"Tenor":"1Y","Risk Measure":"VaR 99%","Base Value":2100000,"Stressed Value":2200000,"PnL Impact":100000}',
+                 '2026-02-19 16:01:00'),
+                ('33333333-bb02-4b02-8b02-000000000002', '33333333-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+                 '{"Tenor":"5Y","Risk Measure":"VaR 99%","Base Value":3400000,"Stressed Value":3550000,"PnL Impact":150000}',
+                 '2026-02-19 16:02:00'),
+                ('33333333-bb03-4b03-8b03-000000000003', '33333333-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+                 '{"Tenor":"10Y","Risk Measure":"Expected Shortfall","Base Value":4500000,"Stressed Value":4720000,"PnL Impact":220000}',
+                 '2026-02-19 16:03:00');
+
+              -- ============================================================
+              -- Scenario 3: Credit Spread Adjustment (c3d4e5f6-a7b8-4c9d-0e1f-2a3b4c5d6e7f)
+              -- Impact Run: a7b8c9d0-e1f2-4a3b-4c5d-6e7f80910213 (RUN-2026-0218-003)
+              -- Single report
+              -- ============================================================
+
+              INSERT INTO scenario_grid_dataset (id, scenario_id, dataset_type, columns_json, impact_run_id, created_at)
+              VALUES
+                ('44444444-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 'c3d4e5f6-a7b8-4c9d-0e1f-2a3b4c5d6e7f', 'IMPACT_DATA',
+                 '["Issuer","Rating","Spread Change (bps)","Base Value","Stressed Value","PnL Impact"]',
+                 'a7b8c9d0-e1f2-4a3b-4c5d-6e7f80910213',
+                 '2026-02-18 09:45:00');
+
+              INSERT INTO scenario_grid_row (id, dataset_id, row_payload_json, created_at)
+              VALUES
+                ('44444444-bb01-4b01-8b01-000000000001', '44444444-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+                 '{"Issuer":"ACME Corp","Rating":"A","Spread Change (bps)":5,"Base Value":890000,"Stressed Value":910000,"PnL Impact":20000}',
+                 '2026-02-18 09:46:00'),
+                ('44444444-bb02-4b02-8b02-000000000002', '44444444-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+                 '{"Issuer":"Global Inc","Rating":"BBB","Spread Change (bps)":8,"Base Value":1250000,"Stressed Value":1295000,"PnL Impact":45000}',
+                 '2026-02-18 09:47:00'),
+                ('44444444-bb03-4b03-8b03-000000000003', '44444444-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+                 '{"Issuer":"Tech Ltd","Rating":"AA","Spread Change (bps)":3,"Base Value":670000,"Stressed Value":685000,"PnL Impact":15000}',
+                 '2026-02-18 09:48:00');
+
+              -- ============================================================
+              -- Scenario 4: SA Capital Recalculation (d4e5f6a7-b8c9-4d0e-1f2a-3b4c5d6e7f80)
+              -- No impact run exists yet. Create one, then link existing dataset.
+              -- Existing IMPACT_DATA dataset: bb222222-2222-4222-8222-222222222222
+              -- ============================================================
+
+              INSERT INTO impact_run (id, scenario_id, run_ref, status, started_at, completed_at)
+              VALUES
+                ('55555555-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 'd4e5f6a7-b8c9-4d0e-1f2a-3b4c5d6e7f80',
+                 'RUN-2026-0221-004', 'SUCCEEDED', '2026-02-21 14:30:00', '2026-02-21 15:00:00');
+
+              UPDATE scenario_grid_dataset
+              SET impact_run_id = '55555555-aaaa-4aaa-8aaa-aaaaaaaaaaaa'
+              WHERE id = 'bb222222-2222-4222-8222-222222222222';

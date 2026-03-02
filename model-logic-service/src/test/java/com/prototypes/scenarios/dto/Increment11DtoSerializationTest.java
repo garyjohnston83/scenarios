@@ -87,7 +87,7 @@ class Increment11DtoSerializationTest {
     // ========================================================================
 
     @Test
-    void impactDataDto_includesCompareCtaWhenPresent_omitsWhenNull() throws Exception {
+    void impactDataDto_multiReportShape_includesCompareCtaWhenPresent_omitsWhenNull() throws Exception {
         UUID rowId = UUID.fromString("dd000001-0001-4001-8001-000000000001");
 
         List<GridRowDto> rows = List.of(
@@ -96,16 +96,18 @@ class Increment11DtoSerializationTest {
                         "Capital Charge", 300000
                 ))
         );
+        DatasetDto dataset = new DatasetDto(List.of("Risk Class", "Capital Charge"), rows);
 
-        // Case 1: compareCta present
+        // Case 1: compareCta present on report
         CtaDto cta = new CtaDto("Compare results", "https://example.com/compare");
-        ImpactDataDto dtoWithCta = new ImpactDataDto(
-                List.of("Risk Class", "Capital Charge"),
-                rows,
-                cta
+        ImpactReportDto reportWithCta = new ImpactReportDto(
+                "run-001", "RUN-2026-0219-001", "2026-02-19T10:00:00", dataset, cta
         );
+        ImpactDataDto dtoWithCta = new ImpactDataDto(List.of(reportWithCta));
 
         String jsonWithCta = objectMapper.writeValueAsString(dtoWithCta);
+        assertTrue(jsonWithCta.contains("\"reports\""),
+                "JSON should contain 'reports' field");
         assertTrue(jsonWithCta.contains("\"compareCta\""),
                 "JSON should contain 'compareCta' field when CTA is present");
         assertTrue(jsonWithCta.contains("\"Compare results\""),
@@ -113,18 +115,19 @@ class Increment11DtoSerializationTest {
         assertTrue(jsonWithCta.contains("https://example.com/compare"),
                 "JSON should contain CTA url");
 
-        // Case 2: compareCta null -- should be omitted by @JsonInclude(NON_NULL)
-        ImpactDataDto dtoWithoutCta = new ImpactDataDto(
-                List.of("Risk Class", "Capital Charge"),
-                rows,
-                null
+        // Case 2: compareCta null on report -- should be omitted by @JsonInclude(NON_NULL)
+        ImpactReportDto reportWithoutCta = new ImpactReportDto(
+                "run-002", "RUN-2026-0219-002", "2026-02-19T11:00:00", dataset, null
         );
+        ImpactDataDto dtoWithoutCta = new ImpactDataDto(List.of(reportWithoutCta));
 
         String jsonWithoutCta = objectMapper.writeValueAsString(dtoWithoutCta);
         assertFalse(jsonWithoutCta.contains("\"compareCta\""),
                 "JSON should NOT contain 'compareCta' field when CTA is null (omitted by @JsonInclude(NON_NULL))");
 
         // Verify the rest of the structure is still correct
+        assertTrue(jsonWithoutCta.contains("\"reports\""), "JSON should contain 'reports'");
+        assertTrue(jsonWithoutCta.contains("\"dataset\""), "JSON should contain 'dataset' within report");
         assertTrue(jsonWithoutCta.contains("\"columns\""), "JSON should still contain 'columns'");
         assertTrue(jsonWithoutCta.contains("\"rows\""), "JSON should still contain 'rows'");
     }

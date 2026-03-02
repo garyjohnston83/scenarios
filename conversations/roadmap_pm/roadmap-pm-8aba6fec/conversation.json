@@ -1,0 +1,14 @@
+[
+  {
+    "role": "user",
+    "phase": "refine",
+    "content": "Help me define the high-level roadmap for Scenarios.",
+    "timestamp": "2026-02-28T13:26:47.908Z"
+  },
+  {
+    "role": "assistant",
+    "phase": "refine",
+    "content": "{\"phase\":\"questions\",\"section\":\"outcome_alignment\",\"summary\":\"I found an existing roadmap with 1 initiative and 2 epics. Let's review and refine it.\",\"questions\":[\"Are these initiatives still aligned with your current business goals, or have priorities shifted?\",\"Are there any new initiatives or epics that should be added to the roadmap?\",\"Would you like to adjust the sequencing or dependencies between any existing items?\"],\"proposedInitiatives\":[],\"assumptions\":[],\"openItems\":[]}",
+    "timestamp": "2026-02-28T13:26:47.908Z"
+  }
+]

@@ -2,6 +2,7 @@ import { configureStore } from '@reduxjs/toolkit';
 import createSagaMiddleware from 'redux-saga';
 import scenariosReducer from './scenariosSlice';
 import adminReducer from './adminSlice';
+import analysisReducer from './analysisSlice';
 import rootSaga from './rootSaga';
 
 const sagaMiddleware = createSagaMiddleware();
@@ -10,6 +11,7 @@ export const store = configureStore({
   reducer: {
     scenarios: scenariosReducer,
     admin: adminReducer,
+    analysis: analysisReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware().concat(sagaMiddleware),

@@ -1,0 +1,30 @@
+{
+  "schemaVersion": 1,
+  "sessionId": "556597e1-6f99-46c9-acb2-1a8072869afc",
+  "latestPlannerResponse": null,
+  "answers": {},
+  "questionStatuses": {},
+  "streamedQuestions": [],
+  "streamedAnswers": {},
+  "latestFolder": null,
+  "incrementStatuses": {},
+  "activeIncrementId": null,
+  "prefetchedSpecs": {},
+  "partStatuses": {},
+  "activePartIndex": null,
+  "currentJobId": null,
+  "partTranscripts": {},
+  "hasBootstrapped": true,
+  "hasPlan": false,
+  "hasTriggeredOrchestration": false,
+  "inputDraft": "",
+  "messages": [
+    {
+      "id": "msg-1772247213084-aegonr7mr",
+      "role": "assistant",
+      "content": "Welcome! You’re starting the “Create Mock Server” feature to scaffold the Java 25 / Spring Boot 4 / Maven service. I have the product backlog and architecture meta-model available—are there any specific services, data entities, or interface diagrams you’d like to highlight as most relevant to this work item?",
+      "timestamp": "2026-02-28T02:53:33.084Z",
+      "persona": "Product Owner"
+    }
+  ]
+}

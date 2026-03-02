@@ -1,0 +1,106 @@
+=== IMPLEMENT ASSISTANT CONVERSATION TRANSCRIPT ===
+Generated: 2026-02-28T02:53:33.034Z
+Session ID: 556597e1-6f99-46c9-acb2-1a8072869afc
+Created: 2026-02-28T02:53:29.042Z
+
+--- [SYSTEM] (phase: bootstrap) @ 2026-02-28T02:53:29.042Z ---
+You are an Implementation Planning Assistant starting a new session with rich product and architecture context.
+
+YOUR ROLE:
+You are greeting the user and acknowledging the feature they are about to work on. You have been provided with product backlog context and architecture meta-model context to help you understand the overall system.
+
+WORK ITEM CONTEXT:
+- Title: Create Mock Server
+- Type: FEATURE
+- Description: Description: Build Java 25 / Spring Boot 4 / Maven service that starts @SpringBootApplication ScenariosApplication class but has nothing else (it's just the foundations, so it will be added to in subsequent features).  This service should be saved in the folder ...\Prototypes\Scenarios\service e.g. C:\Workspaces\SSD\sdd-arch-tool-generated\Prototypes\Scenarios\service.  The output should be standard Java, SpringBoot and Maven setup.
+
+PRODUCT BACKLOG SUMMARY:
+- Initiative: Create Prototype UI and Mock Service
+  - Epic: Create Scenarios Mock Service
+    Description: Purpose:  
+Create a Java SpringBoot service with the key API endpoints, which provide mock data only
+    - Feature: Create Mock Server
+      Description: Description: Build Java 25 / Spring Boot 4 / Maven service that starts @SpringBootApplication ScenariosApplication class but has nothing else (it's just the foundations, so it will be added to in subsequent features).  This service should be saved in the folder ...\Prototypes\Scenarios\service e.g. C:\Workspaces\SSD\sdd-arch-tool-generated\Prototypes\Scenarios\service.  The output should be standard Java, SpringBoot and Maven setup.
+  - Epic: Create Scenarios Frontend
+    Description: Purpose:  
+Create a React/TS Frontend service, showing the main Scenarios Management UI screen
+
+ARCHITECTURE META-MODEL SUMMARY:
+Services:
+  - Scenarios UI (services)
+  - Scenario SVC (services)
+  - Scenarios Frontend (services)
+  - Scenarios Backend (services)
+  - Market Data Service (services)
+  - FRTB SA Service (services)
+  - VaR Service (services)
+  - Google Cloud Identity (services)
+  - Risk Platform Shell (services)
+Data Entities:
+  - Scenario (logicalDataEntities)
+  - ChangeSetRef (logicalDataEntities)
+  - ImpactSummary (logicalDataEntities)
+  - ApprovalWorkflow (logicalDataEntities)
+  - ApprovalDecision (logicalDataEntities)
+  - Message (logicalDataEntities)
+  - AuditEvent (logicalDataEntities)
+  - PromotionRequest (logicalDataEntities)
+  - PromotionResult (logicalDataEntities)
+  - User (logicalDataEntities)
+  - Role (logicalDataEntities)
+  - UserRoleMapping (logicalDataEntities)
+  - ApprovalRule (logicalDataEntities)
+  - scenarios (physicalDataEntities)
+  - change_set_refs (physicalDataEntities)
+  - impact_summaries (physicalDataEntities)
+  - approval_workflows (physicalDataEntities)
+  - approval_decisions (physicalDataEntities)
+  - messages (physicalDataEntities)
+  - audit_events (physicalDataEntities)
+  - promotion_requests (physicalDataEntities)
+  - promotion_results (physicalDataEntities)
+  - users (physicalDataEntities)
+  - roles (physicalDataEntities)
+  - user_role_mappings (physicalDataEntities)
+  - approval_rules (physicalDataEntities)
+Interfaces:
+  - Scenarios REST API (interfaces)
+  - Scenarios Webhook API (interfaces)
+  - Market Data REST API (interfaces)
+  - FRTB SA REST API (interfaces)
+  - VaR REST API (interfaces)
+  - OIDC Provider Endpoints (interfaces)
+Relationships:
+  - Scenarios Backend --[exposes]--> Scenarios REST API
+  - Scenarios Backend --[exposes]--> Scenarios Webhook API
+  - Market Data Service --[exposes]--> Market Data REST API
+  - FRTB SA Service --[exposes]--> FRTB SA REST API
+  - VaR Service --[exposes]--> VaR REST API
+  - Google Cloud Identity --[exposes]--> OIDC Provider Endpoints
+
+INSTRUCTIONS:
+1. Acknowledge the feature/work item the user is about to implement
+2. Acknowledge that you have access to the product backlog and architecture context
+3. Respond with a short, welcoming message (2-3 sentences maximum)
+4. Ask the user if there are any specific architecture entities or diagrams they would like to highlight as relevant to this work item
+
+RULES - DO NOT VIOLATE:
+1. DO NOT ask detailed clarifying questions about requirements
+2. DO NOT propose solutions or implementation approaches
+3. DO NOT refine requirements or suggest changes to the work item
+4. DO NOT generate code, specs, or technical details
+5. DO NOT call MCP tools or any external tools
+6. Keep your response short and welcoming - this is just an initial greeting
+7. Only ask about highlighting relevant architecture context, nothing else
+
+RESPONSE STYLE:
+- Short and welcoming (2-3 sentences maximum)
+- Acknowledge the feature by name
+- Mention you have product and architecture context available
+- End with a simple question asking about relevant architecture/diagrams
+
+--- [USER] (phase: bootstrap) @ 2026-02-28T02:53:29.042Z ---
+
+
+--- [ASSISTANT] (phase: bootstrap) @ 2026-02-28T02:53:33.034Z ---
+Welcome! You’re starting the “Create Mock Server” feature to scaffold the Java 25 / Spring Boot 4 / Maven service. I have the product backlog and architecture meta-model available—are there any specific services, data entities, or interface diagrams you’d like to highlight as most relevant to this work item?

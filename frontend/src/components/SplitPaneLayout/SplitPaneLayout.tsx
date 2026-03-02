@@ -1,17 +1,29 @@
-import { useRef, useState, useCallback } from 'react';
+import { useRef, useState, useCallback, useEffect } from 'react';
 import { PanelGroup, Panel, PanelResizeHandle, ImperativePanelHandle } from 'react-resizable-panels';
 import { Button } from '@fluentui/react-components';
 import { ChevronRight24Regular } from '@fluentui/react-icons';
+import { useAppSelector } from '../../store/hooks';
 import styles from './SplitPaneLayout.module.scss';
 
 export interface SplitPaneLayoutProps {
-  lhs: React.ReactNode;
+  lhs: React.ReactNode | ((onCollapse: () => void) => React.ReactNode);
   rhs: React.ReactNode;
 }
 
 export const SplitPaneLayout: React.FC<SplitPaneLayoutProps> = ({ lhs, rhs }) => {
   const panelRef = useRef<ImperativePanelHandle>(null);
   const [isCollapsed, setIsCollapsed] = useState(false);
+
+  // Read external collapse command from Redux
+  const lhsCollapsed = useAppSelector((state) => state.scenarios.lhsCollapsed);
+
+  useEffect(() => {
+    if (lhsCollapsed) {
+      panelRef.current?.collapse();
+    } else {
+      panelRef.current?.expand();
+    }
+  }, [lhsCollapsed]);
 
   const handleCollapse = useCallback(() => {
     setIsCollapsed(true);
@@ -23,6 +35,10 @@ export const SplitPaneLayout: React.FC<SplitPaneLayoutProps> = ({ lhs, rhs }) =>
 
   const handleExpandClick = useCallback(() => {
     panelRef.current?.expand();
+  }, []);
+
+  const handleCollapseClick = useCallback(() => {
+    panelRef.current?.collapse();
   }, []);
 
   return (
@@ -50,7 +66,7 @@ export const SplitPaneLayout: React.FC<SplitPaneLayoutProps> = ({ lhs, rhs }) =>
               />
             </div>
           ) : (
-            lhs
+            typeof lhs === 'function' ? lhs(handleCollapseClick) : lhs
           )}
         </div>
       </Panel>

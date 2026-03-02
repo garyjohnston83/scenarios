@@ -1,0 +1,16 @@
+.container {
+  height: 100%;
+  overflow-x: auto;
+  overflow-y: auto;
+}
+
+.centered {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 24px;
+}
+
+.gridWrapper {
+  padding: 16px 24px;
+}

@@ -1,0 +1,34 @@
+databaseChangeLog:
+  - changeSet:
+      id: 025-add-impact-run-id-column
+      author: scenarios-team
+      comment: "Add nullable impact_run_id UUID column to scenario_grid_dataset"
+      changes:
+        - addColumn:
+            tableName: scenario_grid_dataset
+            columns:
+              - column:
+                  name: impact_run_id
+                  type: uuid
+        - addForeignKeyConstraint:
+            baseTableName: scenario_grid_dataset
+            baseColumnNames: impact_run_id
+            referencedTableName: impact_run
+            referencedColumnNames: id
+            constraintName: fk_grid_dataset_impact_run
+  - changeSet:
+      id: 025-backfill-impact-run-id
+      author: scenarios-team
+      comment: "Backfill existing IMPACT_DATA datasets to link to latest ImpactRun for same scenario"
+      changes:
+        - sql:
+            sql: |
+              UPDATE scenario_grid_dataset gd
+              SET impact_run_id = (
+                SELECT ir.id FROM impact_run ir
+                WHERE ir.scenario_id = gd.scenario_id
+                ORDER BY ir.started_at DESC
+                LIMIT 1
+              )
+              WHERE gd.dataset_type = 'IMPACT_DATA'
+                AND gd.impact_run_id IS NULL;

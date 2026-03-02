@@ -1,0 +1,12 @@
+databaseChangeLog:
+  - changeSet:
+      id: 027-seed-internal-scenario-links
+      author: scenarios-team
+      comment: "Add DIRECT_CHANGES and IMPACT_REPORTS links for INTERNAL (FRTB_SA) scenario so CTAs render in governance view"
+      changes:
+        - sql:
+            sql: |
+              INSERT INTO scenario_link (id, scenario_id, link_type, label, url, created_at)
+              VALUES
+                ('ee000002-0002-4002-8002-000000000002', 'd4e5f6a7-b8c9-4d0e-1f2a-3b4c5d6e7f80', 'DIRECT_CHANGES', 'View Direct Changes →', '/scenarios/d4e5f6a7-b8c9-4d0e-1f2a-3b4c5d6e7f80/analysis?initial-tab=direct-changes', '2026-02-21 15:00:00'),
+                ('ee000003-0003-4003-8003-000000000003', 'd4e5f6a7-b8c9-4d0e-1f2a-3b4c5d6e7f80', 'IMPACT_REPORTS', 'View Impact Reports →', '/scenarios/d4e5f6a7-b8c9-4d0e-1f2a-3b4c5d6e7f80/analysis?initial-tab=impact-reports', '2026-02-21 15:00:00');

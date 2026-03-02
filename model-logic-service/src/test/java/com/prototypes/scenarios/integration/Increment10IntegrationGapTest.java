@@ -121,8 +121,8 @@ class Increment10IntegrationGapTest {
         assertEquals("MARKET_DATA", dto.header().scenarioType().code());
         assertEquals("Market Data", dto.header().scenarioType().name());
         assertEquals("ChartMultiple", dto.header().scenarioType().icon());
-        assertEquals("LINK_OUT", dto.header().scenarioType().directChangesMode());
-        assertEquals("LINK_OUT", dto.header().scenarioType().impactDataMode());
+        assertEquals("EXTERNAL", dto.header().scenarioType().directChangesMode());
+        assertEquals("EXTERNAL", dto.header().scenarioType().impactDataMode());
 
         // Also verify for RISK_FACTOR type scenario
         Optional<ScenarioDetailDto> riskResult = scenarioDetailService.getScenarioDetail(

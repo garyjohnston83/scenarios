@@ -1,0 +1,32 @@
+.reportContainer {
+  height: 100%;
+  overflow-y: auto;
+}
+
+.metadataStrip {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 24px;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.reportName {
+  font-weight: 600;
+}
+
+.reportDate {
+  color: #616161;
+}
+
+.tableContainer {
+  padding: 16px 24px;
+  overflow-x: auto;
+}
+
+.emptyState {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 24px;
+}

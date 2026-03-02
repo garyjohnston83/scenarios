@@ -149,9 +149,8 @@ describe('Increment 13 TG4 -- TypeScript Interfaces, Redux State, API Call Updat
     expect(calledUrl).not.toContain('reviewApproval');
   });
 
-  // Test 3: Saga Phase 1 dispatches fetch with expand=header,summaryCards,events;
-  // Phase 2 grid sections remain directChanges,impactData only
-  it('Saga Phase 1 fetches header,summaryCards,events and Phase 2 remains directChanges,impactData', async () => {
+  // Test 3: Saga fetches header,summaryCards,events — single phase, no grid sections fetch
+  it('Saga fetches header,summaryCards,events in a single phase (no phase-2 grid fetch)', async () => {
     const detailWithEvents: ScenarioDetail = {
       id: 'sc-sa-1',
       name: 'SA Capital Recalculation',
@@ -169,27 +168,14 @@ describe('Increment 13 TG4 -- TypeScript Interfaces, Redux State, API Call Updat
           code: 'FRTB_SA',
           name: 'FRTB SA',
           icon: 'ShieldTask',
-          directChangesMode: 'GRID',
-          impactDataMode: 'GRID',
+          directChangesMode: 'INTERNAL',
+          impactDataMode: 'INTERNAL',
         },
       },
       events: { rows: [], approvalsReceived: 0, approvalsRequired: 2 },
     };
 
-    const gridSectionsResponse: Partial<ScenarioDetail> = {
-      directChanges: {
-        columns: ['Risk Factor'],
-        rows: [{ rowId: 'row-1', payload: { 'Risk Factor': 'FX_USDJPY' } }],
-      },
-      impactData: {
-        columns: ['Risk Class'],
-        rows: [{ rowId: 'row-i-1', payload: { 'Risk Class': 'FX' } }],
-        compareCta: null,
-      },
-    };
-
     mockedApi.fetchScenarioDetail.mockResolvedValue(detailWithEvents);
-    mockedApi.fetchScenarioGridSections.mockResolvedValue(gridSectionsResponse);
 
     const dispatched = await runTestSaga(
       handleFetchScenarioDetail as (...args: unknown[]) => Generator,
@@ -199,11 +185,8 @@ describe('Increment 13 TG4 -- TypeScript Interfaces, Redux State, API Call Updat
     // Phase 1: fetchScenarioDetail is called (which internally uses expand=header,summaryCards,events)
     expect(mockedApi.fetchScenarioDetail).toHaveBeenCalledWith('sc-sa-1');
 
-    // Phase 2: Grid sections should be fetched with directChanges,impactData only
-    expect(mockedApi.fetchScenarioGridSections).toHaveBeenCalledWith(
-      'sc-sa-1',
-      'directChanges,impactData'
-    );
+    // Only one API call — no phase-2 grid sections fetch
+    expect(mockedApi.fetchScenarioDetail).toHaveBeenCalledTimes(1);
 
     // Verify fetchScenarioDetailSuccess was dispatched with events data
     const successAction = dispatched.find((a) => a.type === fetchScenarioDetailSuccess.type);

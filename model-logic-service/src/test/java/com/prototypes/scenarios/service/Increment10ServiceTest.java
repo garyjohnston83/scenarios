@@ -62,8 +62,8 @@ class Increment10ServiceTest {
         assertEquals("MARKET_DATA", header.scenarioType().code());
         assertEquals("Market Data", header.scenarioType().name());
         assertEquals("ChartMultiple", header.scenarioType().icon());
-        assertEquals("LINK_OUT", header.scenarioType().directChangesMode());
-        assertEquals("LINK_OUT", header.scenarioType().impactDataMode());
+        assertEquals("EXTERNAL", header.scenarioType().directChangesMode());
+        assertEquals("EXTERNAL", header.scenarioType().impactDataMode());
     }
 
     // ========================================================================
