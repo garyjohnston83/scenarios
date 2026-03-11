@@ -1,0 +1,48 @@
+.tableBlockContainer {
+  margin-top: 2px;
+}
+
+.tableWrapper {
+  overflow-x: auto;
+}
+
+.table {
+  border-collapse: collapse;
+  table-layout: fixed;
+  font-size: 12px;
+  color: #242424;
+}
+
+.table th,
+.table td {
+  padding: 3px 6px;
+  text-align: center;
+  border: 1px solid #d0d0d0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.table td:first-child {
+  text-align: left;
+}
+
+.rowColumnHeader {
+  text-align: left;
+}
+
+.table th {
+  font-size: 10px;
+  font-weight: 600;
+  color: #333;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  background-color: #f0f0f0;
+}
+
+.table .groupHeader {
+  text-align: center;
+  white-space: normal;
+  word-wrap: break-word;
+  overflow: visible;
+}

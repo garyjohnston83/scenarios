@@ -53,3 +53,19 @@ databaseChangeLog:
       file: db/changelog/changesets/026-seed-impact-grid-datasets.yaml
   - include:
       file: db/changelog/changesets/027-seed-internal-scenario-links.yaml
+  - include:
+      file: db/changelog/changesets/028-create-report-definition-table.yaml
+  - include:
+      file: db/changelog/changesets/029-seed-report-definitions.yaml
+  - include:
+      file: db/changelog/changesets/030-create-scenario-impact-report-table.yaml
+  - include:
+      file: db/changelog/changesets/031-seed-scenario-impact-reports.yaml
+  - include:
+      file: db/changelog/changesets/032-update-market-data-impact-mode.yaml
+  - include:
+      file: db/changelog/changesets/033-update-market-data-report.yaml
+  - include:
+      file: db/changelog/changesets/034-update-market-data-report-columns.yaml
+  - include:
+      file: db/changelog/changesets/035-align-treasury-columns-with-business.yaml

@@ -50,7 +50,7 @@ class Increment10MigrationTest {
         assertEquals("Market Data", marketData.get("NAME"));
         assertEquals("ChartMultiple", marketData.get("ICON"));
         assertEquals("EXTERNAL", marketData.get("DIRECT_CHANGES_MODE"));
-        assertEquals("EXTERNAL", marketData.get("IMPACT_DATA_MODE"));
+        assertEquals("INTERNAL", marketData.get("IMPACT_DATA_MODE"));
         assertTrue((Boolean) marketData.get("IS_ENABLED"));
         assertEquals(1, marketData.get("SORT_ORDER"));
 

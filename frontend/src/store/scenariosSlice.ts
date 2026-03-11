@@ -119,18 +119,6 @@ export interface ImpactDataData {
   compareCta: CtaData | null;
 }
 
-export interface ImpactReportData {
-  impactRunId: string;
-  name: string;
-  createdAt: string;
-  dataset: DirectChangesData;
-  compareCta: CtaData | null;
-}
-
-export interface ImpactDataResponse {
-  reports: ImpactReportData[];
-}
-
 export interface ScenarioDetail {
   id: string;
   name: string;

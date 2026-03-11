@@ -1,5 +1,6 @@
 import axios from 'axios';
-import type { ScenarioListItem, ScenarioDetail, MessageData, CombineScenariosRequest, DirectChangesData, ScenarioTypeData, SummaryCardsData, ImpactDataResponse } from '../store/scenariosSlice';
+import type { ScenarioListItem, ScenarioDetail, MessageData, CombineScenariosRequest, DirectChangesData, ScenarioTypeData, SummaryCardsData } from '../store/scenariosSlice';
+import type { ImpactReportSummaryFe, ImpactReportDetailFe } from '../types/renderedReport';
 import { CURRENT_USER_ID } from '../constants/user';
 
 const API_BASE_URL =
@@ -67,13 +68,6 @@ export async function fetchDirectChanges(id: string): Promise<DirectChangesData>
   return response.data.directChanges;
 }
 
-export async function fetchImpactData(id: string): Promise<ImpactDataResponse> {
-  const response = await axios.get<{ impactData: ImpactDataResponse }>(
-    `${API_BASE_URL}/scenarios/${id}?expand=impactData`
-  );
-  return response.data.impactData;
-}
-
 export async function fetchAnalysisHeader(id: string): Promise<{
   name: string;
   workflowState: string;
@@ -89,4 +83,23 @@ export async function fetchAnalysisHeader(id: string): Promise<{
     scenarioType: response.data.header?.scenarioType ?? null,
     summaryCards: response.data.summaryCards ?? null,
   };
+}
+
+export async function fetchImpactReportSummaries(
+  scenarioId: string
+): Promise<ImpactReportSummaryFe[]> {
+  const response = await axios.get<ImpactReportSummaryFe[]>(
+    `${API_BASE_URL}/scenarios/${scenarioId}/impact-reports`
+  );
+  return response.data;
+}
+
+export async function fetchImpactReportDetail(
+  scenarioId: string,
+  reportId: string
+): Promise<ImpactReportDetailFe> {
+  const response = await axios.get<ImpactReportDetailFe>(
+    `${API_BASE_URL}/scenarios/${scenarioId}/impact-reports/${reportId}`
+  );
+  return response.data;
 }

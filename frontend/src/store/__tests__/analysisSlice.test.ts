@@ -5,8 +5,8 @@ import analysisReducer, {
   fetchAnalysisHeaderFailure,
   fetchDirectChangesSuccess,
   fetchDirectChangesFailure,
-  fetchImpactReportsSuccess,
-  fetchImpactReportsFailure,
+  fetchReportSummariesSuccess,
+  fetchReportSummariesFailure,
   setActiveTab,
   clearAnalysisState,
   selectDirectChanges,
@@ -14,12 +14,13 @@ import analysisReducer, {
   selectDirectChangesError,
   selectAnalysisHeader,
   selectAnalysisLoading,
-  selectImpactReports,
-  selectImpactReportsLoading,
-  selectImpactReportsError,
+  selectReportSummaries,
+  selectReportSummariesLoading,
+  selectReportSummariesError,
   selectActiveTab,
 } from '../analysisSlice';
-import type { DirectChangesData, ScenarioTypeData, SummaryCardsData, ImpactReportData } from '../scenariosSlice';
+import type { DirectChangesData, ScenarioTypeData, SummaryCardsData } from '../scenariosSlice';
+import type { ImpactReportSummaryFe } from '../../types/renderedReport';
 import type { RootState } from '../store';
 
 describe('analysisSlice', () => {
@@ -34,9 +35,10 @@ describe('analysisSlice', () => {
     directChangesError: null,
     headerLoading: false,
     headerError: null,
-    impactReports: null,
-    impactReportsLoading: false,
-    impactReportsError: null,
+    reportSummaries: null,
+    reportSummariesLoading: false,
+    reportSummariesError: null,
+    reportDetails: {},
     activeTab: null,
   };
 
@@ -62,12 +64,12 @@ describe('analysisSlice', () => {
         ...initialState,
         headerError: 'previous header error',
         directChangesError: 'previous dc error',
-        impactReportsError: 'previous impact error',
+        reportSummariesError: 'previous impact error',
       };
       const state = analysisReducer(prevState, fetchAnalysisDataRequest('sc-123'));
       expect(state.headerError).toBeNull();
       expect(state.directChangesError).toBeNull();
-      expect(state.impactReportsError).toBeNull();
+      expect(state.reportSummariesError).toBeNull();
     });
 
     it('resets data fields to null', () => {
@@ -78,7 +80,7 @@ describe('analysisSlice', () => {
         scenarioType: { code: 'FRTB_SA', name: 'FRTB SA', icon: 'Shield', directChangesMode: 'INTERNAL', impactDataMode: 'INTERNAL' },
         summaryCards: { changesSummary: { changesTotal: 1, changesDirect: 1, changesIndirect: 0 }, impactSummary: { impact: 'LOW', lastRunAt: null, latestRunStatus: null, exceptionsCount: null } },
         directChanges: { columns: ['col1'], rows: [] },
-        impactReports: [{ impactRunId: 'run-1', name: 'Run 1', createdAt: '2026-01-01', dataset: { columns: [], rows: [] }, compareCta: null }],
+        reportSummaries: [{ id: 'r1', scenarioId: 'sc-1', reportKey: 'key', reportName: 'Run 1', generatedAt: '2026-01-01', status: 'GENERATED' }],
         activeTab: 'direct-changes',
       };
       const state = analysisReducer(prevState, fetchAnalysisDataRequest('sc-456'));
@@ -89,18 +91,20 @@ describe('analysisSlice', () => {
       expect(state.directChanges).toBeNull();
     });
 
-    it('resets impact reports state', () => {
+    it('resets report summaries state', () => {
       const prevState: AnalysisState = {
         ...initialState,
-        impactReports: [{ impactRunId: 'run-1', name: 'Run 1', createdAt: '2026-01-01', dataset: { columns: [], rows: [] }, compareCta: null }],
-        impactReportsLoading: false,
-        impactReportsError: 'old error',
-        activeTab: 'impact-run-1',
+        reportSummaries: [{ id: 'r1', scenarioId: 'sc-1', reportKey: 'key', reportName: 'Run 1', generatedAt: '2026-01-01', status: 'GENERATED' }],
+        reportSummariesLoading: false,
+        reportSummariesError: 'old error',
+        reportDetails: { 'r1': { loading: false, data: null, error: null } },
+        activeTab: 'report-r1',
       };
       const state = analysisReducer(prevState, fetchAnalysisDataRequest('sc-789'));
-      expect(state.impactReports).toBeNull();
-      expect(state.impactReportsLoading).toBe(true);
-      expect(state.impactReportsError).toBeNull();
+      expect(state.reportSummaries).toBeNull();
+      expect(state.reportSummariesLoading).toBe(true);
+      expect(state.reportSummariesError).toBeNull();
+      expect(state.reportDetails).toEqual({});
       expect(state.activeTab).toBeNull();
     });
   });
@@ -198,45 +202,43 @@ describe('analysisSlice', () => {
     });
   });
 
-  // ========== Task 7.2: Impact Reports reducers ==========
+  // ========== Report Summaries reducers ==========
 
-  describe('fetchImpactReportsSuccess', () => {
-    it('stores impact reports from payload', () => {
-      const reports: ImpactReportData[] = [
+  describe('fetchReportSummariesSuccess', () => {
+    it('stores report summaries from payload', () => {
+      const summaries: ImpactReportSummaryFe[] = [
         {
-          impactRunId: 'run-1',
-          name: 'RUN-2026-0219-001',
-          createdAt: '2026-02-19T14:00:00',
-          dataset: {
-            columns: ['Risk Class', 'Base Value'],
-            rows: [{ rowId: 'r1', payload: { 'Risk Class': 'FX', 'Base Value': 100 } }],
-          },
-          compareCta: null,
+          id: 'r1',
+          scenarioId: 'sc-1',
+          reportKey: 'market_risk_summary',
+          reportName: 'Market Risk Summary',
+          generatedAt: '2026-02-19T14:00:00',
+          status: 'GENERATED',
         },
       ];
-      const prevState: AnalysisState = { ...initialState, impactReportsLoading: true };
-      const state = analysisReducer(prevState, fetchImpactReportsSuccess(reports));
-      expect(state.impactReports).toEqual(reports);
+      const prevState: AnalysisState = { ...initialState, reportSummariesLoading: true };
+      const state = analysisReducer(prevState, fetchReportSummariesSuccess(summaries));
+      expect(state.reportSummaries).toEqual(summaries);
     });
 
-    it('sets impactReportsLoading to false', () => {
-      const prevState: AnalysisState = { ...initialState, impactReportsLoading: true };
-      const state = analysisReducer(prevState, fetchImpactReportsSuccess([]));
-      expect(state.impactReportsLoading).toBe(false);
+    it('sets reportSummariesLoading to false', () => {
+      const prevState: AnalysisState = { ...initialState, reportSummariesLoading: true };
+      const state = analysisReducer(prevState, fetchReportSummariesSuccess([]));
+      expect(state.reportSummariesLoading).toBe(false);
     });
   });
 
-  describe('fetchImpactReportsFailure', () => {
+  describe('fetchReportSummariesFailure', () => {
     it('stores the error message', () => {
-      const prevState: AnalysisState = { ...initialState, impactReportsLoading: true };
-      const state = analysisReducer(prevState, fetchImpactReportsFailure('Impact fetch failed'));
-      expect(state.impactReportsError).toBe('Impact fetch failed');
+      const prevState: AnalysisState = { ...initialState, reportSummariesLoading: true };
+      const state = analysisReducer(prevState, fetchReportSummariesFailure('Impact fetch failed'));
+      expect(state.reportSummariesError).toBe('Impact fetch failed');
     });
 
-    it('sets impactReportsLoading to false', () => {
-      const prevState: AnalysisState = { ...initialState, impactReportsLoading: true };
-      const state = analysisReducer(prevState, fetchImpactReportsFailure('Impact fetch failed'));
-      expect(state.impactReportsLoading).toBe(false);
+    it('sets reportSummariesLoading to false', () => {
+      const prevState: AnalysisState = { ...initialState, reportSummariesLoading: true };
+      const state = analysisReducer(prevState, fetchReportSummariesFailure('Impact fetch failed'));
+      expect(state.reportSummariesLoading).toBe(false);
     });
   });
 
@@ -246,14 +248,14 @@ describe('analysisSlice', () => {
       expect(state.activeTab).toBe('direct-changes');
     });
 
-    it('stores an impact tab value', () => {
-      const state = analysisReducer(initialState, setActiveTab('impact-abc-123'));
-      expect(state.activeTab).toBe('impact-abc-123');
+    it('stores a report tab value', () => {
+      const state = analysisReducer(initialState, setActiveTab('report-abc-123'));
+      expect(state.activeTab).toBe('report-abc-123');
     });
   });
 
   describe('clearAnalysisState', () => {
-    it('resets to initial state including impact reports fields', () => {
+    it('resets to initial state including report summaries and details fields', () => {
       const dirtyState: AnalysisState = {
         scenarioId: 'sc-999',
         scenarioName: 'Some Scenario',
@@ -265,27 +267,30 @@ describe('analysisSlice', () => {
         directChangesError: 'some error',
         headerLoading: true,
         headerError: 'header error',
-        impactReports: [{ impactRunId: 'r1', name: 'Run 1', createdAt: '2026-01-01', dataset: { columns: [], rows: [] }, compareCta: null }],
-        impactReportsLoading: true,
-        impactReportsError: 'impact error',
-        activeTab: 'impact-r1',
+        reportSummaries: [{ id: 'r1', scenarioId: 'sc-1', reportKey: 'key', reportName: 'Run 1', generatedAt: '2026-01-01', status: 'GENERATED' }],
+        reportSummariesLoading: true,
+        reportSummariesError: 'impact error',
+        reportDetails: { 'r1': { loading: false, data: null, error: null } },
+        activeTab: 'report-r1',
       };
       const state = analysisReducer(dirtyState, clearAnalysisState());
       expect(state).toEqual(initialState);
     });
 
-    it('resets impact reports to null', () => {
+    it('resets report summaries and details to initial values', () => {
       const dirtyState: AnalysisState = {
         ...initialState,
-        impactReports: [{ impactRunId: 'r1', name: 'Run 1', createdAt: '2026-01-01', dataset: { columns: [], rows: [] }, compareCta: null }],
-        impactReportsLoading: true,
-        impactReportsError: 'error',
+        reportSummaries: [{ id: 'r1', scenarioId: 'sc-1', reportKey: 'key', reportName: 'Run 1', generatedAt: '2026-01-01', status: 'GENERATED' }],
+        reportSummariesLoading: true,
+        reportSummariesError: 'error',
+        reportDetails: { 'r1': { loading: false, data: null, error: 'err' } },
         activeTab: 'direct-changes',
       };
       const state = analysisReducer(dirtyState, clearAnalysisState());
-      expect(state.impactReports).toBeNull();
-      expect(state.impactReportsLoading).toBe(false);
-      expect(state.impactReportsError).toBeNull();
+      expect(state.reportSummaries).toBeNull();
+      expect(state.reportSummariesLoading).toBe(false);
+      expect(state.reportSummariesError).toBeNull();
+      expect(state.reportDetails).toEqual({});
       expect(state.activeTab).toBeNull();
     });
   });
@@ -309,13 +314,14 @@ describe('analysisSlice', () => {
       impactSummary: { impact: 'MODERATE', lastRunAt: null, latestRunStatus: null, exceptionsCount: null },
     };
 
-    const mockImpactReports: ImpactReportData[] = [
+    const mockReportSummaries: ImpactReportSummaryFe[] = [
       {
-        impactRunId: 'run-abc',
-        name: 'RUN-2026-0219-001',
-        createdAt: '2026-02-19T14:00:00',
-        dataset: { columns: ['Col1'], rows: [{ rowId: 'r1', payload: { Col1: 'v1' } }] },
-        compareCta: null,
+        id: 'run-abc',
+        scenarioId: 'sc-100',
+        reportKey: 'market_risk_summary',
+        reportName: 'Market Risk Summary',
+        generatedAt: '2026-02-19T14:00:00',
+        status: 'GENERATED',
       },
     ];
 
@@ -330,9 +336,10 @@ describe('analysisSlice', () => {
       directChangesError: null,
       headerLoading: false,
       headerError: null,
-      impactReports: mockImpactReports,
-      impactReportsLoading: false,
-      impactReportsError: null,
+      reportSummaries: mockReportSummaries,
+      reportSummariesLoading: false,
+      reportSummariesError: null,
+      reportDetails: {},
       activeTab: 'direct-changes',
     };
 
@@ -378,8 +385,8 @@ describe('analysisSlice', () => {
       expect(selectAnalysisLoading(state)).toBe(true);
     });
 
-    it('selectAnalysisLoading returns true when impactReportsLoading is true', () => {
-      const state = { analysis: { ...populatedState, impactReportsLoading: true } } as RootState;
+    it('selectAnalysisLoading returns true when reportSummariesLoading is true', () => {
+      const state = { analysis: { ...populatedState, reportSummariesLoading: true } } as RootState;
       expect(selectAnalysisLoading(state)).toBe(true);
     });
 
@@ -387,29 +394,29 @@ describe('analysisSlice', () => {
       expect(selectAnalysisLoading(mockRootState)).toBe(false);
     });
 
-    // Task 7.2: New selectors for impact reports
+    // Report summaries selectors
 
-    it('selectImpactReports returns the impactReports data', () => {
-      expect(selectImpactReports(mockRootState)).toEqual(mockImpactReports);
+    it('selectReportSummaries returns the reportSummaries data', () => {
+      expect(selectReportSummaries(mockRootState)).toEqual(mockReportSummaries);
     });
 
-    it('selectImpactReports returns null when not loaded', () => {
-      const state = { analysis: { ...populatedState, impactReports: null } } as RootState;
-      expect(selectImpactReports(state)).toBeNull();
+    it('selectReportSummaries returns null when not loaded', () => {
+      const state = { analysis: { ...populatedState, reportSummaries: null } } as RootState;
+      expect(selectReportSummaries(state)).toBeNull();
     });
 
-    it('selectImpactReportsLoading returns the loading flag', () => {
-      expect(selectImpactReportsLoading(mockRootState)).toBe(false);
+    it('selectReportSummariesLoading returns the loading flag', () => {
+      expect(selectReportSummariesLoading(mockRootState)).toBe(false);
 
-      const loadingState = { analysis: { ...populatedState, impactReportsLoading: true } } as RootState;
-      expect(selectImpactReportsLoading(loadingState)).toBe(true);
+      const loadingState = { analysis: { ...populatedState, reportSummariesLoading: true } } as RootState;
+      expect(selectReportSummariesLoading(loadingState)).toBe(true);
     });
 
-    it('selectImpactReportsError returns the error value', () => {
-      expect(selectImpactReportsError(mockRootState)).toBeNull();
+    it('selectReportSummariesError returns the error value', () => {
+      expect(selectReportSummariesError(mockRootState)).toBeNull();
 
-      const errorState = { analysis: { ...populatedState, impactReportsError: 'impact fail' } } as RootState;
-      expect(selectImpactReportsError(errorState)).toBe('impact fail');
+      const errorState = { analysis: { ...populatedState, reportSummariesError: 'impact fail' } } as RootState;
+      expect(selectReportSummariesError(errorState)).toBe('impact fail');
     });
 
     it('selectActiveTab returns the activeTab value', () => {

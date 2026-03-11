@@ -9,6 +9,8 @@ import analysisReducer, {
   fetchAnalysisHeaderFailure,
   fetchDirectChangesSuccess,
   fetchDirectChangesFailure,
+  fetchReportSummariesSuccess,
+  fetchReportSummariesFailure,
 } from '../analysisSlice';
 import type { DirectChangesData, ScenarioTypeData, SummaryCardsData } from '../scenariosSlice';
 
@@ -47,8 +49,21 @@ describe('analysisSaga', () => {
     rows: [{ rowId: 'r1', payload: { col1: 'a', col2: 'b' } }],
   };
 
+  const mockReportSummaries = [
+    {
+      id: 'r1',
+      scenarioId: 'sc-123',
+      reportKey: 'market_risk_summary',
+      reportName: 'Market Risk Summary',
+      generatedAt: '2026-02-19T14:00:00',
+      status: 'GENERATED',
+    },
+  ];
+
   beforeEach(() => {
     jest.clearAllMocks();
+    // Default mock for fetchImpactReportSummaries to prevent unhandled calls
+    mockedApi.fetchImpactReportSummaries.mockResolvedValue(mockReportSummaries);
   });
 
   /**
@@ -223,6 +238,37 @@ describe('analysisSaga', () => {
       );
       expect(failureAction).toBeDefined();
       expect(failureAction!.payload).toBe('Failed to fetch direct changes');
+    });
+  });
+
+  describe('fetchImpactReportsSaga (now calls fetchImpactReportSummaries)', () => {
+    it('dispatches fetchReportSummariesSuccess with summaries on API success', async () => {
+      mockedApi.fetchAnalysisHeader.mockResolvedValue(mockHeaderResult);
+      mockedApi.fetchDirectChanges.mockResolvedValue(mockDirectChanges);
+      mockedApi.fetchImpactReportSummaries.mockResolvedValue(mockReportSummaries);
+
+      const { dispatchedActions } = await runAnalysisSagaWithStore('sc-123');
+
+      const successAction = dispatchedActions.find(
+        (a) => a.type === fetchReportSummariesSuccess.type
+      );
+      expect(successAction).toBeDefined();
+      expect(successAction!.payload).toEqual(mockReportSummaries);
+      expect(mockedApi.fetchImpactReportSummaries).toHaveBeenCalledWith('sc-123');
+    });
+
+    it('dispatches fetchReportSummariesFailure on API error', async () => {
+      mockedApi.fetchAnalysisHeader.mockResolvedValue(mockHeaderResult);
+      mockedApi.fetchDirectChanges.mockResolvedValue(mockDirectChanges);
+      mockedApi.fetchImpactReportSummaries.mockRejectedValue(new Error('Summary fetch failed'));
+
+      const { dispatchedActions } = await runAnalysisSagaWithStore('sc-123');
+
+      const failureAction = dispatchedActions.find(
+        (a) => a.type === fetchReportSummariesFailure.type
+      );
+      expect(failureAction).toBeDefined();
+      expect(failureAction!.payload).toBe('Summary fetch failed');
     });
   });
 

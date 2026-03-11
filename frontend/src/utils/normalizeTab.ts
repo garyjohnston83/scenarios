@@ -1,4 +1,4 @@
-import type { ImpactReportData } from '../store/scenariosSlice';
+import type { ImpactReportSummaryFe } from '../types/renderedReport';
 
 export type AnalysisTab = string;
 
@@ -14,16 +14,16 @@ export function normalizeTab(tab: string | null | undefined): AnalysisTab {
 export function resolveInitialTab(
   initialTabParam: string | null | undefined,
   directChangesAvailable: boolean,
-  impactReports: ImpactReportData[]
+  reportSummaries: ImpactReportSummaryFe[]
 ): string | null {
   if (initialTabParam === 'direct-changes' && directChangesAvailable) {
     return 'direct-changes';
   }
-  if (initialTabParam === 'impact-reports' && impactReports.length > 0) {
-    return `impact-${impactReports[0].impactRunId}`;
+  if (initialTabParam === 'impact-reports' && reportSummaries.length > 0) {
+    return `report-${reportSummaries[0].id}`;
   }
   // Fallback chain
   if (directChangesAvailable) return 'direct-changes';
-  if (impactReports.length > 0) return `impact-${impactReports[0].impactRunId}`;
+  if (reportSummaries.length > 0) return `report-${reportSummaries[0].id}`;
   return null;
 }

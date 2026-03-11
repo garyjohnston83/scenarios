@@ -1,0 +1,74 @@
+{
+  "threadKey": "project:8aba6fec-0803-423b-a266-307b2b93f8da:hub",
+  "projectId": "8aba6fec-0803-423b-a266-307b2b93f8da",
+  "messages": [
+    {
+      "id": "25bdb4fb-1724-4fae-9ff6-6a11adc5d554",
+      "role": "user",
+      "personaId": null,
+      "taskId": "assistant--whats-next",
+      "content": "What's Next?",
+      "structuredResponse": null,
+      "timestamp": "2026-03-07T08:39:39.528Z"
+    },
+    {
+      "id": "6e909c89-3f8f-4295-9853-932967171172",
+      "role": "assistant",
+      "personaId": "assistant",
+      "taskId": "assistant--whats-next",
+      "content": "Your project has a mission defined but is missing 1 foundational artifact. Complete these to establish a solid project foundation.",
+      "structuredResponse": {
+        "type": "whats-next-actions",
+        "explanation": "Your project has a mission defined but is missing 1 foundational artifact. Complete these to establish a solid project foundation.",
+        "actions": [
+          {
+            "id": "define-test-strategy",
+            "label": "Define Test Strategy",
+            "reason": "A test strategy ensures quality is built in from the start, covering functional, integration, and end-to-end testing approaches.",
+            "priority": 50,
+            "target": {
+              "screen": "metamodel",
+              "personaId": "test-engineer",
+              "taskId": "test-engineer--test-strategy"
+            },
+            "launch": "panel"
+          }
+        ]
+      },
+      "timestamp": "2026-03-07T08:39:39.534Z"
+    },
+    {
+      "id": "f18c3b3a-ade4-4fc3-8c26-6aecb74c4237",
+      "role": "system",
+      "personaId": null,
+      "taskId": null,
+      "content": "Switched to Product Manager",
+      "structuredResponse": null,
+      "timestamp": "2026-03-07T08:40:33.888Z"
+    },
+    {
+      "id": "571d7cb9-5298-4356-ab0e-bbf222267b91",
+      "role": "system",
+      "personaId": null,
+      "taskId": null,
+      "content": "Switched to Product Manager",
+      "structuredResponse": null,
+      "timestamp": "2026-03-07T09:08:02.482Z"
+    },
+    {
+      "id": "1232c9c2-4675-4928-b734-fa4a4a72eca3",
+      "role": "system",
+      "personaId": null,
+      "taskId": null,
+      "content": "Switched to Product Manager",
+      "structuredResponse": null,
+      "timestamp": "2026-03-07T10:05:07.489Z"
+    }
+  ],
+  "activePersonaId": null,
+  "activeTaskId": null,
+  "summary": null,
+  "summarisedUpToIndex": 0,
+  "createdAt": "2026-03-07T08:39:38.410Z",
+  "updatedAt": "2026-03-07T10:05:07.492Z"
+}

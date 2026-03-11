@@ -1,0 +1,16 @@
+databaseChangeLog:
+  - changeSet:
+      id: 032-update-market-data-impact-mode
+      author: scenarios-team
+      comment: "Switch MARKET_DATA impact_data_mode from EXTERNAL to INTERNAL and update IMPACT_REPORTS link to internal navigation"
+      changes:
+        - sql:
+            sql: |
+              UPDATE scenario_type
+              SET impact_data_mode = 'INTERNAL'
+              WHERE code = 'MARKET_DATA';
+
+              UPDATE scenario_link
+              SET label = 'View Impact Reports →',
+                  url = '/scenarios/a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d/analysis?initial-tab=impact-reports'
+              WHERE id = '2b3c4d5e-6f7a-4b8c-9d0e-1f2a3b4c5d02';

@@ -8,8 +8,8 @@ import analysisReducer, {
   AnalysisState,
   fetchAnalysisHeaderSuccess,
   fetchDirectChangesSuccess,
-  fetchImpactReportsSuccess,
-  fetchImpactReportsFailure,
+  fetchReportSummariesSuccess,
+  fetchReportSummariesFailure,
   setActiveTab,
 } from '../../../store/analysisSlice';
 import scenariosReducer, { ScenariosState } from '../../../store/scenariosSlice';
@@ -35,9 +35,10 @@ const defaultAnalysisState: AnalysisState = {
   directChangesError: null,
   headerLoading: true,
   headerError: null,
-  impactReports: null,
-  impactReportsLoading: true,
-  impactReportsError: null,
+  reportSummaries: null,
+  reportSummariesLoading: true,
+  reportSummariesError: null,
+  reportDetails: {},
   activeTab: null,
 };
 
@@ -119,7 +120,7 @@ const renderWithProviders = (
 const simulateInternalDataLoad = async (
   store: EnhancedStore,
   opts?: {
-    impactReports?: Parameters<typeof fetchImpactReportsSuccess>[0];
+    reportSummaries?: Parameters<typeof fetchReportSummariesSuccess>[0];
     directChangesRows?: { rowId: string; payload: Record<string, unknown> }[];
     directChangesColumns?: string[];
     scenarioName?: string;
@@ -148,7 +149,7 @@ const simulateInternalDataLoad = async (
       })
     );
     store.dispatch(
-      fetchImpactReportsSuccess(opts?.impactReports ?? [])
+      fetchReportSummariesSuccess(opts?.reportSummaries ?? [])
     );
   });
 };
@@ -166,7 +167,7 @@ describe('AnalysisPage', () => {
     expect(state.analysis.scenarioId).toBe('sc-1');
     expect(state.analysis.headerLoading).toBe(true);
     expect(state.analysis.directChangesLoading).toBe(true);
-    expect(state.analysis.impactReportsLoading).toBe(true);
+    expect(state.analysis.reportSummariesLoading).toBe(true);
   });
 
   it('dispatches setLhsCollapsed(true) on mount', () => {
@@ -242,9 +243,9 @@ describe('AnalysisPage', () => {
     ).toBeInTheDocument();
   });
 
-  // ========== Task 7.6: Impact report tabs appear after data loads ==========
+  // ========== Report tabs appear after data loads ==========
 
-  it('renders impact report tabs after data loads (both INTERNAL)', async () => {
+  it('renders report tabs after data loads (both INTERNAL)', async () => {
     const store: EnhancedStore = renderWithProviders(
       '/scenarios/sc-1/analysis'
     );
@@ -255,26 +256,22 @@ describe('AnalysisPage', () => {
       directChangesRows: [
         { rowId: 'r-1', payload: { 'Risk Factor': 'FX_USD', Value: '1.25' } },
       ],
-      impactReports: [
+      reportSummaries: [
         {
-          impactRunId: 'run-abc',
-          name: 'RUN-2026-0219-001',
-          createdAt: '2026-02-19T14:00:00',
-          dataset: {
-            columns: ['Col1'],
-            rows: [{ rowId: 'r1', payload: { Col1: 'v1' } }],
-          },
-          compareCta: null,
+          id: 'run-abc',
+          scenarioId: 'sc-1',
+          reportKey: 'market_risk_summary',
+          reportName: 'RUN-2026-0219-001',
+          generatedAt: '2026-02-19T14:00:00',
+          status: 'GENERATED',
         },
         {
-          impactRunId: 'run-def',
-          name: 'RUN-2026-0219-002',
-          createdAt: '2026-02-19T15:30:00',
-          dataset: {
-            columns: ['Col1'],
-            rows: [{ rowId: 'r2', payload: { Col1: 'v2' } }],
-          },
-          compareCta: null,
+          id: 'run-def',
+          scenarioId: 'sc-1',
+          reportKey: 'sa_capital_summary',
+          reportName: 'RUN-2026-0219-002',
+          generatedAt: '2026-02-19T15:30:00',
+          status: 'GENERATED',
         },
       ],
     });
@@ -287,9 +284,9 @@ describe('AnalysisPage', () => {
     expect(tabs[2]).toHaveTextContent('RUN-2026-0219-002');
   });
 
-  // ========== Task 7.6: Tab switching between direct-changes and impact report tabs ==========
+  // ========== Tab switching between direct-changes and report tabs ==========
 
-  it('switches content when tab changes from direct-changes to impact report', async () => {
+  it('switches content when tab changes from direct-changes to report tab', async () => {
     const store: EnhancedStore = renderWithProviders(
       '/scenarios/sc-1/analysis'
     );
@@ -299,18 +296,14 @@ describe('AnalysisPage', () => {
       directChangesRows: [
         { rowId: 'dc-1', payload: { 'Risk Factor': 'DC_VALUE' } },
       ],
-      impactReports: [
+      reportSummaries: [
         {
-          impactRunId: 'run-abc',
-          name: 'RUN-2026-0219-001',
-          createdAt: '2026-02-19T14:00:00',
-          dataset: {
-            columns: ['Impact Col'],
-            rows: [
-              { rowId: 'ir-1', payload: { 'Impact Col': 'IMPACT_VALUE' } },
-            ],
-          },
-          compareCta: null,
+          id: 'run-abc',
+          scenarioId: 'sc-1',
+          reportKey: 'market_risk_summary',
+          reportName: 'RUN-2026-0219-001',
+          generatedAt: '2026-02-19T14:00:00',
+          status: 'GENERATED',
         },
       ],
     });
@@ -323,16 +316,21 @@ describe('AnalysisPage', () => {
     // Direct changes content should be visible
     expect(screen.getByText('DC_VALUE')).toBeInTheDocument();
 
-    // Switch to impact report tab
+    // Switch to report tab
     await act(async () => {
-      store.dispatch(setActiveTab('impact-run-abc'));
+      store.dispatch(setActiveTab('report-run-abc'));
     });
 
-    // Impact report content should now be visible
-    expect(screen.getByText('IMPACT_VALUE')).toBeInTheDocument();
+    // DC content should no longer be visible after switching to report tab
+    expect(screen.queryByText('DC_VALUE')).not.toBeInTheDocument();
+
+    // Report name should appear in the tab label; content area shows
+    // loading spinner since the report detail is being fetched on-demand
+    expect(screen.getByText('RUN-2026-0219-001')).toBeInTheDocument();
+    expect(screen.getByText('Loading report...')).toBeInTheDocument();
   });
 
-  // ========== Task 7.6: EXTERNAL impact deep-link renders ExternalRedirectView ==========
+  // ========== EXTERNAL impact deep-link renders ExternalRedirectView ==========
 
   it('renders ExternalRedirectView for EXTERNAL impact deep-link', async () => {
     const store: EnhancedStore = renderWithProviders(
@@ -378,9 +376,9 @@ describe('AnalysisPage', () => {
     ).toBeInTheDocument();
   });
 
-  // ========== Task 7.6: Error state shows error banner on impact tabs with retry ==========
+  // ========== Error state shows error banner on report tabs with retry ==========
 
-  it('shows error banner when viewing impact tab and impactReportsError is set', async () => {
+  it('shows error banner when viewing report tab and reportSummariesError is set', async () => {
     const store: EnhancedStore = renderWithProviders(
       '/scenarios/sc-1/analysis'
     );
@@ -406,9 +404,9 @@ describe('AnalysisPage', () => {
           rows: [],
         })
       );
-      store.dispatch(fetchImpactReportsFailure('Failed to fetch impact reports'));
-      // Manually set active tab to an impact tab to test the error banner
-      store.dispatch(setActiveTab('impact-some-run'));
+      store.dispatch(fetchReportSummariesFailure('Failed to fetch impact reports'));
+      // Manually set active tab to a report tab to test the error banner
+      store.dispatch(setActiveTab('report-some-run'));
     });
 
     // Error banner should be displayed with the error message
@@ -416,7 +414,7 @@ describe('AnalysisPage', () => {
     expect(screen.getByText('Retry')).toBeInTheDocument();
   });
 
-  it('does NOT show error banner when on direct-changes tab despite impactReportsError', async () => {
+  it('does NOT show error banner when on direct-changes tab despite reportSummariesError', async () => {
     const store: EnhancedStore = renderWithProviders(
       '/scenarios/sc-1/analysis'
     );
@@ -442,7 +440,7 @@ describe('AnalysisPage', () => {
           rows: [],
         })
       );
-      store.dispatch(fetchImpactReportsFailure('Impact error'));
+      store.dispatch(fetchReportSummariesFailure('Impact error'));
     });
 
     // activeTab should resolve to direct-changes
@@ -479,8 +477,8 @@ describe('AnalysisPage', () => {
       store.dispatch(
         fetchDirectChangesSuccess({ columns: [], rows: [] })
       );
-      store.dispatch(fetchImpactReportsFailure('Connection error'));
-      store.dispatch(setActiveTab('impact-some-run'));
+      store.dispatch(fetchReportSummariesFailure('Connection error'));
+      store.dispatch(setActiveTab('report-some-run'));
     });
 
     // Click retry button
@@ -491,12 +489,12 @@ describe('AnalysisPage', () => {
     const state = store.getState().analysis;
     expect(state.headerLoading).toBe(true);
     expect(state.directChangesLoading).toBe(true);
-    expect(state.impactReportsLoading).toBe(true);
+    expect(state.reportSummariesLoading).toBe(true);
   });
 
-  // ========== Task 7.6: initial-tab=impact-reports activates first impact report tab ==========
+  // ========== initial-tab=impact-reports activates first report tab ==========
 
-  it('initial-tab=impact-reports activates first impact report tab', async () => {
+  it('initial-tab=impact-reports activates first report tab', async () => {
     const store: EnhancedStore = renderWithProviders(
       '/scenarios/sc-1/analysis?initial-tab=impact-reports'
     );
@@ -520,38 +518,34 @@ describe('AnalysisPage', () => {
         fetchDirectChangesSuccess({ columns: ['Col'], rows: [] })
       );
       store.dispatch(
-        fetchImpactReportsSuccess([
+        fetchReportSummariesSuccess([
           {
-            impactRunId: 'run-first',
-            name: 'RUN-FIRST',
-            createdAt: '2026-02-19T14:00:00',
-            dataset: {
-              columns: ['Col1'],
-              rows: [{ rowId: 'r1', payload: { Col1: 'val' } }],
-            },
-            compareCta: null,
+            id: 'run-first',
+            scenarioId: 'sc-1',
+            reportKey: 'key1',
+            reportName: 'RUN-FIRST',
+            generatedAt: '2026-02-19T14:00:00',
+            status: 'GENERATED',
           },
           {
-            impactRunId: 'run-second',
-            name: 'RUN-SECOND',
-            createdAt: '2026-02-19T15:00:00',
-            dataset: {
-              columns: ['Col1'],
-              rows: [{ rowId: 'r2', payload: { Col1: 'val2' } }],
-            },
-            compareCta: null,
+            id: 'run-second',
+            scenarioId: 'sc-1',
+            reportKey: 'key2',
+            reportName: 'RUN-SECOND',
+            generatedAt: '2026-02-19T15:00:00',
+            status: 'GENERATED',
           },
         ])
       );
     });
 
-    // The resolveInitialTab should have set activeTab to 'impact-run-first'
+    // The resolveInitialTab should have set activeTab to 'report-run-first'
     await waitFor(() => {
-      expect(store.getState().analysis.activeTab).toBe('impact-run-first');
+      expect(store.getState().analysis.activeTab).toBe('report-run-first');
     });
   });
 
-  // ========== Task 7.6: Switching tabs does NOT trigger new network calls ==========
+  // ========== Switching tabs does NOT trigger new network calls ==========
 
   it('switching tabs does NOT trigger new network calls', async () => {
     const store: EnhancedStore = renderWithProviders(
@@ -561,16 +555,14 @@ describe('AnalysisPage', () => {
     await simulateInternalDataLoad(store, {
       directChangesColumns: ['Col'],
       directChangesRows: [{ rowId: 'r1', payload: { Col: 'DC' } }],
-      impactReports: [
+      reportSummaries: [
         {
-          impactRunId: 'run-abc',
-          name: 'RUN-001',
-          createdAt: '2026-02-19T14:00:00',
-          dataset: {
-            columns: ['Col'],
-            rows: [{ rowId: 'ir1', payload: { Col: 'IR' } }],
-          },
-          compareCta: null,
+          id: 'run-abc',
+          scenarioId: 'sc-1',
+          reportKey: 'market_risk_summary',
+          reportName: 'RUN-001',
+          generatedAt: '2026-02-19T14:00:00',
+          status: 'GENERATED',
         },
       ],
     });
@@ -580,19 +572,19 @@ describe('AnalysisPage', () => {
       expect(store.getState().analysis.activeTab).toBe('direct-changes');
     });
 
-    // Switch to impact tab
+    // Switch to report tab
     await act(async () => {
-      store.dispatch(setActiveTab('impact-run-abc'));
+      store.dispatch(setActiveTab('report-run-abc'));
     });
 
-    // Loading flags should still be false (no new fetch triggered)
+    // Loading flags should still be false (no new fetch triggered for summaries/header/dc)
     const state = store.getState().analysis;
     expect(state.headerLoading).toBe(false);
     expect(state.directChangesLoading).toBe(false);
-    expect(state.impactReportsLoading).toBe(false);
+    expect(state.reportSummariesLoading).toBe(false);
   });
 
-  // ========== Task 7.6: Both INTERNAL renders all tabs ==========
+  // ========== Both INTERNAL renders all tabs ==========
 
   it('renders AnalysisHeader, AnalysisTabs, and DirectChangesAnalysisView in INTERNAL mode', async () => {
     const store: EnhancedStore = renderWithProviders(
@@ -605,16 +597,14 @@ describe('AnalysisPage', () => {
       directChangesRows: [
         { rowId: 'r-1', payload: { 'Risk Factor': 'FX_USD', Value: '1.25' } },
       ],
-      impactReports: [
+      reportSummaries: [
         {
-          impactRunId: 'run-001',
-          name: 'RUN-2026-0219-001',
-          createdAt: '2026-02-19T14:00:00',
-          dataset: {
-            columns: ['Col1'],
-            rows: [{ rowId: 'r1', payload: { Col1: 'v1' } }],
-          },
-          compareCta: null,
+          id: 'run-001',
+          scenarioId: 'sc-1',
+          reportKey: 'market_risk_summary',
+          reportName: 'RUN-2026-0219-001',
+          generatedAt: '2026-02-19T14:00:00',
+          status: 'GENERATED',
         },
       ],
     });
@@ -631,7 +621,7 @@ describe('AnalysisPage', () => {
       screen.getByRole('button', { name: /back to governance/i })
     ).toBeInTheDocument();
 
-    // AnalysisTabs: Direct Changes + impact report tab
+    // AnalysisTabs: Direct Changes + report tab
     const tabs = screen.getAllByRole('tab');
     expect(tabs.length).toBe(2);
     expect(tabs[0]).toHaveTextContent('Direct Changes');
@@ -641,7 +631,7 @@ describe('AnalysisPage', () => {
     expect(screen.getByText('FX_USD')).toBeInTheDocument();
   });
 
-  // ========== Task 7.6: no-tabs-available redirects to governance ==========
+  // ========== no-tabs-available redirects to governance ==========
 
   it('renders ExternalRedirectView when both modes are EXTERNAL', async () => {
     const store: EnhancedStore = renderWithProviders(
@@ -707,7 +697,7 @@ describe('AnalysisPage', () => {
         fetchDirectChangesSuccess({ columns: [], rows: [] })
       );
       store.dispatch(
-        fetchImpactReportsSuccess([])
+        fetchReportSummariesSuccess([])
       );
     });
 

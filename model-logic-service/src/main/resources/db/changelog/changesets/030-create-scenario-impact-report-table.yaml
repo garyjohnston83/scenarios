@@ -1,0 +1,89 @@
+databaseChangeLog:
+  - property:
+      name: jsonColumnType
+      value: JSONB
+      dbms: postgresql
+  - property:
+      name: jsonColumnType
+      value: CLOB
+
+  - changeSet:
+      id: 030-create-scenario-impact-report-table
+      author: scenarios-team
+      changes:
+        - createTable:
+            tableName: scenario_impact_report
+            columns:
+              - column:
+                  name: id
+                  type: uuid
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: scenario_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_sir_scenario
+                    references: scenario(id)
+              - column:
+                  name: report_definition_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_sir_report_definition
+                    references: report_definition(id)
+              - column:
+                  name: definition_version
+                  type: int
+                  constraints:
+                    nullable: false
+              - column:
+                  name: report_key
+                  type: varchar(100)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: report_name
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: generated_at
+                  type: timestamp
+                  constraints:
+                    nullable: false
+              - column:
+                  name: status
+                  type: varchar(20)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: rendered_report
+                  type: ${jsonColumnType}
+              - column:
+                  name: error_message
+                  type: varchar(2000)
+
+  - changeSet:
+      id: 030-create-idx-sir-scenario-id
+      author: scenarios-team
+      changes:
+        - createIndex:
+            indexName: idx_sir_scenario_id
+            tableName: scenario_impact_report
+            columns:
+              - column:
+                  name: scenario_id
+
+  - changeSet:
+      id: 030-create-idx-sir-report-definition-id
+      author: scenarios-team
+      changes:
+        - createIndex:
+            indexName: idx_sir_report_definition_id
+            tableName: scenario_impact_report
+            columns:
+              - column:
+                  name: report_definition_id

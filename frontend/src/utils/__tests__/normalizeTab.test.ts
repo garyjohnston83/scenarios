@@ -1,5 +1,5 @@
 import { normalizeTab, resolveInitialTab } from '../normalizeTab';
-import type { ImpactReportData } from '../../store/scenariosSlice';
+import type { ImpactReportSummaryFe } from '../../types/renderedReport';
 
 describe('normalizeTab', () => {
   it("returns 'direct-changes' when given 'direct-changes'", () => {
@@ -27,34 +27,36 @@ describe('normalizeTab', () => {
   });
 });
 
-// Task 7.3: Tests for resolveInitialTab
+// Tests for resolveInitialTab (updated for report summaries)
 
 describe('resolveInitialTab', () => {
-  const mockReport1: ImpactReportData = {
-    impactRunId: 'run-abc',
-    name: 'RUN-2026-0219-001',
-    createdAt: '2026-02-19T14:00:00',
-    dataset: { columns: ['Col1'], rows: [{ rowId: 'r1', payload: { Col1: 'v1' } }] },
-    compareCta: null,
+  const mockSummary1: ImpactReportSummaryFe = {
+    id: 'run-abc',
+    scenarioId: 'sc-1',
+    reportKey: 'market_risk_summary',
+    reportName: 'Market Risk Summary',
+    generatedAt: '2026-02-19T14:00:00',
+    status: 'GENERATED',
   };
 
-  const mockReport2: ImpactReportData = {
-    impactRunId: 'run-def',
-    name: 'RUN-2026-0219-002',
-    createdAt: '2026-02-19T15:30:00',
-    dataset: { columns: ['Col1'], rows: [{ rowId: 'r2', payload: { Col1: 'v2' } }] },
-    compareCta: null,
+  const mockSummary2: ImpactReportSummaryFe = {
+    id: 'run-def',
+    scenarioId: 'sc-1',
+    reportKey: 'sa_capital_summary',
+    reportName: 'SA Capital Summary',
+    generatedAt: '2026-02-19T15:30:00',
+    status: 'GENERATED',
   };
 
   describe('when initial-tab=direct-changes', () => {
     it('returns "direct-changes" when directChangesAvailable=true', () => {
-      const result = resolveInitialTab('direct-changes', true, [mockReport1]);
+      const result = resolveInitialTab('direct-changes', true, [mockSummary1]);
       expect(result).toBe('direct-changes');
     });
 
-    it('falls through to impact reports when directChangesAvailable=false', () => {
-      const result = resolveInitialTab('direct-changes', false, [mockReport1]);
-      expect(result).toBe('impact-run-abc');
+    it('falls through to report summaries when directChangesAvailable=false', () => {
+      const result = resolveInitialTab('direct-changes', false, [mockSummary1]);
+      expect(result).toBe('report-run-abc');
     });
 
     it('falls through to null when directChangesAvailable=false and no reports', () => {
@@ -64,14 +66,14 @@ describe('resolveInitialTab', () => {
   });
 
   describe('when initial-tab=impact-reports', () => {
-    it('returns first impact tab when reports are available', () => {
-      const result = resolveInitialTab('impact-reports', true, [mockReport1, mockReport2]);
-      expect(result).toBe('impact-run-abc');
+    it('returns first report tab when reports are available', () => {
+      const result = resolveInitialTab('impact-reports', true, [mockSummary1, mockSummary2]);
+      expect(result).toBe('report-run-abc');
     });
 
-    it('uses the first report impactRunId', () => {
-      const result = resolveInitialTab('impact-reports', false, [mockReport2, mockReport1]);
-      expect(result).toBe('impact-run-def');
+    it('uses the first report id', () => {
+      const result = resolveInitialTab('impact-reports', false, [mockSummary2, mockSummary1]);
+      expect(result).toBe('report-run-def');
     });
 
     it('falls through to direct-changes when reports empty and directChangesAvailable=true', () => {
@@ -87,7 +89,7 @@ describe('resolveInitialTab', () => {
 
   describe('fallback chain (no param or unknown param)', () => {
     it('returns "direct-changes" when directChangesAvailable=true and no param', () => {
-      const result = resolveInitialTab(null, true, [mockReport1]);
+      const result = resolveInitialTab(null, true, [mockSummary1]);
       expect(result).toBe('direct-changes');
     });
 
@@ -96,9 +98,9 @@ describe('resolveInitialTab', () => {
       expect(result).toBe('direct-changes');
     });
 
-    it('returns first impact tab when directChangesAvailable=false and reports available', () => {
-      const result = resolveInitialTab(null, false, [mockReport1, mockReport2]);
-      expect(result).toBe('impact-run-abc');
+    it('returns first report tab when directChangesAvailable=false and reports available', () => {
+      const result = resolveInitialTab(null, false, [mockSummary1, mockSummary2]);
+      expect(result).toBe('report-run-abc');
     });
 
     it('returns null when nothing is available', () => {
@@ -112,13 +114,13 @@ describe('resolveInitialTab', () => {
     });
 
     it('falls through unknown param to fallback chain (direct changes first)', () => {
-      const result = resolveInitialTab('garbage-value', true, [mockReport1]);
+      const result = resolveInitialTab('garbage-value', true, [mockSummary1]);
       expect(result).toBe('direct-changes');
     });
 
-    it('falls through unknown param to fallback chain (impact reports when no DC)', () => {
-      const result = resolveInitialTab('unknown-tab', false, [mockReport1]);
-      expect(result).toBe('impact-run-abc');
+    it('falls through unknown param to fallback chain (report tab when no DC)', () => {
+      const result = resolveInitialTab('unknown-tab', false, [mockSummary1]);
+      expect(result).toBe('report-run-abc');
     });
 
     it('falls through unknown param to null when nothing available', () => {

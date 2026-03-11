@@ -13,10 +13,12 @@ import {
   clearAnalysisState,
   selectAnalysisHeader,
   selectAnalysisLoading,
-  selectImpactReports,
-  selectImpactReportsError,
+  selectReportSummaries,
+  selectReportSummariesError,
+  selectReportDetails,
   selectActiveTab,
   setActiveTab,
+  fetchReportDetailRequest,
 } from '../../store/analysisSlice';
 import { setLhsCollapsed } from '../../store/scenariosSlice';
 import { resolveInitialTab } from '../../utils/normalizeTab';
@@ -25,8 +27,8 @@ import { normalizeMode } from '../../utils/normalizeMode';
 import { AnalysisHeader } from '../../components/AnalysisHeader';
 import { AnalysisTabs } from '../../components/AnalysisTabs';
 import { DirectChangesAnalysisView } from '../../components/DirectChangesAnalysisView';
-import { ImpactReportAnalysisView } from '../../components/ImpactReportAnalysisView';
 import { ExternalRedirectView } from '../../components/ExternalRedirectView';
+import { ReportRenderer } from '../../components/ReportRenderer';
 import styles from './AnalysisPage.module.scss';
 
 const useFluentStyles = makeStyles({
@@ -43,6 +45,13 @@ const useFluentStyles = makeStyles({
     gap: '12px',
     padding: '24px',
   },
+  failedHeading: {
+    color: tokens.colorPaletteRedForeground1,
+    fontWeight: tokens.fontWeightSemibold as unknown as string,
+  },
+  failedNote: {
+    color: tokens.colorNeutralForeground3,
+  },
 });
 
 export const AnalysisPage: React.FC = () => {
@@ -57,8 +66,9 @@ export const AnalysisPage: React.FC = () => {
   const isLoading = useAppSelector(selectAnalysisLoading);
   const headerLoading = useAppSelector((state) => state.analysis.headerLoading);
   const headerError = useAppSelector((state) => state.analysis.headerError);
-  const impactReports = useAppSelector(selectImpactReports);
-  const impactReportsError = useAppSelector(selectImpactReportsError);
+  const reportSummaries = useAppSelector(selectReportSummaries);
+  const reportSummariesError = useAppSelector(selectReportSummariesError);
+  const reportDetails = useAppSelector(selectReportDetails);
   const activeTab = useAppSelector(selectActiveTab);
 
   // Dispatch data fetch and collapse LHS on mount; clear state on unmount
@@ -79,20 +89,18 @@ export const AnalysisPage: React.FC = () => {
       return;
     }
 
-    // Skip tab resolution when EXTERNAL modes will render ExternalRedirectView
-    const dcMode = scenarioType?.directChangesMode
+    // Skip tab resolution when ExternalRedirectView will render instead
+    const tabParam = searchParams.get('initial-tab');
+    const dcModeVal = scenarioType?.directChangesMode
       ? normalizeMode(scenarioType.directChangesMode)
       : null;
-    if (dcMode === 'EXTERNAL') {
-      return;
-    }
-    const impactMode = scenarioType?.impactDataMode
+    const impactModeVal = scenarioType?.impactDataMode
       ? normalizeMode(scenarioType.impactDataMode)
       : null;
-    if (
-      searchParams.get('initial-tab') === 'impact-reports' &&
-      impactMode === 'EXTERNAL'
-    ) {
+    if (tabParam === 'impact-reports' && impactModeVal === 'EXTERNAL') {
+      return;
+    }
+    if (dcModeVal === 'EXTERNAL' && tabParam !== 'impact-reports') {
       return;
     }
 
@@ -103,7 +111,7 @@ export const AnalysisPage: React.FC = () => {
     const resolved = resolveInitialTab(
       searchParams.get('initial-tab'),
       directChangesAvailable,
-      impactReports ?? []
+      reportSummaries ?? []
     );
 
     if (resolved !== null) {
@@ -118,7 +126,7 @@ export const AnalysisPage: React.FC = () => {
     headerError,
     activeTab,
     scenarioType,
-    impactReports,
+    reportSummaries,
     searchParams,
     dispatch,
     navigate,
@@ -179,25 +187,31 @@ export const AnalysisPage: React.FC = () => {
     );
   }
 
-  // EXTERNAL detection for direct changes: redirect to external system
-  if (
-    scenarioType?.directChangesMode &&
-    normalizeMode(scenarioType.directChangesMode) === 'EXTERNAL'
-  ) {
-    const externalUrl = summaryCards?.changesSummary?.cta?.url ?? null;
-    return <ExternalRedirectView url={externalUrl} scenarioId={id} />;
-  }
-
-  // EXTERNAL detection for impact reports deep-link (D6)
-  // Only triggers when initial-tab is specifically 'impact-reports' and impactDataMode is EXTERNAL
+  // EXTERNAL detection: redirect to external system only when the requested
+  // tab's mode is EXTERNAL. This allows mixed-mode scenarios (e.g. MARKET_DATA
+  // with directChangesMode=EXTERNAL but impactDataMode=INTERNAL).
   const initialTabParam = searchParams.get('initial-tab');
+  const dcMode = scenarioType?.directChangesMode
+    ? normalizeMode(scenarioType.directChangesMode)
+    : null;
+  const impactMode = scenarioType?.impactDataMode
+    ? normalizeMode(scenarioType.impactDataMode)
+    : null;
+
   if (
     initialTabParam === 'impact-reports' &&
-    scenarioType?.impactDataMode &&
-    normalizeMode(scenarioType.impactDataMode) === 'EXTERNAL'
+    impactMode === 'EXTERNAL'
   ) {
     const impactCtaUrl = summaryCards?.impactSummary?.cta?.url ?? null;
     return <ExternalRedirectView url={impactCtaUrl} scenarioId={id} />;
+  }
+
+  if (
+    dcMode === 'EXTERNAL' &&
+    initialTabParam !== 'impact-reports'
+  ) {
+    const externalUrl = summaryCards?.changesSummary?.cta?.url ?? null;
+    return <ExternalRedirectView url={externalUrl} scenarioId={id} />;
   }
 
   // Build dynamic tab list
@@ -211,11 +225,11 @@ export const AnalysisPage: React.FC = () => {
     tabs.push({ id: 'direct-changes', label: 'Direct Changes' });
   }
 
-  if (impactReports && impactReports.length > 0) {
-    for (const report of impactReports) {
+  if (reportSummaries && reportSummaries.length > 0) {
+    for (const summary of reportSummaries) {
       tabs.push({
-        id: `impact-${report.impactRunId}`,
-        label: report.name,
+        id: `report-${summary.id}`,
+        label: summary.reportName,
       });
     }
   }
@@ -226,12 +240,12 @@ export const AnalysisPage: React.FC = () => {
       return null;
     }
 
-    // Impact reports error state (D8) -- only show when viewing an impact tab
-    if (impactReportsError && activeTab.startsWith('impact-')) {
+    // Report summaries error state -- only show when viewing a report tab
+    if (reportSummariesError && activeTab.startsWith('report-')) {
       return (
         <div className={fluentStyles.errorBanner}>
           <Text className={fluentStyles.errorText} size={400}>
-            {impactReportsError}
+            {reportSummariesError}
           </Text>
           <Button
             appearance="outline"
@@ -247,17 +261,83 @@ export const AnalysisPage: React.FC = () => {
       return <DirectChangesAnalysisView />;
     }
 
-    if (activeTab.startsWith('impact-')) {
-      const impactRunId = activeTab.replace('impact-', '');
-      const matchingReport = impactReports?.find(
-        (r) => r.impactRunId === impactRunId
+    if (activeTab.startsWith('report-')) {
+      const reportId = activeTab.replace('report-', '');
+      const detailState = reportDetails[reportId];
+      const matchingSummary = reportSummaries?.find(
+        (s) => s.id === reportId
       );
 
-      if (matchingReport) {
-        return <ImpactReportAnalysisView report={matchingReport} />;
+      // Detail not yet fetched -- eager loading in the saga handles the
+      // initial fetch, show spinner in the meantime
+      if (!detailState) {
+        return (
+          <div className={styles.centered}>
+            <Spinner size="medium" label="Loading report..." />
+          </div>
+        );
       }
 
-      return null;
+      // Loading state
+      if (detailState.loading) {
+        return (
+          <div className={styles.centered}>
+            <Spinner size="medium" label="Loading report..." />
+          </div>
+        );
+      }
+
+      // Network/API error state with retry
+      if (detailState.error) {
+        return (
+          <div className={fluentStyles.errorBanner}>
+            <Text className={fluentStyles.errorText} size={400}>
+              {detailState.error}
+            </Text>
+            <Button
+              appearance="outline"
+              onClick={() =>
+                dispatch(fetchReportDetailRequest({ scenarioId: id, reportId }))
+              }
+            >
+              Retry
+            </Button>
+          </div>
+        );
+      }
+
+      // FAILED report state -- check summary status
+      if (matchingSummary?.status === 'FAILED') {
+        return (
+          <div className={fluentStyles.errorBanner}>
+            <Text size={500} className={fluentStyles.failedHeading}>
+              Report Generation Failed
+            </Text>
+            {detailState.errorMessage && (
+              <Text size={400}>
+                {detailState.errorMessage}
+              </Text>
+            )}
+            <Text size={300} className={fluentStyles.failedNote}>
+              This report could not be generated
+            </Text>
+          </div>
+        );
+      }
+
+      // Null renderedReport on non-FAILED report
+      if (!detailState.data) {
+        return (
+          <div className={styles.centered}>
+            <Text className={fluentStyles.emptyText} size={400}>
+              Report data unavailable
+            </Text>
+          </div>
+        );
+      }
+
+      // Render the report
+      return <ReportRenderer renderedReport={detailState.data} />;
     }
 
     return null;

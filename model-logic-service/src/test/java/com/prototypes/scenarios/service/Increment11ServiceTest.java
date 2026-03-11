@@ -128,18 +128,11 @@ class Increment11ServiceTest {
     }
 
     // ========================================================================
-    // Test 4: ScenarioDetailService throws ResponseStatusException(400)
-    //         when expand=impactData requested for an EXTERNAL-mode scenario
+    // Test 4: MARKET_DATA impactDataMode is now INTERNAL (GRID) --
+    //         expand=impactData no longer throws 400 for this type.
+    //         The EXTERNAL guard is still tested via RISK_FACTOR in
+    //         Increment3ImpactReportsTest.
     // ========================================================================
-
-    @Test
-    void getScenarioDetail_expandImpactData_externalMode_throws400() {
-        ResponseStatusException ex = assertThrows(ResponseStatusException.class, () ->
-                scenarioDetailService.getScenarioDetail(MD_SCENARIO_ID, Set.of("impactData")));
-
-        assertEquals(400, ex.getStatusCode().value());
-        assertTrue(ex.getReason().contains("impactData expand not supported for EXTERNAL mode"));
-    }
 
     // ========================================================================
     // Test 5: ScenarioDetailService returns null directChanges/impactData

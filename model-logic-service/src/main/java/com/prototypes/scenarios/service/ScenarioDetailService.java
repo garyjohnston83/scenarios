@@ -52,6 +52,8 @@ import com.prototypes.scenarios.repository.SignoffApprovalRepository;
 import com.prototypes.scenarios.repository.SignoffCaseRepository;
 import com.prototypes.scenarios.repository.SignoffPolicyRepository;
 import com.prototypes.scenarios.repository.UserRefRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -68,6 +70,7 @@ import java.util.UUID;
 @Service
 public class ScenarioDetailService {
 
+    private static final Logger logger = LoggerFactory.getLogger(ScenarioDetailService.class);
     private static final String DEFAULT_DIRECT_CHANGES_LABEL = "Open in Market Data UI \u2192";
     private static final String DEFAULT_IMPACT_REPORTS_LABEL = "View all impact reports \u2192";
 
@@ -154,6 +157,7 @@ public class ScenarioDetailService {
     private final SignoffPolicyRepository signoffPolicyRepository;
     private final SignoffApprovalRepository signoffApprovalRepository;
     private final ScenarioSummaryRepository scenarioSummaryRepository;
+    private final ImpactReportGenerationService impactReportGenerationService;
 
     public ScenarioDetailService(ScenarioRepository scenarioRepository,
                                  ImpactRunRepository impactRunRepository,
@@ -168,7 +172,8 @@ public class ScenarioDetailService {
                                  ScenarioGridRowRepository scenarioGridRowRepository,
                                  SignoffPolicyRepository signoffPolicyRepository,
                                  SignoffApprovalRepository signoffApprovalRepository,
-                                 ScenarioSummaryRepository scenarioSummaryRepository) {
+                                 ScenarioSummaryRepository scenarioSummaryRepository,
+                                 ImpactReportGenerationService impactReportGenerationService) {
         this.scenarioRepository = scenarioRepository;
         this.impactRunRepository = impactRunRepository;
         this.scenarioLinkRepository = scenarioLinkRepository;
@@ -183,6 +188,7 @@ public class ScenarioDetailService {
         this.signoffPolicyRepository = signoffPolicyRepository;
         this.signoffApprovalRepository = signoffApprovalRepository;
         this.scenarioSummaryRepository = scenarioSummaryRepository;
+        this.impactReportGenerationService = impactReportGenerationService;
     }
 
     @Transactional(readOnly = true)
@@ -602,6 +608,14 @@ public class ScenarioDetailService {
         event.setCreatedAt(LocalDateTime.now());
         event.setPayloadJson(buildPayloadJson(oldState, "IMPACT_AVAILABLE"));
         scenarioEventRepository.save(event);
+
+        // Generate impact report snapshots
+        try {
+            impactReportGenerationService.generateReportsForScenario(scenario.getId());
+        } catch (Exception e) {
+            // Report generation failure must NOT affect the main impact completion flow
+            logger.warn("Impact report generation failed for scenario {}: {}", scenario.getId(), e.getMessage());
+        }
     }
 
     private void handleImpactDataRefreshed(Scenario scenario, String workflowState,
@@ -632,6 +646,14 @@ public class ScenarioDetailService {
         event.setCreatedAt(LocalDateTime.now());
         event.setPayloadJson(buildPayloadJson(oldState, "IMPACT_AVAILABLE"));
         scenarioEventRepository.save(event);
+
+        // Regenerate impact report snapshots on data refresh
+        try {
+            impactReportGenerationService.generateReportsForScenario(scenario.getId());
+        } catch (Exception e) {
+            // Report generation failure must NOT affect the main data refresh flow
+            logger.warn("Impact report generation failed for scenario {}: {}", scenario.getId(), e.getMessage());
+        }
     }
 
     private void handleImpactInvalidated(Scenario scenario, String workflowState) {

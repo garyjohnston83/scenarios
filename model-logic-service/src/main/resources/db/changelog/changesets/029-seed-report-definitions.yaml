@@ -1,0 +1,39 @@
+databaseChangeLog:
+  - changeSet:
+      id: 029-seed-report-definitions
+      author: scenarios-team
+      changes:
+        - sql:
+            sql: |
+              INSERT INTO report_definition (id, scenario_type_code, report_key, version, definition, is_active, created_at, updated_at)
+              VALUES
+              (
+                'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaa001',
+                'FRTB_SA',
+                'sa_capital_summary',
+                1,
+                '{"schema_version":"1.0","report_key":"sa_capital_summary","scenario_type":"FRTB_SA","display_name":"SA Capital Charge Summary","description":"Summary of standardized approach capital charges across risk classes.","sections":[{"key":"delta_sensitivity","title":"Delta Sensitivity","order":1,"metrics":[{"key":"girr_delta","label":"GIRR Delta","unit":"USD","source_field":"risk_charges.girr.delta","format":"currency"},{"key":"csr_nonsec_delta","label":"CSR Non-Sec Delta","unit":"USD","source_field":"risk_charges.csr_nonsec.delta","format":"currency"},{"key":"fx_delta","label":"FX Delta","unit":"USD","source_field":"risk_charges.fx.delta","format":"currency"},{"key":"equity_delta","label":"Equity Delta","unit":"USD","source_field":"risk_charges.equity.delta","format":"currency"},{"key":"commodity_delta","label":"Commodity Delta","unit":"USD","source_field":"risk_charges.commodity.delta","format":"currency"}]},{"key":"vega_risk","title":"Vega Risk","order":2,"metrics":[{"key":"girr_vega","label":"GIRR Vega","unit":"USD","source_field":"risk_charges.girr.vega","format":"currency"},{"key":"fx_vega","label":"FX Vega","unit":"USD","source_field":"risk_charges.fx.vega","format":"currency"},{"key":"equity_vega","label":"Equity Vega","unit":"USD","source_field":"risk_charges.equity.vega","format":"currency"}]},{"key":"curvature_risk","title":"Curvature Risk","order":3,"metrics":[{"key":"girr_curvature","label":"GIRR Curvature","unit":"USD","source_field":"risk_charges.girr.curvature","format":"currency"},{"key":"fx_curvature","label":"FX Curvature","unit":"USD","source_field":"risk_charges.fx.curvature","format":"currency"}]},{"key":"total_capital","title":"Total Capital Charge","order":4,"metrics":[{"key":"total_sa_charge","label":"Total SA Capital Charge","unit":"USD","source_field":"risk_charges.total_sa_charge","format":"currency"},{"key":"drc_charge","label":"Default Risk Charge","unit":"USD","source_field":"risk_charges.drc_charge","format":"currency"},{"key":"rrao_charge","label":"RRAO Charge","unit":"USD","source_field":"risk_charges.rrao_charge","format":"currency"}]}],"metadata":{"author":"system","tags":["frtb","sa","capital","summary"]}}',
+                true,
+                NOW(),
+                NOW()
+              ),
+              (
+                'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaa002',
+                'MARKET_DATA',
+                'market_risk_summary',
+                1,
+                '{"schema_version":"1.0","report_key":"market_risk_summary","scenario_type":"MARKET_DATA","display_name":"Market Risk Summary","description":"Summary of market risk metrics including VaR and stressed VaR.","sections":[{"key":"var_metrics","title":"Value at Risk","order":1,"metrics":[{"key":"var_99","label":"VaR (99%)","unit":"USD","source_field":"market_risk.var_99","format":"currency"},{"key":"var_97_5","label":"VaR (97.5%)","unit":"USD","source_field":"market_risk.var_97_5","format":"currency"},{"key":"stressed_var","label":"Stressed VaR","unit":"USD","source_field":"market_risk.stressed_var","format":"currency"}]},{"key":"exposure_summary","title":"Exposure Summary","order":2,"metrics":[{"key":"gross_exposure","label":"Gross Exposure","unit":"USD","source_field":"exposure.gross","format":"currency"},{"key":"net_exposure","label":"Net Exposure","unit":"USD","source_field":"exposure.net","format":"currency"},{"key":"notional","label":"Total Notional","unit":"USD","source_field":"exposure.notional","format":"currency"}]}],"metadata":{"author":"system","tags":["market_data","var","exposure"]}}',
+                true,
+                NOW(),
+                NOW()
+              ),
+              (
+                'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaa003',
+                'RISK_FACTOR',
+                'risk_factor_impact',
+                1,
+                '{"schema_version":"1.0","report_key":"risk_factor_impact","scenario_type":"RISK_FACTOR","display_name":"Risk Factor Impact Analysis","description":"PnL attribution and risk factor shift analysis.","sections":[{"key":"pnl_attribution","title":"PnL Attribution","order":1,"metrics":[{"key":"total_pnl_impact","label":"Total PnL Impact","unit":"USD","source_field":"pnl.total_impact","format":"currency"},{"key":"first_order_pnl","label":"First Order PnL","unit":"USD","source_field":"pnl.first_order","format":"currency"},{"key":"second_order_pnl","label":"Second Order PnL","unit":"USD","source_field":"pnl.second_order","format":"currency"},{"key":"unexplained_pnl","label":"Unexplained PnL","unit":"USD","source_field":"pnl.unexplained","format":"currency"}]},{"key":"risk_factor_shifts","title":"Risk Factor Shifts","order":2,"metrics":[{"key":"ir_shift_bp","label":"IR Shift","unit":"bps","source_field":"shifts.ir_shift","format":"number"},{"key":"credit_spread_shift","label":"Credit Spread Shift","unit":"bps","source_field":"shifts.credit_spread","format":"number"},{"key":"fx_spot_shift","label":"FX Spot Shift","unit":"%","source_field":"shifts.fx_spot","format":"percentage"},{"key":"equity_price_shift","label":"Equity Price Shift","unit":"%","source_field":"shifts.equity_price","format":"percentage"}]}],"metadata":{"author":"system","tags":["risk_factor","pnl","shifts"]}}',
+                true,
+                NOW(),
+                NOW()
+              );

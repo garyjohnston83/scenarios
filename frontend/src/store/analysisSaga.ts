@@ -1,13 +1,16 @@
-import { call, put, takeLatest, all } from 'redux-saga/effects';
-import { fetchDirectChanges, fetchAnalysisHeader, fetchImpactData } from '../services/scenarioApi';
+import { call, put, takeLatest, takeEvery, all } from 'redux-saga/effects';
+import { fetchDirectChanges, fetchAnalysisHeader, fetchImpactReportSummaries, fetchImpactReportDetail } from '../services/scenarioApi';
 import {
   fetchAnalysisDataRequest,
   fetchAnalysisHeaderSuccess,
   fetchAnalysisHeaderFailure,
   fetchDirectChangesSuccess,
   fetchDirectChangesFailure,
-  fetchImpactReportsSuccess,
-  fetchImpactReportsFailure,
+  fetchReportSummariesSuccess,
+  fetchReportSummariesFailure,
+  fetchReportDetailRequest,
+  fetchReportDetailSuccess,
+  fetchReportDetailFailure,
 } from './analysisSlice';
 import type { PayloadAction } from '@reduxjs/toolkit';
 
@@ -33,14 +36,45 @@ function* fetchDirectChangesSaga(scenarioId: string) {
   }
 }
 
+/**
+ * Inner generator for fetching a single report detail.
+ * Accepts raw parameters instead of a PayloadAction so it can be called
+ * directly from within the saga flow (e.g., from the eager loading all([...]) block).
+ */
+function* fetchReportDetailInner(scenarioId: string, reportId: string) {
+  try {
+    const detail: Awaited<ReturnType<typeof fetchImpactReportDetail>> = yield call(fetchImpactReportDetail, scenarioId, reportId);
+    yield put(fetchReportDetailSuccess({ reportId, detail }));
+  } catch (error: unknown) {
+    const message =
+      error instanceof Error ? error.message : 'Failed to fetch report detail';
+    yield put(fetchReportDetailFailure({ reportId, error: message }));
+  }
+}
+
 function* fetchImpactReportsSaga(scenarioId: string) {
   try {
-    const result: Awaited<ReturnType<typeof fetchImpactData>> = yield call(fetchImpactData, scenarioId);
-    yield put(fetchImpactReportsSuccess(result.reports));
+    const summaries: Awaited<ReturnType<typeof fetchImpactReportSummaries>> = yield call(fetchImpactReportSummaries, scenarioId);
+    yield put(fetchReportSummariesSuccess(summaries));
+
+    // Eager detail loading: fetch details for all summaries in parallel
+    if (summaries.length > 0) {
+      // Dispatch fetchReportDetailRequest for each summary to set Redux loading state immediately
+      for (const summary of summaries) {
+        yield put(fetchReportDetailRequest({ scenarioId, reportId: summary.id }));
+      }
+
+      // Fetch all details in parallel using all([...]) with call() effects
+      yield all(
+        summaries.map((summary) =>
+          call(fetchReportDetailInner, scenarioId, summary.id)
+        )
+      );
+    }
   } catch (error: unknown) {
     const message =
       error instanceof Error ? error.message : 'Failed to fetch impact reports';
-    yield put(fetchImpactReportsFailure(message));
+    yield put(fetchReportSummariesFailure(message));
   }
 }
 
@@ -52,6 +86,14 @@ function* handleFetchAnalysisData(action: PayloadAction<string>) {
   ]);
 }
 
+export function* fetchReportDetailSaga(action: PayloadAction<{ scenarioId: string; reportId: string }>) {
+  yield* fetchReportDetailInner(action.payload.scenarioId, action.payload.reportId);
+}
+
 export function* watchFetchAnalysisData() {
   yield takeLatest(fetchAnalysisDataRequest.type, handleFetchAnalysisData);
+}
+
+export function* watchFetchReportDetail() {
+  yield takeEvery(fetchReportDetailRequest.type, fetchReportDetailSaga);
 }

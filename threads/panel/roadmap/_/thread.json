@@ -1,0 +1,471 @@
+{
+  "threadKey": "project:8aba6fec-0803-423b-a266-307b2b93f8da:panel:roadmap",
+  "projectId": "8aba6fec-0803-423b-a266-307b2b93f8da",
+  "messages": [
+    {
+      "id": "6c36cedc-916b-4e8b-be43-f33d1ba6186b",
+      "role": "user",
+      "personaId": null,
+      "taskId": "product-manager--roadmap",
+      "content": "Build Roadmap",
+      "structuredResponse": null,
+      "timestamp": "2026-03-07T10:05:24.981Z"
+    },
+    {
+      "id": "e5b95cf4-195a-4de4-86dc-1af59f165a9b",
+      "role": "assistant",
+      "personaId": "product-manager",
+      "taskId": "product-manager--roadmap",
+      "content": "{\"phase\":\"questions\",\"section\":\"outcome_alignment\",\"summary\":\"I found an existing roadmap with 3 initiatives and 7 epics. Let's review and refine it.\",\"questions\":[\"Are these initiatives still aligned with your current business goals, or have priorities shifted?\",\"Are there any new initiatives or epics that should be added to the roadmap?\",\"Would you like to adjust the sequencing or dependencies between any existing items?\"],\"proposedInitiatives\":[],\"assumptions\":[],\"openItems\":[]}",
+      "structuredResponse": {
+        "phase": "questions",
+        "section": "outcome_alignment",
+        "summary": "I found an existing roadmap with 3 initiatives and 7 epics. Let's review and refine it.",
+        "questions": [
+          "Are these initiatives still aligned with your current business goals, or have priorities shifted?",
+          "Are there any new initiatives or epics that should be added to the roadmap?",
+          "Would you like to adjust the sequencing or dependencies between any existing items?"
+        ],
+        "proposedInitiatives": [],
+        "assumptions": [],
+        "openItems": []
+      },
+      "timestamp": "2026-03-07T10:05:24.985Z"
+    },
+    {
+      "id": "f4c5e1c2-caa4-491d-a83e-de7cfa8465b0",
+      "role": "user",
+      "personaId": null,
+      "taskId": "product-manager--roadmap",
+      "content": "",
+      "structuredResponse": null,
+      "timestamp": "2026-03-07T10:05:31.315Z"
+    },
+    {
+      "id": "6f3e7d6c-b03b-430d-a564-59e3f4f80ebc",
+      "role": "assistant",
+      "personaId": "product-manager",
+      "taskId": "product-manager--roadmap",
+      "content": "{\n  \"phase\": \"ready\",\n  \"section\": \"final_review\",\n  \"questions\": [],\n  \"summary\": \"Roadmap updated. Two initiatives: (1) Prototype & Foundations for PoC in May 2026 with mock service and baseline frontend for a single desk/domain; (2) Scenarios MVP for Production in Sep 2026 delivering scenario management, analysis, audit with 7-year retention, configurable sign-off (including Senior Risk Manager role), and micro-frontend integrations with Market Data, FRTB SA, and VaR. One team, 2-week sprints. Dependencies: Prototype before functional epics; Audit before Sign-off; Scenario Management before Analysis.\",\n  \"proposedInitiatives\": [\n    {\n      \"title\": \"Prototype & Foundations (PoC – May 2026)\",\n      \"description\": \"Validate user flows and data wiring with a mock service and baseline Scenarios frontend for a single desk/domain.\",\n      \"epics\": [\n        {\n          \"title\": \"Create Scenarios Mock Service\",\n          \"description\": \"Provide mock APIs and data to power PoC flows for scenario list, impact summaries, and approvals.\"\n        },\n        {\n          \"title\": \"Create Scenarios Frontend\",\n          \"description\": \"Build the baseline Scenarios micro-frontend with navigation and core UI components for the PoC.\"\n        }\n      ]\n    },\n    {\n      \"title\": \"Scenarios MVP – Production Sep 2026\",\n      \"description\": \"Deliver end-to-end Scenarios for Market Risk with impact review, configurable approvals, and full auditability; integrate with Market Data, FRTB SA, and VaR.\",\n      \"epics\": [\n        {\n          \"title\": \"Build Scenario Management Screen\",\n          \"description\": \"Enable creation, viewing, and management of scenarios and metadata; link to source change details; prerequisite for analysis.\"\n        },\n        {\n          \"title\": \"Build Scenario Analysis Screen\",\n          \"description\": \"Present impact summaries with link-outs to detailed FRTB SA and VaR reports; drill-through from scenarios.\"\n        },\n        {\n          \"title\": \"Build Audit Functionality\",\n          \"description\": \"Provide a searchable end-to-end audit trail of messages and actions, including internal e-signoff records with 7-year retention.\"\n        },\n        {\n          \"title\": \"Build Sign-off Workflow\",\n          \"description\": \"Implement configurable, rules-based approvals with role- and attribute-level controls; include Senior Risk Manager approval rights.\"\n        },\n        {\n          \"title\": \"Micro-frontend Integrations (Market Data, FRTB SA, VaR)\",\n          \"description\": \"Integrate Scenarios with existing UI modules for seamless navigation and context-sharing at production.\"\n        }\n      ]\n    }\n  ],\n  \"assumptions\": [\n    \"Internal e-signoff and 7-year audit retention are required at launch.\",\n    \"Prototype completes first; Audit precedes Sign-off; Scenario Management precedes Analysis.\",\n    \"One team delivers all work in 2-week sprints.\",\n    \"Architecture decisions (shell, services, audit store, SSO/authorization) will be provided by the architecture team and may affect scope/timelines.\",\n    \"PoC scope is limited to a single desk/domain.\",\n    \"Production target is September 2026 (Q3) and supersedes prior Q4 guidance.\"\n  ],\n  \"openItems\": [\n    \"Confirm platform architecture details and standards (micro-frontend shell, data services, audit store, SSO/IAM).\",\n    \"Define epic-level acceptance criteria (including compliance and role matrix).\",\n    \"Map precise scope for PoC (May) and UAT (July) across epics and user outcomes.\",\n    \"Align integration timelines and external dependencies with Market Data, FRTB SA, and VaR teams.\",\n    \"Decide whether in-app messaging to promote signed-off changes is in MVP or post-MVP.\",\n    \"Document data residency, privacy, security, and non-functional requirements.\",\n    \"Define success metrics and targets (deferred).\"\n  ]\n}",
+      "structuredResponse": {
+        "phase": "ready",
+        "section": "final_review",
+        "questions": [],
+        "summary": "Roadmap updated. Two initiatives: (1) Prototype & Foundations for PoC in May 2026 with mock service and baseline frontend for a single desk/domain; (2) Scenarios MVP for Production in Sep 2026 delivering scenario management, analysis, audit with 7-year retention, configurable sign-off (including Senior Risk Manager role), and micro-frontend integrations with Market Data, FRTB SA, and VaR. One team, 2-week sprints. Dependencies: Prototype before functional epics; Audit before Sign-off; Scenario Management before Analysis.",
+        "proposedInitiatives": [
+          {
+            "title": "Prototype & Foundations (PoC – May 2026)",
+            "description": "Validate user flows and data wiring with a mock service and baseline Scenarios frontend for a single desk/domain.",
+            "epics": [
+              {
+                "title": "Create Scenarios Mock Service",
+                "description": "Provide mock APIs and data to power PoC flows for scenario list, impact summaries, and approvals."
+              },
+              {
+                "title": "Create Scenarios Frontend",
+                "description": "Build the baseline Scenarios micro-frontend with navigation and core UI components for the PoC."
+              }
+            ]
+          },
+          {
+            "title": "Scenarios MVP – Production Sep 2026",
+            "description": "Deliver end-to-end Scenarios for Market Risk with impact review, configurable approvals, and full auditability; integrate with Market Data, FRTB SA, and VaR.",
+            "epics": [
+              {
+                "title": "Build Scenario Management Screen",
+                "description": "Enable creation, viewing, and management of scenarios and metadata; link to source change details; prerequisite for analysis."
+              },
+              {
+                "title": "Build Scenario Analysis Screen",
+                "description": "Present impact summaries with link-outs to detailed FRTB SA and VaR reports; drill-through from scenarios."
+              },
+              {
+                "title": "Build Audit Functionality",
+                "description": "Provide a searchable end-to-end audit trail of messages and actions, including internal e-signoff records with 7-year retention."
+              },
+              {
+                "title": "Build Sign-off Workflow",
+                "description": "Implement configurable, rules-based approvals with role- and attribute-level controls; include Senior Risk Manager approval rights."
+              },
+              {
+                "title": "Micro-frontend Integrations (Market Data, FRTB SA, VaR)",
+                "description": "Integrate Scenarios with existing UI modules for seamless navigation and context-sharing at production."
+              }
+            ]
+          }
+        ],
+        "assumptions": [
+          "Internal e-signoff and 7-year audit retention are required at launch.",
+          "Prototype completes first; Audit precedes Sign-off; Scenario Management precedes Analysis.",
+          "One team delivers all work in 2-week sprints.",
+          "Architecture decisions (shell, services, audit store, SSO/authorization) will be provided by the architecture team and may affect scope/timelines.",
+          "PoC scope is limited to a single desk/domain.",
+          "Production target is September 2026 (Q3) and supersedes prior Q4 guidance."
+        ],
+        "openItems": [
+          "Confirm platform architecture details and standards (micro-frontend shell, data services, audit store, SSO/IAM).",
+          "Define epic-level acceptance criteria (including compliance and role matrix).",
+          "Map precise scope for PoC (May) and UAT (July) across epics and user outcomes.",
+          "Align integration timelines and external dependencies with Market Data, FRTB SA, and VaR teams.",
+          "Decide whether in-app messaging to promote signed-off changes is in MVP or post-MVP.",
+          "Document data residency, privacy, security, and non-functional requirements.",
+          "Define success metrics and targets (deferred)."
+        ]
+      },
+      "timestamp": "2026-03-07T10:05:31.321Z"
+    },
+    {
+      "id": "ed9f884d-eed2-4a19-9c79-1d4cbbe056c0",
+      "role": "user",
+      "personaId": null,
+      "taskId": "product-manager--roadmap",
+      "content": "",
+      "structuredResponse": null,
+      "timestamp": "2026-03-07T10:05:31.878Z"
+    },
+    {
+      "id": "a02c3df6-13a7-48b5-8dbc-1f3f3c4c236a",
+      "role": "assistant",
+      "personaId": "product-manager",
+      "taskId": "product-manager--roadmap",
+      "content": "{\n  \"phase\": \"ready\",\n  \"section\": \"final_review\",\n  \"questions\": [],\n  \"summary\": \"Roadmap updated and finalized with two initiatives: (1) Prototype & Foundations to deliver PoC in May 2026 for a single desk/domain using a mock service and baseline frontend; (2) Scenarios MVP for Production in September 2026 providing scenario management, impact analysis, full auditability with 7-year retention, configurable sign-off (including Senior Risk Manager permissions), and micro-frontend integrations to Market Data, FRTB SA, and VaR. One team, 2-week sprints. Dependencies: Prototype before functional epics; Audit before Sign-off; Scenario Management before Analysis. Internal e-signoff and 7-year retention included for launch.\",\n  \"proposedInitiatives\": [\n    {\n      \"title\": \"Prototype & Foundations (PoC – May 2026)\",\n      \"description\": \"Validate user flows and data wiring with a mock service and baseline Scenarios frontend for a single desk/domain.\",\n      \"epics\": [\n        {\n          \"title\": \"Create Scenarios Mock Service\",\n          \"description\": \"Provide mock APIs and test data to power PoC flows for scenario lists, impact summaries, and approval stubs.\"\n        },\n        {\n          \"title\": \"Create Scenarios Frontend\",\n          \"description\": \"Build the baseline Scenarios micro-frontend with navigation and core UI components to exercise PoC flows.\"\n        }\n      ]\n    },\n    {\n      \"title\": \"Scenarios MVP – Production Sep 2026\",\n      \"description\": \"Deliver end-to-end Scenarios for Market Risk with impact review, configurable approvals, and full auditability; integrate with Market Data, FRTB SA, and VaR.\",\n      \"epics\": [\n        {\n          \"title\": \"Build Scenario Management Screen\",\n          \"description\": \"Enable creation, viewing, and management of scenarios and metadata; link to source change details and related reports. Prerequisite for analysis.\"\n        },\n        {\n          \"title\": \"Build Scenario Analysis Screen\",\n          \"description\": \"Present impact summaries and drill-through to FRTB SA and VaR details; support review of downstream calculation impacts.\"\n        },\n        {\n          \"title\": \"Build Audit Functionality\",\n          \"description\": \"Provide a searchable, end-to-end audit trail of messages and actions, including internal e-signoff records retained for 7 years.\"\n        },\n        {\n          \"title\": \"Build Sign-off Workflow\",\n          \"description\": \"Implement configurable, rules-based approvals with role- and attribute-level controls; include Senior Risk Manager approval rights and attestations.\"\n        },\n        {\n          \"title\": \"Micro-frontend Integrations (Market Data, FRTB SA, VaR)\",\n          \"description\": \"Integrate Scenarios within existing UI modules for seamless navigation and context sharing at production launch.\"\n        }\n      ]\n    }\n  ],\n  \"assumptions\": [\n    \"All four functional epics plus micro-frontend integrations are in scope for the September 2026 MVP release.\",\n    \"Prototype completes before functional epics; Audit precedes Sign-off; Scenario Management precedes Analysis.\",\n    \"One team delivers all work with 2-week sprints; limited parallelization will be managed within that constraint.\",\n    \"Internal e-signoff and 7-year audit retention are required at launch.\",\n    \"Senior Risk Manager permissions are delivered via the Sign-off Workflow configuration.\",\n    \"PoC scope remains limited to a single desk/domain.\",\n    \"Production target of September 2026 takes precedence over earlier Q4 guidance.\"\n  ],\n  \"openItems\": [\n    \"Define epic-level acceptance criteria, including compliance and role-based approval rules.\",\n    \"Map precise scope for PoC (May) and UAT (July) to specific epics and testable outcomes.\",\n    \"Confirm micro-frontend shell/framework contracts and navigation patterns for integrations.\",\n    \"Identify source APIs/owners for scenario definitions and impact data; confirm any orchestration needs.\",\n    \"Select authoritative audit store and immutability/retention controls to meet 7-year requirement.\",\n    \"Confirm SSO/IAM approach and fine-grained authorization model.\",\n    \"Clarify data residency, privacy, and non-functional requirements (performance, availability, DR).\",\n    \"Align delivery timelines and dependencies with Market Data, FRTB SA, and VaR teams.\",\n    \"Decide whether in-app messaging to promote signed-off changes is included in MVP or follows post-launch.\",\n    \"Define success metrics and targets (adoption, time-to-signoff, audit completeness) when ready.\"\n  ]\n}",
+      "structuredResponse": {
+        "phase": "ready",
+        "section": "final_review",
+        "questions": [],
+        "summary": "Roadmap updated and finalized with two initiatives: (1) Prototype & Foundations to deliver PoC in May 2026 for a single desk/domain using a mock service and baseline frontend; (2) Scenarios MVP for Production in September 2026 providing scenario management, impact analysis, full auditability with 7-year retention, configurable sign-off (including Senior Risk Manager permissions), and micro-frontend integrations to Market Data, FRTB SA, and VaR. One team, 2-week sprints. Dependencies: Prototype before functional epics; Audit before Sign-off; Scenario Management before Analysis. Internal e-signoff and 7-year retention included for launch.",
+        "proposedInitiatives": [
+          {
+            "title": "Prototype & Foundations (PoC – May 2026)",
+            "description": "Validate user flows and data wiring with a mock service and baseline Scenarios frontend for a single desk/domain.",
+            "epics": [
+              {
+                "title": "Create Scenarios Mock Service",
+                "description": "Provide mock APIs and test data to power PoC flows for scenario lists, impact summaries, and approval stubs."
+              },
+              {
+                "title": "Create Scenarios Frontend",
+                "description": "Build the baseline Scenarios micro-frontend with navigation and core UI components to exercise PoC flows."
+              }
+            ]
+          },
+          {
+            "title": "Scenarios MVP – Production Sep 2026",
+            "description": "Deliver end-to-end Scenarios for Market Risk with impact review, configurable approvals, and full auditability; integrate with Market Data, FRTB SA, and VaR.",
+            "epics": [
+              {
+                "title": "Build Scenario Management Screen",
+                "description": "Enable creation, viewing, and management of scenarios and metadata; link to source change details and related reports. Prerequisite for analysis."
+              },
+              {
+                "title": "Build Scenario Analysis Screen",
+                "description": "Present impact summaries and drill-through to FRTB SA and VaR details; support review of downstream calculation impacts."
+              },
+              {
+                "title": "Build Audit Functionality",
+                "description": "Provide a searchable, end-to-end audit trail of messages and actions, including internal e-signoff records retained for 7 years."
+              },
+              {
+                "title": "Build Sign-off Workflow",
+                "description": "Implement configurable, rules-based approvals with role- and attribute-level controls; include Senior Risk Manager approval rights and attestations."
+              },
+              {
+                "title": "Micro-frontend Integrations (Market Data, FRTB SA, VaR)",
+                "description": "Integrate Scenarios within existing UI modules for seamless navigation and context sharing at production launch."
+              }
+            ]
+          }
+        ],
+        "assumptions": [
+          "All four functional epics plus micro-frontend integrations are in scope for the September 2026 MVP release.",
+          "Prototype completes before functional epics; Audit precedes Sign-off; Scenario Management precedes Analysis.",
+          "One team delivers all work with 2-week sprints; limited parallelization will be managed within that constraint.",
+          "Internal e-signoff and 7-year audit retention are required at launch.",
+          "Senior Risk Manager permissions are delivered via the Sign-off Workflow configuration.",
+          "PoC scope remains limited to a single desk/domain.",
+          "Production target of September 2026 takes precedence over earlier Q4 guidance."
+        ],
+        "openItems": [
+          "Define epic-level acceptance criteria, including compliance and role-based approval rules.",
+          "Map precise scope for PoC (May) and UAT (July) to specific epics and testable outcomes.",
+          "Confirm micro-frontend shell/framework contracts and navigation patterns for integrations.",
+          "Identify source APIs/owners for scenario definitions and impact data; confirm any orchestration needs.",
+          "Select authoritative audit store and immutability/retention controls to meet 7-year requirement.",
+          "Confirm SSO/IAM approach and fine-grained authorization model.",
+          "Clarify data residency, privacy, and non-functional requirements (performance, availability, DR).",
+          "Align delivery timelines and dependencies with Market Data, FRTB SA, and VaR teams.",
+          "Decide whether in-app messaging to promote signed-off changes is included in MVP or follows post-launch.",
+          "Define success metrics and targets (adoption, time-to-signoff, audit completeness) when ready."
+        ]
+      },
+      "timestamp": "2026-03-07T10:05:31.885Z"
+    },
+    {
+      "id": "6dc26b26-15be-4617-bf6e-e00784f67012",
+      "role": "user",
+      "personaId": null,
+      "taskId": "product-manager--roadmap",
+      "content": "1. Q: Are these initiatives still aligned with your current business goals, or have priorities shifted? A: \"Create Prototype UI and Mock Service\" initiative is a duplicate and needs removed\n2. Q: Are there any new initiatives or epics that should be added to the roadmap? A: One new epic under \"Scenarios MVP...\"\n3. Q: Would you like to adjust the sequencing or dependencies between any existing items? A: No",
+      "structuredResponse": null,
+      "timestamp": "2026-03-07T10:07:33.857Z"
+    },
+    {
+      "id": "0a3e8c3f-b80c-4694-b2f8-577c99d0b320",
+      "role": "assistant",
+      "personaId": "product-manager",
+      "taskId": "product-manager--roadmap",
+      "content": "{\n  \"phase\": \"questions\",\n  \"section\": \"initiative_structure\",\n  \"questions\": [\n    \"Please confirm: remove the standalone initiative named \\\"Create Prototype UI and Mock Service\\\" while keeping the PoC epics under \\\"Prototype & Foundations (PoC – May 2026)\\\" intact?\",\n    \"What is the title and a one-line outcome-focused description for the new epic to add under \\\"Scenarios MVP – Production Sep 2026\\\"?\",\n    \"Are we keeping the milestone targets as PoC in May 2026 and MVP/Production in September 2026?\"\n  ],\n  \"summary\": \"You want to remove the duplicate initiative \\\"Create Prototype UI and Mock Service\\\", add one new epic under \\\"Scenarios MVP – Production Sep 2026\\\", and keep existing sequencing/dependencies unchanged. Pending: details for the new epic and confirmation of milestone dates.\",\n  \"proposedInitiatives\": [\n    {\n      \"title\": \"Prototype & Foundations (PoC – May 2026)\",\n      \"description\": \"Validate user flows and data wiring with a mock service and baseline Scenarios frontend for a single desk/domain.\",\n      \"epics\": [\n        {\n          \"title\": \"Create Scenarios Mock Service\",\n          \"description\": \"Provide mock APIs and data to power PoC flows for scenario list, impact summaries, and approvals.\"\n        },\n        {\n          \"title\": \"Create Scenarios Frontend\",\n          \"description\": \"Build the baseline Scenarios micro-frontend with navigation and core UI components for the PoC.\"\n        }\n      ]\n    },\n    {\n      \"title\": \"Scenarios MVP – Production Sep 2026\",\n      \"description\": \"Deliver end-to-end Scenarios for Market Risk with impact review, configurable approvals, and full auditability; integrate with Market Data, FRTB SA, and VaR.\",\n      \"epics\": [\n        {\n          \"title\": \"Build Scenario Management Screen\",\n          \"description\": \"Enable creation, viewing, and management of scenarios and metadata; link to source change details.\"\n        },\n        {\n          \"title\": \"Build Scenario Analysis Screen\",\n          \"description\": \"Present impact summaries with link-outs to detailed FRTB SA and VaR reports.\"\n        },\n        {\n          \"title\": \"Build Audit Functionality\",\n          \"description\": \"Provide a searchable end-to-end audit trail of messages and actions with 7-year retention.\"\n        },\n        {\n          \"title\": \"Build Sign-off Workflow\",\n          \"description\": \"Implement configurable, rules-based approvals with fine-grained controls and internal attestation.\"\n        },\n        {\n          \"title\": \"Micro-frontend Integrations (Market Data, FRTB SA, VaR)\",\n          \"description\": \"Integrate with the three UI modules for seamless navigation and context-sharing.\"\n        }\n      ]\n    }\n  ],\n  \"assumptions\": [\n    \"No sequencing or dependency changes are requested.\",\n    \"The duplicate item to remove is the standalone initiative \\\"Create Prototype UI and Mock Service\\\" (not the PoC epics).\"\n  ],\n  \"openItems\": [\n    \"Title and one-line description for the new epic under Scenarios MVP.\",\n    \"Confirmation of milestone dates: PoC in May 2026; MVP/Production in September 2026.\",\n    \"Final confirmation to remove the duplicate initiative and proceed with the two-initiative structure.\"\n  ]\n}",
+      "structuredResponse": {
+        "phase": "questions",
+        "section": "initiative_structure",
+        "questions": [
+          "Please confirm: remove the standalone initiative named \"Create Prototype UI and Mock Service\" while keeping the PoC epics under \"Prototype & Foundations (PoC – May 2026)\" intact?",
+          "What is the title and a one-line outcome-focused description for the new epic to add under \"Scenarios MVP – Production Sep 2026\"?",
+          "Are we keeping the milestone targets as PoC in May 2026 and MVP/Production in September 2026?"
+        ],
+        "summary": "You want to remove the duplicate initiative \"Create Prototype UI and Mock Service\", add one new epic under \"Scenarios MVP – Production Sep 2026\", and keep existing sequencing/dependencies unchanged. Pending: details for the new epic and confirmation of milestone dates.",
+        "proposedInitiatives": [
+          {
+            "title": "Prototype & Foundations (PoC – May 2026)",
+            "description": "Validate user flows and data wiring with a mock service and baseline Scenarios frontend for a single desk/domain.",
+            "epics": [
+              {
+                "title": "Create Scenarios Mock Service",
+                "description": "Provide mock APIs and data to power PoC flows for scenario list, impact summaries, and approvals."
+              },
+              {
+                "title": "Create Scenarios Frontend",
+                "description": "Build the baseline Scenarios micro-frontend with navigation and core UI components for the PoC."
+              }
+            ]
+          },
+          {
+            "title": "Scenarios MVP – Production Sep 2026",
+            "description": "Deliver end-to-end Scenarios for Market Risk with impact review, configurable approvals, and full auditability; integrate with Market Data, FRTB SA, and VaR.",
+            "epics": [
+              {
+                "title": "Build Scenario Management Screen",
+                "description": "Enable creation, viewing, and management of scenarios and metadata; link to source change details."
+              },
+              {
+                "title": "Build Scenario Analysis Screen",
+                "description": "Present impact summaries with link-outs to detailed FRTB SA and VaR reports."
+              },
+              {
+                "title": "Build Audit Functionality",
+                "description": "Provide a searchable end-to-end audit trail of messages and actions with 7-year retention."
+              },
+              {
+                "title": "Build Sign-off Workflow",
+                "description": "Implement configurable, rules-based approvals with fine-grained controls and internal attestation."
+              },
+              {
+                "title": "Micro-frontend Integrations (Market Data, FRTB SA, VaR)",
+                "description": "Integrate with the three UI modules for seamless navigation and context-sharing."
+              }
+            ]
+          }
+        ],
+        "assumptions": [
+          "No sequencing or dependency changes are requested.",
+          "The duplicate item to remove is the standalone initiative \"Create Prototype UI and Mock Service\" (not the PoC epics)."
+        ],
+        "openItems": [
+          "Title and one-line description for the new epic under Scenarios MVP.",
+          "Confirmation of milestone dates: PoC in May 2026; MVP/Production in September 2026.",
+          "Final confirmation to remove the duplicate initiative and proceed with the two-initiative structure."
+        ]
+      },
+      "timestamp": "2026-03-07T10:07:33.864Z"
+    },
+    {
+      "id": "63e208be-3270-4793-88a0-56803beb5880",
+      "role": "user",
+      "personaId": null,
+      "taskId": "product-manager--roadmap",
+      "content": "1. Q: Please confirm: remove the standalone initiative named \"Create Prototype UI and Mock Service\" while keeping the PoC epics under \"Prototype & Foundations (PoC – May 2026)\" intact? A: Confirmed\n2. Q: What is the title and a one-line outcome-focused description for the new epic to add under \"Scenarios MVP – Production Sep 2026\"? A: Delivery core functionality to users to allow them to analyse and sign-off (or reject!) a data change scenario, thus making it live into production data set.\n3. Q: Are we keeping the milestone targets as PoC in May 2026 and MVP/Production in September 2026? A: Confirmed",
+      "structuredResponse": null,
+      "timestamp": "2026-03-07T10:10:42.526Z"
+    },
+    {
+      "id": "f22569b6-f40e-44b5-b919-88a1610bf217",
+      "role": "assistant",
+      "personaId": "product-manager",
+      "taskId": "product-manager--roadmap",
+      "content": "{\n  \"phase\": \"questions\",\n  \"section\": \"epic_structure\",\n  \"questions\": [\n    \"Proposed title: \\\"Scenario Review, Sign-off, and Promotion\\\" with description \\\"Enable users to analyze a scenario and approve/reject it, then promote approved changes to the production dataset with full audit.\\\" Does this match your intent, or would you like a different title/wording?\",\n    \"To avoid overlap: should this new epic focus specifically on the post-approval promotion/go-live flow (keeping the existing Analysis and Sign-off epics as-is), rather than replacing them?\",\n    \"You confirmed MVP/Production in September 2026; earlier guidance referenced Q4 2026. Which date should we baseline in the roadmap (keep Sep 2026 or revert to Q4 2026 buffer)?\"\n  ],\n  \"summary\": \"Confirmed removal of the duplicate initiative. Milestones remain PoC (May 2026) and MVP/Production (September 2026). One new epic will be added under the MVP initiative to cover analyze → approve/reject → promote to production. No sequencing/dependency changes requested. Pending: finalize the new epic’s title/scope boundary and align the baseline date (September vs. Q4).\",\n  \"proposedInitiatives\": [\n    {\n      \"title\": \"Prototype & Foundations (PoC – May 2026)\",\n      \"description\": \"Validate user flows and data wiring with a mock service and baseline Scenarios frontend for a single desk/domain.\",\n      \"epics\": [\n        {\n          \"title\": \"Create Scenarios Mock Service\",\n          \"description\": \"Provide mock APIs and data to power PoC flows for scenario list, impact summaries, and approvals.\"\n        },\n        {\n          \"title\": \"Create Scenarios Frontend\",\n          \"description\": \"Build the baseline Scenarios micro-frontend with navigation and core UI components for the PoC.\"\n        }\n      ]\n    },\n    {\n      \"title\": \"Scenarios MVP – Production Sep 2026\",\n      \"description\": \"Deliver end-to-end Scenarios for Market Risk with impact review, configurable approvals, and full auditability; integrate with Market Data, FRTB SA, and VaR.\",\n      \"epics\": [\n        {\n          \"title\": \"Build Scenario Management Screen\",\n          \"description\": \"Enable creation, viewing, and management of scenarios and metadata; link to source change details.\"\n        },\n        {\n          \"title\": \"Build Scenario Analysis Screen\",\n          \"description\": \"Present impact summaries with link-outs to detailed FRTB SA and VaR reports.\"\n        },\n        {\n          \"title\": \"Build Audit Functionality\",\n          \"description\": \"Provide a searchable end-to-end audit trail of messages and actions with 7-year retention.\"\n        },\n        {\n          \"title\": \"Build Sign-off Workflow\",\n          \"description\": \"Implement configurable, rules-based approvals with fine-grained controls and internal attestation.\"\n        },\n        {\n          \"title\": \"Micro-frontend Integrations (Market Data, FRTB SA, VaR)\",\n          \"description\": \"Integrate with the three UI modules for seamless navigation and context-sharing.\"\n        },\n        {\n          \"title\": \"Scenario Review, Sign-off, and Promotion (proposed)\",\n          \"description\": \"Enable users to analyze a scenario and approve/reject it, then promote approved changes to the production dataset with full audit.\"\n        }\n      ]\n    }\n  ],\n  \"assumptions\": [\n    \"The standalone initiative \\\"Create Prototype UI and Mock Service\\\" is removed; PoC epics remain under \\\"Prototype & Foundations (PoC – May 2026)\\\".\",\n    \"No sequencing/dependency changes are requested.\",\n    \"The new epic is intended as a distinct deliverable (not a replacement) and likely centers on the promotion/go-live flow after sign-off.\",\n    \"September 2026 is the working target for MVP/Production, pending confirmation against earlier Q4 guidance.\"\n  ],\n  \"openItems\": [\n    \"Confirm final title and one-line description for the new epic.\",\n    \"Clarify whether the new epic is strictly for promotion/go-live versus an umbrella for analysis + sign-off + promotion.\",\n    \"Baseline the MVP/Production date (September 2026 vs. Q4 2026).\"\n  ]\n}",
+      "structuredResponse": {
+        "phase": "questions",
+        "section": "epic_structure",
+        "questions": [
+          "Proposed title: \"Scenario Review, Sign-off, and Promotion\" with description \"Enable users to analyze a scenario and approve/reject it, then promote approved changes to the production dataset with full audit.\" Does this match your intent, or would you like a different title/wording?",
+          "To avoid overlap: should this new epic focus specifically on the post-approval promotion/go-live flow (keeping the existing Analysis and Sign-off epics as-is), rather than replacing them?",
+          "You confirmed MVP/Production in September 2026; earlier guidance referenced Q4 2026. Which date should we baseline in the roadmap (keep Sep 2026 or revert to Q4 2026 buffer)?"
+        ],
+        "summary": "Confirmed removal of the duplicate initiative. Milestones remain PoC (May 2026) and MVP/Production (September 2026). One new epic will be added under the MVP initiative to cover analyze → approve/reject → promote to production. No sequencing/dependency changes requested. Pending: finalize the new epic’s title/scope boundary and align the baseline date (September vs. Q4).",
+        "proposedInitiatives": [
+          {
+            "title": "Prototype & Foundations (PoC – May 2026)",
+            "description": "Validate user flows and data wiring with a mock service and baseline Scenarios frontend for a single desk/domain.",
+            "epics": [
+              {
+                "title": "Create Scenarios Mock Service",
+                "description": "Provide mock APIs and data to power PoC flows for scenario list, impact summaries, and approvals."
+              },
+              {
+                "title": "Create Scenarios Frontend",
+                "description": "Build the baseline Scenarios micro-frontend with navigation and core UI components for the PoC."
+              }
+            ]
+          },
+          {
+            "title": "Scenarios MVP – Production Sep 2026",
+            "description": "Deliver end-to-end Scenarios for Market Risk with impact review, configurable approvals, and full auditability; integrate with Market Data, FRTB SA, and VaR.",
+            "epics": [
+              {
+                "title": "Build Scenario Management Screen",
+                "description": "Enable creation, viewing, and management of scenarios and metadata; link to source change details."
+              },
+              {
+                "title": "Build Scenario Analysis Screen",
+                "description": "Present impact summaries with link-outs to detailed FRTB SA and VaR reports."
+              },
+              {
+                "title": "Build Audit Functionality",
+                "description": "Provide a searchable end-to-end audit trail of messages and actions with 7-year retention."
+              },
+              {
+                "title": "Build Sign-off Workflow",
+                "description": "Implement configurable, rules-based approvals with fine-grained controls and internal attestation."
+              },
+              {
+                "title": "Micro-frontend Integrations (Market Data, FRTB SA, VaR)",
+                "description": "Integrate with the three UI modules for seamless navigation and context-sharing."
+              },
+              {
+                "title": "Scenario Review, Sign-off, and Promotion (proposed)",
+                "description": "Enable users to analyze a scenario and approve/reject it, then promote approved changes to the production dataset with full audit."
+              }
+            ]
+          }
+        ],
+        "assumptions": [
+          "The standalone initiative \"Create Prototype UI and Mock Service\" is removed; PoC epics remain under \"Prototype & Foundations (PoC – May 2026)\".",
+          "No sequencing/dependency changes are requested.",
+          "The new epic is intended as a distinct deliverable (not a replacement) and likely centers on the promotion/go-live flow after sign-off.",
+          "September 2026 is the working target for MVP/Production, pending confirmation against earlier Q4 guidance."
+        ],
+        "openItems": [
+          "Confirm final title and one-line description for the new epic.",
+          "Clarify whether the new epic is strictly for promotion/go-live versus an umbrella for analysis + sign-off + promotion.",
+          "Baseline the MVP/Production date (September 2026 vs. Q4 2026)."
+        ]
+      },
+      "timestamp": "2026-03-07T10:10:42.540Z"
+    },
+    {
+      "id": "0c65291a-989e-4a50-99cc-bfb412cfeb65",
+      "role": "user",
+      "personaId": null,
+      "taskId": "product-manager--roadmap",
+      "content": "1. Q: Proposed title: \"Scenario Review, Sign-off, and Promotion\" with description \"Enable users to analyze a scenario and approve/reject it, then promote approved changes to the production dataset with full audit.\" Does this match your intent, or would you like a different title/wording? A: Confirmed\n2. Q: To avoid overlap: should this new epic focus specifically on the post-approval promotion/go-live flow (keeping the existing Analysis and Sign-off epics as-is), rather than replacing them? A: specifically on the post-approval promotion/go-live flow\n3. Q: You confirmed MVP/Production in September 2026; earlier guidance referenced Q4 2026. Which date should we baseline in the roadmap (keep Sep 2026 or revert to Q4 2026 buffer)? A: keep Sep 2026",
+      "structuredResponse": null,
+      "timestamp": "2026-03-07T10:12:05.830Z"
+    },
+    {
+      "id": "dfbe3763-e962-4e15-ab73-2457a1b7dce1",
+      "role": "assistant",
+      "personaId": "product-manager",
+      "taskId": "product-manager--roadmap",
+      "content": "{\n  \"phase\": \"ready\",\n  \"section\": \"final_review\",\n  \"questions\": [],\n  \"summary\": \"Roadmap finalized. Duplicate initiative removed. Two-initiative structure retained: (1) Prototype & Foundations delivering PoC in May 2026 for a single desk/domain with a mock service and baseline frontend; (2) Scenarios MVP targeting Production in September 2026 with scenario management, impact analysis, full auditability (7-year retention), configurable sign-off, micro-frontend integrations, and a new epic focused on post-approval promotion/go-live. Sequencing unchanged; promotion depends on completed Sign-off and Audit.\",\n  \"proposedInitiatives\": [\n    {\n      \"title\": \"Prototype & Foundations (PoC – May 2026)\",\n      \"description\": \"Validate user flows and data wiring with a mock service and baseline Scenarios frontend for a single desk/domain.\",\n      \"epics\": [\n        {\n          \"title\": \"Create Scenarios Mock Service\",\n          \"description\": \"Provide mock APIs and data to power PoC flows for scenario list, impact summaries, and approvals.\"\n        },\n        {\n          \"title\": \"Create Scenarios Frontend\",\n          \"description\": \"Build the baseline Scenarios micro-frontend with navigation and core UI components for the PoC.\"\n        }\n      ]\n    },\n    {\n      \"title\": \"Scenarios MVP – Production Sep 2026\",\n      \"description\": \"Deliver end-to-end Scenarios for Market Risk with impact review, configurable approvals, and full auditability; integrate with Market Data, FRTB SA, and VaR.\",\n      \"epics\": [\n        {\n          \"title\": \"Build Scenario Management Screen\",\n          \"description\": \"Enable creation, viewing, and management of scenarios and metadata; link to source change details.\"\n        },\n        {\n          \"title\": \"Build Scenario Analysis Screen\",\n          \"description\": \"Present impact summaries with link-outs to detailed FRTB SA and VaR reports.\"\n        },\n        {\n          \"title\": \"Build Audit Functionality\",\n          \"description\": \"Provide a searchable end-to-end audit trail of messages and actions with internal e-signoff records retained for 7 years.\"\n        },\n        {\n          \"title\": \"Build Sign-off Workflow\",\n          \"description\": \"Implement configurable, rules-based approvals with fine-grained controls and internal attestation.\"\n        },\n        {\n          \"title\": \"Micro-frontend Integrations (Market Data, FRTB SA, VaR)\",\n          \"description\": \"Integrate with the three UI modules for seamless navigation and context-sharing.\"\n        },\n        {\n          \"title\": \"Scenario Review, Sign-off, and Promotion\",\n          \"description\": \"Focus on post-approval promotion/go-live: allow users to trigger promotion of approved scenarios to the production dataset, track promotion status, surface in-app promotion messaging, and record the full audit of promotion actions.\"\n        }\n      ]\n    }\n  ],\n  \"assumptions\": [\n    \"The standalone initiative \\\"Create Prototype UI and Mock Service\\\" is removed; PoC epics remain under \\\"Prototype & Foundations (PoC – May 2026)\\\".\",\n    \"No changes to sequencing or dependencies; promotion/go-live occurs only after Sign-off and Audit capabilities are in place.\",\n    \"Internal e-signoff and 7-year audit retention remain in scope for MVP.\",\n    \"MVP/Production baseline is September 2026.\"\n  ],\n  \"openItems\": [\n    \"Define epic-level acceptance criteria, especially for Sign-off, Audit, and Promotion (e.g., who can trigger promotion, guardrails, rollback/cancellation paths).\",\n    \"Confirm whether promotion requires dual-control or additional approvals beyond Sign-off.\",\n    \"Specify in-app promotion messaging details (triggers, recipients, and audit expectations).\",\n    \"Align delivery timelines and external dependencies with Market Data, FRTB SA, and VaR teams.\",\n    \"Document role/permission matrix for Market Risk Manager and Market Data Manager across analysis, sign-off, and promotion.\",\n    \"Set success metrics and targets for MVP adoption and time-to-signoff.\"\n  ]\n}",
+      "structuredResponse": {
+        "phase": "ready",
+        "section": "final_review",
+        "questions": [],
+        "summary": "Roadmap finalized. Duplicate initiative removed. Two-initiative structure retained: (1) Prototype & Foundations delivering PoC in May 2026 for a single desk/domain with a mock service and baseline frontend; (2) Scenarios MVP targeting Production in September 2026 with scenario management, impact analysis, full auditability (7-year retention), configurable sign-off, micro-frontend integrations, and a new epic focused on post-approval promotion/go-live. Sequencing unchanged; promotion depends on completed Sign-off and Audit.",
+        "proposedInitiatives": [
+          {
+            "title": "Prototype & Foundations (PoC – May 2026)",
+            "description": "Validate user flows and data wiring with a mock service and baseline Scenarios frontend for a single desk/domain.",
+            "epics": [
+              {
+                "title": "Create Scenarios Mock Service",
+                "description": "Provide mock APIs and data to power PoC flows for scenario list, impact summaries, and approvals."
+              },
+              {
+                "title": "Create Scenarios Frontend",
+                "description": "Build the baseline Scenarios micro-frontend with navigation and core UI components for the PoC."
+              }
+            ]
+          },
+          {
+            "title": "Scenarios MVP – Production Sep 2026",
+            "description": "Deliver end-to-end Scenarios for Market Risk with impact review, configurable approvals, and full auditability; integrate with Market Data, FRTB SA, and VaR.",
+            "epics": [
+              {
+                "title": "Build Scenario Management Screen",
+                "description": "Enable creation, viewing, and management of scenarios and metadata; link to source change details."
+              },
+              {
+                "title": "Build Scenario Analysis Screen",
+                "description": "Present impact summaries with link-outs to detailed FRTB SA and VaR reports."
+              },
+              {
+                "title": "Build Audit Functionality",
+                "description": "Provide a searchable end-to-end audit trail of messages and actions with internal e-signoff records retained for 7 years."
+              },
+              {
+                "title": "Build Sign-off Workflow",
+                "description": "Implement configurable, rules-based approvals with fine-grained controls and internal attestation."
+              },
+              {
+                "title": "Micro-frontend Integrations (Market Data, FRTB SA, VaR)",
+                "description": "Integrate with the three UI modules for seamless navigation and context-sharing."
+              },
+              {
+                "title": "Scenario Review, Sign-off, and Promotion",
+                "description": "Focus on post-approval promotion/go-live: allow users to trigger promotion of approved scenarios to the production dataset, track promotion status, surface in-app promotion messaging, and record the full audit of promotion actions."
+              }
+            ]
+          }
+        ],
+        "assumptions": [
+          "The standalone initiative \"Create Prototype UI and Mock Service\" is removed; PoC epics remain under \"Prototype & Foundations (PoC – May 2026)\".",
+          "No changes to sequencing or dependencies; promotion/go-live occurs only after Sign-off and Audit capabilities are in place.",
+          "Internal e-signoff and 7-year audit retention remain in scope for MVP.",
+          "MVP/Production baseline is September 2026."
+        ],
+        "openItems": [
+          "Define epic-level acceptance criteria, especially for Sign-off, Audit, and Promotion (e.g., who can trigger promotion, guardrails, rollback/cancellation paths).",
+          "Confirm whether promotion requires dual-control or additional approvals beyond Sign-off.",
+          "Specify in-app promotion messaging details (triggers, recipients, and audit expectations).",
+          "Align delivery timelines and external dependencies with Market Data, FRTB SA, and VaR teams.",
+          "Document role/permission matrix for Market Risk Manager and Market Data Manager across analysis, sign-off, and promotion.",
+          "Set success metrics and targets for MVP adoption and time-to-signoff."
+        ]
+      },
+      "timestamp": "2026-03-07T10:12:05.838Z"
+    },
+    {
+      "id": "61932b1b-068b-42db-bf67-c3b3714a51a0",
+      "role": "assistant",
+      "personaId": "product-manager",
+      "taskId": "product-manager--roadmap",
+      "content": "Roadmap complete.",
+      "structuredResponse": {
+        "type": "completion-chip",
+        "artifactId": "roadmap",
+        "artifactName": "ROADMAP",
+        "taskId": "product-manager--roadmap",
+        "personaId": "product-manager",
+        "timestamp": "2026-03-07T10:12:20.356Z"
+      },
+      "timestamp": "2026-03-07T10:12:20.356Z"
+    }
+  ],
+  "activePersonaId": null,
+  "activeTaskId": null,
+  "summary": null,
+  "summarisedUpToIndex": 0,
+  "createdAt": "2026-03-07T10:05:23.452Z",
+  "updatedAt": "2026-03-07T10:12:20.356Z"
+}

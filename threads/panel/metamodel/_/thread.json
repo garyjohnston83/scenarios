@@ -1,0 +1,96 @@
+{
+  "threadKey": "project:8aba6fec-0803-423b-a266-307b2b93f8da:panel:metamodel",
+  "projectId": "8aba6fec-0803-423b-a266-307b2b93f8da",
+  "messages": [
+    {
+      "id": "737a0750-6d3a-4ae5-b08f-785f533d2b9b",
+      "role": "user",
+      "personaId": null,
+      "taskId": "test-engineer--test-strategy",
+      "content": "",
+      "structuredResponse": null,
+      "timestamp": "2026-03-06T10:14:58.727Z"
+    },
+    {
+      "id": "0d3792af-1f37-4b1b-baeb-5eaa36582af4",
+      "role": "assistant",
+      "personaId": "test-engineer",
+      "taskId": "test-engineer--test-strategy",
+      "content": "{\n  \"phase\": \"questions\",\n  \"section\": \"project_context\",\n  \"questions\": [\n    \"What are the top 3 user workflows in scope for the initial release, and what risks or failure impacts do they carry?\",\n    \"What is the team composition and delivery cadence (sprint length, milestones) we should align the testing plan to?\",\n    \"Which external systems or modules will this project integrate with in the first release, and what test environments are available for integration?\",\n    \"Are there specific non-functional or compliance requirements we must validate (e.g., auditability, security/SSO, data retention) and any target SLAs?\"\n  ],\n  \"summary\": \"Initiating test strategy discovery. We need clarity on primary in-scope workflows, risk profile, team/cadence, key integrations and available environments, and non-functional/compliance requirements to inform test levels, coverage goals, and quality gates.\"\n}",
+      "structuredResponse": {
+        "phase": "questions",
+        "section": "project_context",
+        "questions": [
+          "What are the top 3 user workflows in scope for the initial release, and what risks or failure impacts do they carry?",
+          "What is the team composition and delivery cadence (sprint length, milestones) we should align the testing plan to?",
+          "Which external systems or modules will this project integrate with in the first release, and what test environments are available for integration?",
+          "Are there specific non-functional or compliance requirements we must validate (e.g., auditability, security/SSO, data retention) and any target SLAs?"
+        ],
+        "summary": "Initiating test strategy discovery. We need clarity on primary in-scope workflows, risk profile, team/cadence, key integrations and available environments, and non-functional/compliance requirements to inform test levels, coverage goals, and quality gates."
+      },
+      "timestamp": "2026-03-06T10:14:58.732Z"
+    },
+    {
+      "id": "2cd17bea-6077-4e11-aacb-5709b60d7508",
+      "role": "user",
+      "personaId": null,
+      "taskId": "test-engineer--test-strategy",
+      "content": "",
+      "structuredResponse": null,
+      "timestamp": "2026-03-07T08:40:00.987Z"
+    },
+    {
+      "id": "384b7734-9dcf-4c69-9b8e-d0d20c1fee7d",
+      "role": "assistant",
+      "personaId": "test-engineer",
+      "taskId": "test-engineer--test-strategy",
+      "content": "{\n  \"phase\": \"questions\",\n  \"section\": \"project_context\",\n  \"questions\": [\n    \"What are the top 3 end-to-end user workflows that must be supported in the first release (ranked by criticality)?\",\n    \"What is the tolerated production risk for sign-off/approval defects (e.g., zero tolerance vs. limited low-severity allowed)?\",\n    \"Which environments will be available for testing (local, CI, shared integration, UAT), and how will test data be provisioned and refreshed?\",\n    \"Are there specific compliance/security requirements we must validate (e.g., SSO/authorization model, audit retention, access logging) and any target SLAs?\"\n  ],\n  \"summary\": \"We are gathering baseline project context to size the test strategy: critical first-release workflows, acceptable risk levels for approval/sign-off, available environments and test data approach, and compliance/security expectations including SLAs. This will inform the test levels and quality gates in subsequent sections.\"\n}",
+      "structuredResponse": {
+        "phase": "questions",
+        "section": "project_context",
+        "questions": [
+          "What are the top 3 end-to-end user workflows that must be supported in the first release (ranked by criticality)?",
+          "What is the tolerated production risk for sign-off/approval defects (e.g., zero tolerance vs. limited low-severity allowed)?",
+          "Which environments will be available for testing (local, CI, shared integration, UAT), and how will test data be provisioned and refreshed?",
+          "Are there specific compliance/security requirements we must validate (e.g., SSO/authorization model, audit retention, access logging) and any target SLAs?"
+        ],
+        "summary": "We are gathering baseline project context to size the test strategy: critical first-release workflows, acceptable risk levels for approval/sign-off, available environments and test data approach, and compliance/security expectations including SLAs. This will inform the test levels and quality gates in subsequent sections."
+      },
+      "timestamp": "2026-03-07T08:40:00.990Z"
+    },
+    {
+      "id": "2ba955f5-6908-40b5-a16e-201f6173714a",
+      "role": "user",
+      "personaId": null,
+      "taskId": "test-engineer--test-strategy",
+      "content": "",
+      "structuredResponse": null,
+      "timestamp": "2026-03-07T08:40:10.423Z"
+    },
+    {
+      "id": "c9bbe826-8b0f-4de4-b0ac-95d836e7ee2c",
+      "role": "assistant",
+      "personaId": "test-engineer",
+      "taskId": "test-engineer--test-strategy",
+      "content": "{\n  \"phase\": \"questions\",\n  \"section\": \"test_levels\",\n  \"questions\": [\n    \"Which end-to-end user workflows must be automated front-to-back for the first release, and what is the acceptable runtime budget for the E2E suite?\",\n    \"Will this project own any backend APIs or rely on external services only, and do we need consumer/provider contract tests with other teams?\",\n    \"Will the application persist approval/audit data, and should integration tests run against a real database instance (e.g., via containers) or an in-memory substitute?\",\n    \"Do we need dedicated non-functional test levels at this stage (performance, accessibility, security/dependency scanning), and are there any target thresholds we should plan for?\"\n  ],\n  \"summary\": \"No additional project context has been provided yet. Advancing to define test levels, focusing on E2E coverage of key workflows, potential API contract testing with external services, database integration testing approach, and whether to include performance/accessibility/security test levels with target thresholds.\"\n}",
+      "structuredResponse": {
+        "phase": "questions",
+        "section": "test_levels",
+        "questions": [
+          "Which end-to-end user workflows must be automated front-to-back for the first release, and what is the acceptable runtime budget for the E2E suite?",
+          "Will this project own any backend APIs or rely on external services only, and do we need consumer/provider contract tests with other teams?",
+          "Will the application persist approval/audit data, and should integration tests run against a real database instance (e.g., via containers) or an in-memory substitute?",
+          "Do we need dedicated non-functional test levels at this stage (performance, accessibility, security/dependency scanning), and are there any target thresholds we should plan for?"
+        ],
+        "summary": "No additional project context has been provided yet. Advancing to define test levels, focusing on E2E coverage of key workflows, potential API contract testing with external services, database integration testing approach, and whether to include performance/accessibility/security test levels with target thresholds."
+      },
+      "timestamp": "2026-03-07T08:40:10.430Z"
+    }
+  ],
+  "activePersonaId": null,
+  "activeTaskId": null,
+  "summary": null,
+  "summarisedUpToIndex": 0,
+  "createdAt": "2026-03-06T10:14:45.859Z",
+  "updatedAt": "2026-03-07T08:40:10.454Z"
+}

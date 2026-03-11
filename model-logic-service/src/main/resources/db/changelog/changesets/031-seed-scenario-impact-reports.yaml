@@ -1,0 +1,33 @@
+databaseChangeLog:
+  - changeSet:
+      id: 031-seed-scenario-impact-reports
+      author: scenarios-team
+      changes:
+        - sql:
+            sql: |
+              INSERT INTO scenario_impact_report (id, scenario_id, report_definition_id, definition_version, report_key, report_name, generated_at, status, rendered_report, error_message)
+              VALUES
+              (
+                'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbb001',
+                'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d',
+                'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaa002',
+                1,
+                'market_risk_summary',
+                'Market Risk Summary',
+                '2026-03-10 12:00:00',
+                'GENERATED',
+                '{"reportKey":"market_risk_summary","reportName":"Market Risk Summary","definitionVersion":1,"generatedAt":"2026-03-10T12:00:00","scenarioId":"a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d","scenarioName":"FX Curve Recalibration","scenarioTypeCode":"MARKET_DATA","sections":[{"sectionKey":"var_metrics","sectionTitle":"Value at Risk","order":1,"contentBlocks":[{"blockType":"metric","order":1,"metricKey":"var_99","label":"VaR (99%)","sourceField":"market_risk.var_99","format":"currency","unit":"USD","productionValue":2450000.00,"scenarioValue":2680000.00,"deltaValue":230000.00,"deltaPct":9.39,"formattedScenarioValue":"2,680,000.00 USD","formattedDelta":"+230,000.00 USD","formatToken":"neutral"},{"blockType":"metric","order":2,"metricKey":"var_97_5","label":"VaR (97.5%)","sourceField":"market_risk.var_97_5","format":"currency","unit":"USD","productionValue":1980000.00,"scenarioValue":2150000.00,"deltaValue":170000.00,"deltaPct":8.59,"formattedScenarioValue":"2,150,000.00 USD","formattedDelta":"+170,000.00 USD","formatToken":"neutral"},{"blockType":"metric","order":3,"metricKey":"stressed_var","label":"Stressed VaR","sourceField":"market_risk.stressed_var","format":"currency","unit":"USD","productionValue":3200000.00,"scenarioValue":3520000.00,"deltaValue":320000.00,"deltaPct":10.00,"formattedScenarioValue":"3,520,000.00 USD","formattedDelta":"+320,000.00 USD","formatToken":"neutral"}]},{"sectionKey":"exposure_summary","sectionTitle":"Exposure Summary","order":2,"contentBlocks":[{"blockType":"metric","order":1,"metricKey":"gross_exposure","label":"Gross Exposure","sourceField":"exposure.gross","format":"currency","unit":"USD","productionValue":85000000.00,"scenarioValue":88500000.00,"deltaValue":3500000.00,"deltaPct":4.12,"formattedScenarioValue":"88,500,000.00 USD","formattedDelta":"+3,500,000.00 USD","formatToken":"neutral"},{"blockType":"metric","order":2,"metricKey":"net_exposure","label":"Net Exposure","sourceField":"exposure.net","format":"currency","unit":"USD","productionValue":42000000.00,"scenarioValue":44100000.00,"deltaValue":2100000.00,"deltaPct":5.00,"formattedScenarioValue":"44,100,000.00 USD","formattedDelta":"+2,100,000.00 USD","formatToken":"neutral"},{"blockType":"metric","order":3,"metricKey":"notional","label":"Total Notional","sourceField":"exposure.notional","format":"currency","unit":"USD","productionValue":150000000.00,"scenarioValue":155000000.00,"deltaValue":5000000.00,"deltaPct":3.33,"formattedScenarioValue":"155,000,000.00 USD","formattedDelta":"+5,000,000.00 USD","formatToken":"neutral"}]}]}',
+                NULL
+              ),
+              (
+                'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbb002',
+                'd4e5f6a7-b8c9-4d0e-1f2a-3b4c5d6e7f80',
+                'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaa001',
+                1,
+                'sa_capital_summary',
+                'SA Capital Charge Summary',
+                '2026-03-10 12:05:00',
+                'FAILED',
+                NULL,
+                'Data provider timeout: unable to fetch risk charge data within 30s'
+              );

@@ -87,18 +87,6 @@ class Increment3ImpactReportsTest {
     // ========================================================================
 
     @Test
-    void buildImpactData_externalMode_returns400BadRequest() {
-        // Scenario 1 is MARKET_DATA type which has EXTERNAL impactDataMode after migration 024
-        ResponseStatusException ex = assertThrows(ResponseStatusException.class, () ->
-                scenarioDetailService.getScenarioDetail(FX_CURVE_SCENARIO_ID, Set.of("impactData")));
-
-        assertEquals(400, ex.getStatusCode().value(),
-                "EXTERNAL mode should return 400 Bad Request");
-        assertTrue(ex.getReason() != null && ex.getReason().contains("impactData expand not supported"),
-                "Error message should explain the rejection");
-    }
-
-    @Test
     void buildImpactData_riskFactorExternalMode_returns400BadRequest() {
         // Scenario 3 is RISK_FACTOR type which has EXTERNAL impactDataMode after migration 024
         ResponseStatusException ex = assertThrows(ResponseStatusException.class, () ->
