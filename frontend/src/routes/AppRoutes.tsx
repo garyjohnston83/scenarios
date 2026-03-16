@@ -2,6 +2,8 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import { ScenarioManagementPage } from '../pages/ScenarioManagementPage';
 import { SignoffPoliciesAdminPage } from '../pages/SignoffPoliciesAdminPage';
 import { AnalysisPage } from '../pages/AnalysisPage';
+import { ScenarioTypeListPage } from '../pages/ScenarioTypeListPage';
+import { ScenarioTypeWorkspacePage } from '../pages/ScenarioTypeWorkspacePage';
 
 export const AppRoutes: React.FC = () => {
   return (
@@ -12,6 +14,8 @@ export const AppRoutes: React.FC = () => {
         <Route path=":id/analysis" element={<AnalysisPage />} />
       </Route>
       <Route path="/admin/signoff-policies" element={<SignoffPoliciesAdminPage />} />
+      <Route path="/admin/scenario-types" element={<ScenarioTypeListPage />} />
+      <Route path="/admin/scenario-types/:code" element={<ScenarioTypeWorkspacePage />} />
       <Route path="*" element={<Navigate to="/scenarios" replace />} />
     </Routes>
   );

@@ -325,6 +325,10 @@ public class ImpactReportSnapshotGenerator {
                 Map<String, String> rc = new LinkedHashMap<>();
                 rc.put("key", getTextOrDefault(rcNode, "key", ""));
                 rc.put("header", getTextOrDefault(rcNode, "header", ""));
+                String rcWidth = getTextOrDefault(rcNode, "width", null);
+                if (rcWidth != null) {
+                    rc.put("width", rcWidth);
+                }
                 rowColumns.add(rc);
             }
         }
@@ -346,6 +350,10 @@ public class ImpactReportSnapshotGenerator {
                         String formatToken = getTextOrDefault(colNode, "formatToken", null);
                         if (formatToken != null) {
                             colDef.put("formatToken", formatToken);
+                        }
+                        String colWidth = getTextOrDefault(colNode, "width", null);
+                        if (colWidth != null) {
+                            colDef.put("width", colWidth);
                         }
                         groupColumns.add(colDef);
                     }
@@ -407,63 +415,15 @@ public class ImpactReportSnapshotGenerator {
         columnLayout.put("columnGroups", columnGroups);
         block.put("columnLayout", columnLayout);
 
-        // Build rows as {rowId, cells} objects
+        // Build rows from reportData.tableData() keyed by table key
+        String tableKey = getTextOrDefault(tableNode, "key", "table_" + order);
         List<Map<String, Object>> rows = new ArrayList<>();
-        JsonNode rowsNode = tableNode.get("rows");
-        if (rowsNode != null && rowsNode.isArray()) {
-            // Collect all column keys for cell mapping
-            List<String> allColumnKeys = new ArrayList<>();
-            for (Map<String, String> rc : rowColumns) {
-                allColumnKeys.add(rc.get("key"));
-            }
-            for (Map<String, Object> group : columnGroups) {
-                @SuppressWarnings("unchecked")
-                List<Map<String, Object>> cols = (List<Map<String, Object>>) group.get("columns");
-                for (Map<String, Object> col : cols) {
-                    allColumnKeys.add((String) col.get("key"));
-                }
-            }
 
-            for (int i = 0; i < rowsNode.size(); i++) {
-                JsonNode rowNode = rowsNode.get(i);
-                Map<String, Object> row = new LinkedHashMap<>();
-                row.put("rowId", "row_" + (i + 1));
-
-                Map<String, Object> cells = new LinkedHashMap<>();
-
-                if (rowNode.isObject()) {
-                    // Row is already an object with keyed cells
-                    JsonNode cellsNode = rowNode.get("cells");
-                    if (cellsNode != null && cellsNode.isObject()) {
-                        row.put("rowId", getTextOrDefault(rowNode, "rowId", "row_" + (i + 1)));
-                        var fieldNames = cellsNode.fieldNames();
-                        while (fieldNames.hasNext()) {
-                            String fieldName = fieldNames.next();
-                            JsonNode cellNode = cellsNode.get(fieldName);
-                            Map<String, Object> cell = new LinkedHashMap<>();
-                            if (cellNode.isObject()) {
-                                cell.put("value", getTextOrDefault(cellNode, "value", ""));
-                                String cellFormatToken = getTextOrDefault(cellNode, "formatToken", null);
-                                if (cellFormatToken != null) {
-                                    cell.put("formatToken", cellFormatToken);
-                                }
-                            } else {
-                                cell.put("value", cellNode.asText());
-                            }
-                            cells.put(fieldName, cell);
-                        }
-                    }
-                } else if (rowNode.isArray()) {
-                    // Row is a flat array of values -- map to column keys
-                    for (int j = 0; j < rowNode.size() && j < allColumnKeys.size(); j++) {
-                        Map<String, Object> cell = new LinkedHashMap<>();
-                        cell.put("value", rowNode.get(j).asText());
-                        cells.put(allColumnKeys.get(j), cell);
-                    }
-                }
-
-                row.put("cells", cells);
-                rows.add(row);
+        Map<String, List<Map<String, Object>>> tableDataMap = reportData.tableData();
+        if (tableDataMap != null) {
+            List<Map<String, Object>> dataRows = tableDataMap.get(tableKey);
+            if (dataRows != null) {
+                rows.addAll(dataRows);
             }
         }
         block.put("rows", rows);

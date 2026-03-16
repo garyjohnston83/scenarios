@@ -1,0 +1,24 @@
+databaseChangeLog:
+  - changeSet:
+      id: 047-add-name-to-data-template
+      author: scenarios-team
+      comment: "Add name column to scenario_type_data_template table."
+      changes:
+        - addColumn:
+            tableName: scenario_type_data_template
+            columns:
+              - column:
+                  name: name
+                  type: varchar(255)
+                  constraints:
+                    nullable: true
+        - update:
+            tableName: scenario_type_data_template
+            columns:
+              - column:
+                  name: name
+                  value: "Unnamed Template"
+        - addNotNullConstraint:
+            tableName: scenario_type_data_template
+            columnName: name
+            columnDataType: varchar(255)

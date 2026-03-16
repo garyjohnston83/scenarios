@@ -22,4 +22,11 @@ public interface ReportDefinitionRepository extends JpaRepository<ReportDefiniti
     @Query("SELECT MAX(rd.version) FROM ReportDefinition rd WHERE rd.scenarioTypeCode = :scenarioTypeCode AND rd.reportKey = :reportKey")
     Optional<Integer> findMaxVersion(@Param("scenarioTypeCode") String scenarioTypeCode,
                                      @Param("reportKey") String reportKey);
+
+    long countByScenarioTypeCodeAndIsActiveTrue(String scenarioTypeCode);
+
+    List<ReportDefinition> findAllByScenarioTypeCodeOrderByReportKeyAscVersionDesc(String scenarioTypeCode);
+
+    Optional<ReportDefinition> findFirstByScenarioTypeCodeAndReportKeyAndIsActiveTrueOrderByVersionDesc(
+            String scenarioTypeCode, String reportKey);
 }

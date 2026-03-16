@@ -1,0 +1,68 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+}
+
+.header {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding-bottom: 4px;
+  border-bottom: 1px solid #e0e0e0;
+  margin-bottom: 8px;
+  flex-shrink: 0;
+}
+
+.headerTitle {
+  font-size: 12px;
+  font-weight: 600;
+  color: #666;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.headerMeta {
+  font-size: 11px;
+  color: #999;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.errorBanner {
+  background-color: #fde7e9;
+  border: 1px solid #d13438;
+  border-radius: 4px;
+  color: #d13438;
+  font-size: 12px;
+  padding: 6px 10px;
+  margin-bottom: 8px;
+  flex-shrink: 0;
+}
+
+.loadingContainer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 0;
+  flex-shrink: 0;
+}
+
+.previewContent {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.emptyState {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  font-size: 13px;
+  color: #999;
+  padding: 24px 16px;
+  text-align: center;
+}

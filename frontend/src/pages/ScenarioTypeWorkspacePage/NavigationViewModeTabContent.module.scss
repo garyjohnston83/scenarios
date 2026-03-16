@@ -1,0 +1,56 @@
+.formContainer {
+  max-width: 480px;
+}
+
+.dialogField {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 12px;
+}
+
+.dialogFieldLabel {
+  font-size: 12px;
+  font-weight: 600;
+  color: #242424;
+}
+
+.readOnlyValue {
+  font-size: 13px;
+  color: #666;
+  padding: 4px 0;
+}
+
+.formActions {
+  margin-top: 16px;
+}
+
+.badgeContainer {
+  margin-bottom: 16px;
+}
+
+.badge {
+  display: inline-block;
+  padding: 1px 6px;
+  border-radius: 3px;
+  font-size: 11px;
+  font-weight: 500;
+  vertical-align: middle;
+}
+
+.badgeDeployment {
+  background-color: #f0f0f0;
+  color: #666;
+}
+
+.helperText {
+  font-size: 11px;
+  color: #666;
+  margin-top: 4px;
+}
+
+.sectionTitle {
+  font-weight: 600;
+  margin-top: 20px;
+  margin-bottom: 8px;
+}

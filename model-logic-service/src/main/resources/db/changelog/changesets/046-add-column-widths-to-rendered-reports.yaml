@@ -1,0 +1,8 @@
+databaseChangeLog:
+  - changeSet:
+      id: 046-add-column-widths-to-rendered-reports
+      author: scenarios-team
+      comment: "Add explicit width values to table columnLayout in rendered reports. Migration 045 added widths to definitions but not to already-generated rendered reports."
+      changes:
+        - customChange:
+            class: com.prototypes.scenarios.migration.AddColumnWidthsToRenderedReports

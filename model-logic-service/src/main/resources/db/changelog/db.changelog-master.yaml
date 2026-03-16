@@ -69,3 +69,27 @@ databaseChangeLog:
       file: db/changelog/changesets/034-update-market-data-report-columns.yaml
   - include:
       file: db/changelog/changesets/035-align-treasury-columns-with-business.yaml
+  - include:
+      file: db/changelog/changesets/036-create-scenario-type-data-template-table.yaml
+  - include:
+      file: db/changelog/changesets/037-add-url-template-columns.yaml
+  - include:
+      file: db/changelog/changesets/038-seed-url-templates.yaml
+  - include:
+      file: db/changelog/changesets/039-create-change-view-definition-table.yaml
+  - include:
+      file: db/changelog/changesets/040-seed-change-view-definitions.yaml
+  - include:
+      file: db/changelog/changesets/041-create-signoff-policy-definition-table.yaml
+  - include:
+      file: db/changelog/changesets/042-seed-signoff-policy-definitions.yaml
+  - include:
+      file: db/changelog/changesets/043-add-sample-data-to-report-definition.yaml
+  - include:
+      file: db/changelog/changesets/044-migrate-rows-to-sample-data.yaml
+  - include:
+      file: db/changelog/changesets/045-add-default-column-widths.yaml
+  - include:
+      file: db/changelog/changesets/046-add-column-widths-to-rendered-reports.yaml
+  - include:
+      file: db/changelog/changesets/047-add-name-to-data-template.yaml

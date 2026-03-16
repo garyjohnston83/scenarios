@@ -1,0 +1,8 @@
+databaseChangeLog:
+  - changeSet:
+      id: 045-add-default-column-widths
+      author: scenarios-team
+      comment: "Add explicit width values to table column definitions that don't have them, using previously hardcoded defaults."
+      changes:
+        - customChange:
+            class: com.prototypes.scenarios.migration.AddDefaultColumnWidths

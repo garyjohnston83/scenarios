@@ -12,4 +12,6 @@ public interface SignoffPolicyRepository extends JpaRepository<SignoffPolicy, UU
     Optional<SignoffPolicy> findFirstByScenarioTypeCodeAndIsEnabledTrueOrderByPriorityAscUpdatedAtDesc(String scenarioTypeCode);
 
     List<SignoffPolicy> findAllByScenarioTypeCode(String scenarioTypeCode);
+
+    long countByScenarioTypeCodeAndIsEnabledTrue(String scenarioTypeCode);
 }

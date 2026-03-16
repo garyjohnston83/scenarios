@@ -1,0 +1,93 @@
+databaseChangeLog:
+  - property:
+      name: binaryColumnType
+      value: BYTEA
+      dbms: postgresql
+  - property:
+      name: binaryColumnType
+      value: BLOB
+
+  - changeSet:
+      id: 036-create-scenario-type-data-template-table
+      author: scenarios-team
+      changes:
+        - createTable:
+            tableName: scenario_type_data_template
+            columns:
+              - column:
+                  name: id
+                  type: uuid
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: scenario_type_code
+                  type: varchar(50)
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_data_template_scenario_type
+                    references: scenario_type(code)
+              - column:
+                  name: version
+                  type: int
+                  defaultValueNumeric: 1
+                  constraints:
+                    nullable: false
+              - column:
+                  name: original_filename
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: content_type
+                  type: varchar(100)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: file_size
+                  type: bigint
+                  constraints:
+                    nullable: false
+              - column:
+                  name: file_data
+                  type: ${binaryColumnType}
+                  constraints:
+                    nullable: false
+              - column:
+                  name: is_active
+                  type: boolean
+                  defaultValueBoolean: false
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: timestamp
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: timestamp
+                  constraints:
+                    nullable: false
+
+  - changeSet:
+      id: 036-add-unique-constraint-data-template
+      author: scenarios-team
+      changes:
+        - addUniqueConstraint:
+            tableName: scenario_type_data_template
+            columnNames: scenario_type_code, version
+            constraintName: uq_data_template_type_version
+
+  - changeSet:
+      id: 036-create-data-template-lookup-index
+      author: scenarios-team
+      changes:
+        - createIndex:
+            indexName: idx_data_template_lookup
+            tableName: scenario_type_data_template
+            columns:
+              - column:
+                  name: scenario_type_code
+              - column:
+                  name: is_active

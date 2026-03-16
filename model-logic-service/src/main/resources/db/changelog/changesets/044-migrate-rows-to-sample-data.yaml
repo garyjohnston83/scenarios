@@ -1,0 +1,8 @@
+databaseChangeLog:
+  - changeSet:
+      id: 044-migrate-rows-to-sample-data
+      author: scenarios-team
+      comment: "Extract embedded rows from report definition JSON into sample_data column. Rows are data, not template — this enforces the separation."
+      changes:
+        - customChange:
+            class: com.prototypes.scenarios.migration.MigrateRowsToSampleData

@@ -1,0 +1,103 @@
+/* RuleEditorPanel styles */
+
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 4px 0;
+}
+
+.placeholder {
+  font-size: 13px;
+  color: #999;
+  padding: 24px 8px;
+  text-align: center;
+}
+
+/* Rule metadata section */
+.metadataSection {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.metadataTitle {
+  font-size: 12px;
+  font-weight: 600;
+  color: #666;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.metadataFields {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.fieldRow {
+  display: flex;
+  flex-direction: row;
+  gap: 12px;
+  flex-wrap: wrap;
+  align-items: flex-start;
+}
+
+.fieldGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+  min-width: 140px;
+}
+
+.fieldGroupSmall {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 0 0 auto;
+  min-width: 100px;
+}
+
+.fieldLabel {
+  font-size: 12px;
+  font-weight: 600;
+  color: #242424;
+}
+
+.invalidInput {
+  border-color: #d13438 !important;
+}
+
+.validationError {
+  font-size: 11px;
+  color: #d13438;
+}
+
+/* Section divider */
+.sectionDivider {
+  border-top: 1px solid #e8e8e8;
+  margin: 4px 0;
+}
+
+/* Condition section */
+.conditionSection {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* Effect section */
+.effectSection {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.sectionLabel {
+  font-size: 12px;
+  font-weight: 600;
+  color: #666;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}

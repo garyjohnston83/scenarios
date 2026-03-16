@@ -33,6 +33,7 @@
     "@fluentui/react-components": "^9.72.8",
     "@fluentui/react-datepicker-compat": "^0.6.22",
     "@fluentui/react-icons": "^2.0.302",
+    "@monaco-editor/react": "^4.7.0",
     "@reduxjs/toolkit": "^2.8.2",
     "@testing-library/dom": "^10.4.1",
     "@types/uuid": "^10.0.0",

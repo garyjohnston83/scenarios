@@ -1,0 +1,83 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: 8px 16px 0;
+}
+
+.headerRow {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+  flex-shrink: 0;
+}
+
+.loadExistingLabel {
+  font-size: 13px;
+  font-weight: 600;
+  color: #242424;
+  white-space: nowrap;
+}
+
+.loadExistingCombobox {
+  min-width: 280px;
+}
+
+.errorText {
+  font-size: 13px;
+  color: #d13438;
+  margin-bottom: 4px;
+}
+
+.panelGroup {
+  height: 100%;
+  width: 100%;
+  flex: 1;
+  min-height: 0;
+}
+
+.resizeHandle {
+  width: 4px;
+  background-color: #e0e0e0;
+  cursor: col-resize;
+  transition: background-color 0.15s ease;
+  flex-shrink: 0;
+
+  &:hover {
+    background-color: #b0b0b0;
+  }
+
+  &:active {
+    background-color: #0078d4;
+  }
+}
+
+.editorPanel {
+  height: 100%;
+  overflow-y: auto;
+  padding: 4px 8px;
+}
+
+.previewPanel {
+  height: 100%;
+  overflow-y: auto;
+  border-left: 1px solid #e0e0e0;
+  padding: 4px 8px;
+}
+
+.editorCollapsedContainer {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  height: 100%;
+  padding-top: 8px;
+}
+
+.editorExpandButton {
+  min-width: auto;
+  width: 28px;
+  height: 28px;
+  padding: 2px;
+}

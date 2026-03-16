@@ -4,6 +4,8 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -25,8 +27,12 @@ public class ReportDefinition {
     @Column(nullable = false)
     private int version;
 
-    @Column(columnDefinition = "text", nullable = false)
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(columnDefinition = "jsonb", nullable = false)
     private String definition;
+
+    @Column(name = "sample_data", columnDefinition = "text")
+    private String sampleData;
 
     @Column(name = "is_active", nullable = false)
     private boolean isActive;
@@ -78,6 +84,14 @@ public class ReportDefinition {
 
     public void setDefinition(String definition) {
         this.definition = definition;
+    }
+
+    public String getSampleData() {
+        return sampleData;
+    }
+
+    public void setSampleData(String sampleData) {
+        this.sampleData = sampleData;
     }
 
     public boolean isActive() {

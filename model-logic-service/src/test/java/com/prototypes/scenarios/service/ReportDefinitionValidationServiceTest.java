@@ -308,8 +308,8 @@ class ReportDefinitionValidationServiceTest {
                 "Should report missing section title, got: " + errorsMissing);
         assertTrue(errorsMissing.stream().anyMatch(e -> e.contains("sections[0].order")),
                 "Should report missing section order, got: " + errorsMissing);
-        assertTrue(errorsMissing.stream().anyMatch(e -> e.contains("sections[0].metrics")),
-                "Should report missing section metrics, got: " + errorsMissing);
+        assertTrue(errorsMissing.stream().anyMatch(e -> e.contains("sections[0]") && e.contains("metrics") && e.contains("contentBlocks")),
+                "Should report missing metrics or contentBlocks, got: " + errorsMissing);
     }
 
     // ========================================================================

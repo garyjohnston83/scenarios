@@ -17,6 +17,7 @@ public class ReportDefinitionValidationService {
     private static final Pattern REPORT_KEY_PATTERN = Pattern.compile("^[a-z0-9_]+$");
     private static final Pattern SCENARIO_TYPE_PATTERN = Pattern.compile("^[A-Z0-9_]+$");
     private static final Set<String> VALID_FORMATS = Set.of("number", "currency", "percentage", "text");
+    private static final Set<String> VALID_FORMAT_TOKENS = Set.of("positive", "warning", "negative", "neutral");
 
     private final ObjectMapper objectMapper;
 
@@ -122,17 +123,227 @@ public class ReportDefinitionValidationService {
                 errors.add(prefix + ".order: must be an integer >= 1, got " + orderNode.asInt());
             }
 
-            // Validate metrics array
+            // Detect section format: contentBlocks or metrics
+            JsonNode contentBlocksNode = section.get("contentBlocks");
             JsonNode metricsNode = section.get("metrics");
-            if (metricsNode == null || metricsNode.isNull()) {
-                errors.add(prefix + ".metrics: must be present");
-            } else if (!metricsNode.isArray()) {
-                errors.add(prefix + ".metrics: must be a non-empty array");
-            } else if (metricsNode.isEmpty()) {
-                errors.add(prefix + ".metrics: must be a non-empty array");
+
+            if (contentBlocksNode != null && contentBlocksNode.isArray()) {
+                // Format B: contentBlocks
+                if (contentBlocksNode.isEmpty()) {
+                    errors.add(prefix + ".contentBlocks: must be a non-empty array");
+                } else {
+                    validateContentBlocks(contentBlocksNode, prefix, sectionKey, errors);
+                }
+            } else if (metricsNode != null && !metricsNode.isNull()) {
+                // Format A: metrics (backward compatibility)
+                if (!metricsNode.isArray()) {
+                    errors.add(prefix + ".metrics: must be a non-empty array");
+                } else if (metricsNode.isEmpty()) {
+                    errors.add(prefix + ".metrics: must be a non-empty array");
+                } else {
+                    validateMetrics(metricsNode, prefix, sectionKey, errors);
+                }
             } else {
-                validateMetrics(metricsNode, prefix, sectionKey, errors);
+                errors.add(prefix + ": must have either 'metrics' or 'contentBlocks' array");
             }
+        }
+    }
+
+    private void validateContentBlocks(JsonNode contentBlocksNode, String sectionPrefix, String sectionKey, List<String> errors) {
+        Set<String> blockKeys = new HashSet<>();
+
+        for (int j = 0; j < contentBlocksNode.size(); j++) {
+            JsonNode block = contentBlocksNode.get(j);
+            String prefix = sectionPrefix + ".contentBlocks[" + j + "]";
+
+            // Validate blockType
+            JsonNode blockTypeNode = block.get("blockType");
+            if (blockTypeNode == null || blockTypeNode.isNull() || !blockTypeNode.isTextual() || blockTypeNode.asText().isEmpty()) {
+                errors.add(prefix + ".blockType: must be a non-empty string");
+                continue;
+            }
+
+            // Check for duplicate block keys
+            JsonNode keyNode = block.get("key");
+            if (keyNode != null && keyNode.isTextual() && !keyNode.asText().isEmpty()) {
+                String blockKey = keyNode.asText();
+                if (!blockKeys.add(blockKey)) {
+                    errors.add("Duplicate content block key '" + blockKey + "' in section '" + (sectionKey != null ? sectionKey : "unknown") + "'");
+                }
+            }
+
+            String blockType = blockTypeNode.asText();
+            switch (blockType) {
+                case "metric" -> validateMetricBlock(block, prefix, errors);
+                case "text" -> validateTextBlock(block, prefix, errors);
+                case "table" -> validateTableBlock(block, prefix, errors);
+                default -> errors.add(prefix + ".blockType: unknown block type '" + blockType + "', must be one of [metric, text, table]");
+            }
+        }
+    }
+
+    private void validateMetricBlock(JsonNode block, String prefix, List<String> errors) {
+        // Required: key
+        JsonNode keyNode = block.get("key");
+        if (keyNode == null || keyNode.isNull() || !keyNode.isTextual() || keyNode.asText().isEmpty()) {
+            errors.add(prefix + ".key: must be a non-empty string");
+        }
+
+        // Required: label
+        JsonNode labelNode = block.get("label");
+        if (labelNode == null || labelNode.isNull() || !labelNode.isTextual() || labelNode.asText().isEmpty()) {
+            errors.add(prefix + ".label: must be a non-empty string");
+        }
+
+        // Required: source_field
+        JsonNode sourceFieldNode = block.get("source_field");
+        if (sourceFieldNode == null || sourceFieldNode.isNull() || !sourceFieldNode.isTextual() || sourceFieldNode.asText().isEmpty()) {
+            errors.add(prefix + ".source_field: must be a non-empty string");
+        }
+
+        // Required: format
+        JsonNode formatNode = block.get("format");
+        if (formatNode == null || formatNode.isNull()) {
+            errors.add(prefix + ".format: must be present");
+        } else if (!formatNode.isTextual()) {
+            errors.add(prefix + ".format: must be one of [number, currency, percentage, text]");
+        } else if (!VALID_FORMATS.contains(formatNode.asText())) {
+            errors.add(prefix + ".format: must be one of [number, currency, percentage, text], got '" + formatNode.asText() + "'");
+        }
+
+        // Optional: formatRules
+        JsonNode formatRulesNode = block.get("formatRules");
+        if (formatRulesNode != null && !formatRulesNode.isNull()) {
+            if (!formatRulesNode.isArray()) {
+                errors.add(prefix + ".formatRules: must be an array");
+            } else {
+                for (int r = 0; r < formatRulesNode.size(); r++) {
+                    JsonNode rule = formatRulesNode.get(r);
+                    String rulePrefix = prefix + ".formatRules[" + r + "]";
+
+                    // Required: token
+                    JsonNode tokenNode = rule.get("token");
+                    if (tokenNode == null || tokenNode.isNull() || !tokenNode.isTextual() || tokenNode.asText().isEmpty()) {
+                        errors.add(rulePrefix + ".token: must be a non-empty string");
+                    }
+
+                    // Optional: min (nullable number)
+                    JsonNode minNode = rule.get("min");
+                    if (minNode != null && !minNode.isNull() && !minNode.isNumber()) {
+                        errors.add(rulePrefix + ".min: must be a number or null");
+                    }
+
+                    // Optional: max (nullable number)
+                    JsonNode maxNode = rule.get("max");
+                    if (maxNode != null && !maxNode.isNull() && !maxNode.isNumber()) {
+                        errors.add(rulePrefix + ".max: must be a number or null");
+                    }
+                }
+            }
+        }
+    }
+
+    private void validateTextBlock(JsonNode block, String prefix, List<String> errors) {
+        // Required: key
+        JsonNode keyNode = block.get("key");
+        if (keyNode == null || keyNode.isNull() || !keyNode.isTextual() || keyNode.asText().isEmpty()) {
+            errors.add(prefix + ".key: must be a non-empty string");
+        }
+
+        // Required: content
+        JsonNode contentNode = block.get("content");
+        if (contentNode == null || contentNode.isNull() || !contentNode.isTextual() || contentNode.asText().isEmpty()) {
+            errors.add(prefix + ".content: must be a non-empty string");
+        }
+    }
+
+    private void validateTableBlock(JsonNode block, String prefix, List<String> errors) {
+        // Required: key
+        JsonNode keyNode = block.get("key");
+        if (keyNode == null || keyNode.isNull() || !keyNode.isTextual() || keyNode.asText().isEmpty()) {
+            errors.add(prefix + ".key: must be a non-empty string");
+        }
+
+        // Required: label
+        JsonNode labelNode = block.get("label");
+        if (labelNode == null || labelNode.isNull() || !labelNode.isTextual() || labelNode.asText().isEmpty()) {
+            errors.add(prefix + ".label: must be a non-empty string");
+        }
+
+        // Required: rowColumns (non-empty array)
+        JsonNode rowColumnsNode = block.get("rowColumns");
+        if (rowColumnsNode == null || rowColumnsNode.isNull()) {
+            errors.add(prefix + ".rowColumns: must be present");
+        } else if (!rowColumnsNode.isArray()) {
+            errors.add(prefix + ".rowColumns: must be a non-empty array");
+        } else if (rowColumnsNode.isEmpty()) {
+            errors.add(prefix + ".rowColumns: must be a non-empty array");
+        } else {
+            for (int rc = 0; rc < rowColumnsNode.size(); rc++) {
+                JsonNode rcNode = rowColumnsNode.get(rc);
+                String rcPrefix = prefix + ".rowColumns[" + rc + "]";
+
+                JsonNode rcKeyNode = rcNode.get("key");
+                if (rcKeyNode == null || rcKeyNode.isNull() || !rcKeyNode.isTextual() || rcKeyNode.asText().isEmpty()) {
+                    errors.add(rcPrefix + ".key: must be a non-empty string");
+                }
+
+                JsonNode rcHeaderNode = rcNode.get("header");
+                if (rcHeaderNode == null || rcHeaderNode.isNull() || !rcHeaderNode.isTextual() || rcHeaderNode.asText().isEmpty()) {
+                    errors.add(rcPrefix + ".header: must be a non-empty string");
+                }
+            }
+        }
+
+        // Required: columnGroups (non-empty array)
+        JsonNode columnGroupsNode = block.get("columnGroups");
+        if (columnGroupsNode == null || columnGroupsNode.isNull()) {
+            errors.add(prefix + ".columnGroups: must be present");
+        } else if (!columnGroupsNode.isArray()) {
+            errors.add(prefix + ".columnGroups: must be a non-empty array");
+        } else if (columnGroupsNode.isEmpty()) {
+            errors.add(prefix + ".columnGroups: must be a non-empty array");
+        } else {
+            for (int g = 0; g < columnGroupsNode.size(); g++) {
+                JsonNode groupNode = columnGroupsNode.get(g);
+                String groupPrefix = prefix + ".columnGroups[" + g + "]";
+
+                JsonNode groupLabelNode = groupNode.get("groupLabel");
+                if (groupLabelNode == null || groupLabelNode.isNull() || !groupLabelNode.isTextual()) {
+                    errors.add(groupPrefix + ".groupLabel: must be a string (empty string allowed for ungrouped columns)");
+                }
+
+                JsonNode columnsNode = groupNode.get("columns");
+                if (columnsNode == null || columnsNode.isNull()) {
+                    errors.add(groupPrefix + ".columns: must be present");
+                } else if (!columnsNode.isArray()) {
+                    errors.add(groupPrefix + ".columns: must be a non-empty array");
+                } else if (columnsNode.isEmpty()) {
+                    errors.add(groupPrefix + ".columns: must be a non-empty array");
+                } else {
+                    for (int c = 0; c < columnsNode.size(); c++) {
+                        JsonNode colNode = columnsNode.get(c);
+                        String colPrefix = groupPrefix + ".columns[" + c + "]";
+
+                        JsonNode colKeyNode = colNode.get("key");
+                        if (colKeyNode == null || colKeyNode.isNull() || !colKeyNode.isTextual() || colKeyNode.asText().isEmpty()) {
+                            errors.add(colPrefix + ".key: must be a non-empty string");
+                        }
+
+                        JsonNode colHeaderNode = colNode.get("header");
+                        if (colHeaderNode == null || colHeaderNode.isNull() || !colHeaderNode.isTextual() || colHeaderNode.asText().isEmpty()) {
+                            errors.add(colPrefix + ".header: must be a non-empty string");
+                        }
+                    }
+                }
+            }
+        }
+
+        // Reject rows in template definition — rows are data, not template.
+        // Row data should be stored in sample_data instead.
+        JsonNode rowsNode = block.get("rows");
+        if (rowsNode != null && !rowsNode.isNull()) {
+            errors.add(prefix + ".rows: rows are not allowed in the template definition; use sample data instead");
         }
     }
 

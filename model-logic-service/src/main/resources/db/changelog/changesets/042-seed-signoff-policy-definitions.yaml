@@ -1,0 +1,29 @@
+databaseChangeLog:
+  - changeSet:
+      id: 042-seed-signoff-policy-definitions
+      author: scenarios-team
+      changes:
+        - sql:
+            sql: |
+              INSERT INTO signoff_policy_definition (id, scenario_type_code, policy_key, version, definition, is_active, created_at, updated_at)
+              VALUES
+              (
+                'dddddddd-dddd-4ddd-8ddd-ddddddddd001',
+                'FRTB_SA',
+                'frtb_sa_signoff_policy',
+                1,
+                '{"schema_version":"1.0","policy_key":"frtb_sa_signoff_policy","scenario_type":"FRTB_SA","display_name":"FRTB SA Sign-off Policy","description":"Sign-off policy for FRTB Standardised Approach scenarios covering risk weight changes and capital impact reviews.","rules":[{"rule_key":"high_impact_dual_approval","name":"High Impact Dual Approval","priority":1,"is_enabled":true,"condition":{"type":"GROUP","operator":"AND","children":[{"type":"FACT","factType":"impactSeverity","operator":"EQUALS","value":"HIGH"},{"type":"GROUP","operator":"OR","children":[{"type":"FACT","factType":"changedAttribute","operator":"IN","value":["riskWeight","notionalAmount"]},{"type":"FACT","factType":"scenarioField","operator":"EQUALS","value":"desk:FX_OPTIONS"}]}]},"effect":{"requiredApproverCount":2,"approvalMode":"SEQUENTIAL","approvers":[{"type":"FIXED_ROLE","roleKey":"SENIOR_RISK_MANAGER"},{"type":"FIXED_ROLE","roleKey":"HEAD_OF_DESK"}]}},{"rule_key":"standard_review","name":"Standard Review","priority":2,"is_enabled":true,"condition":{"type":"GROUP","operator":"AND","children":[{"type":"FACT","factType":"impactSeverity","operator":"IN","value":["MEDIUM","LOW"]},{"type":"FACT","factType":"scenarioType","operator":"EQUALS","value":"FRTB_SA"}]},"effect":{"requiredApproverCount":1,"approvalMode":"UNORDERED","approvers":[{"type":"DYNAMIC_ROLE","roleKey":"RISK_CONTROLLER"}]}}]}',
+                true,
+                NOW(),
+                NOW()
+              ),
+              (
+                'dddddddd-dddd-4ddd-8ddd-ddddddddd002',
+                'MARKET_DATA',
+                'market_data_signoff_policy',
+                1,
+                '{"schema_version":"1.0","policy_key":"market_data_signoff_policy","scenario_type":"MARKET_DATA","display_name":"Market Data Sign-off Policy","description":"Sign-off policy for Market Data scenarios covering curve shifts and spot rate overrides.","rules":[{"rule_key":"curve_shift_approval","name":"Curve Shift Approval","priority":1,"is_enabled":true,"condition":{"type":"GROUP","operator":"OR","children":[{"type":"FACT","factType":"changedAttribute","operator":"EQUALS","value":"curveShift"},{"type":"FACT","factType":"changedAttribute","operator":"EQUALS","value":"volSurface"}]},"effect":{"requiredApproverCount":1,"approvalMode":"UNORDERED","approvers":[{"type":"FIXED_ROLE","roleKey":"SENIOR_RISK_MANAGER"}]}},{"rule_key":"compliance_check","name":"Compliance Check","priority":2,"is_enabled":true,"condition":{"type":"GROUP","operator":"AND","children":[{"type":"FACT","factType":"reportSeverity","operator":"EQUALS","value":"CRITICAL"},{"type":"FACT","factType":"scenarioField","operator":"EQUALS","value":"region:EMEA"}]},"effect":{"requiredApproverCount":2,"approvalMode":"SEQUENTIAL","approvers":[{"type":"FIXED_ROLE","roleKey":"COMPLIANCE_OFFICER"},{"type":"FIXED_ROLE","roleKey":"SENIOR_RISK_MANAGER"}]}},{"rule_key":"spot_rate_review","name":"Spot Rate Review","priority":3,"is_enabled":false,"condition":{"type":"FACT","factType":"changedAttribute","operator":"EQUALS","value":"spotRate"},"effect":{"requiredApproverCount":1,"approvalMode":"UNORDERED","approvers":[{"type":"DYNAMIC_ROLE","roleKey":"HEAD_OF_DESK"}]}}]}',
+                true,
+                NOW(),
+                NOW()
+              );

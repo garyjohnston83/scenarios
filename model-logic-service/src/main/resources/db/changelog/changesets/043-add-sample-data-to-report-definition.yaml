@@ -1,0 +1,11 @@
+databaseChangeLog:
+  - changeSet:
+      id: 043-add-sample-data-to-report-definition
+      author: scenarios-team
+      changes:
+        - addColumn:
+            tableName: report_definition
+            columns:
+              - column:
+                  name: sample_data
+                  type: text

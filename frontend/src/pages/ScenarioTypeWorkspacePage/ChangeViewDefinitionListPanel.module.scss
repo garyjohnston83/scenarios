@@ -1,0 +1,120 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+}
+
+.toolbar {
+  display: flex;
+  flex-direction: row;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 12px;
+  flex-shrink: 0;
+}
+
+.errorText {
+  font-size: 13px;
+  color: #d13438;
+  margin-bottom: 8px;
+  flex-shrink: 0;
+}
+
+.tableContainer {
+  flex: 1;
+  overflow-y: auto;
+  min-height: 0;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.tableHeader {
+  background-color: #fafafa;
+}
+
+.tableHeaderCell {
+  padding: 6px 8px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #666;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  text-align: left;
+  border-bottom: 2px solid #e0e0e0;
+  white-space: nowrap;
+}
+
+.tableRow {
+  border-bottom: 1px solid #f0f0f0;
+  cursor: pointer;
+}
+
+.tableRow:hover {
+  background-color: #f5f5f5;
+}
+
+.selectedRow {
+  background-color: #e8f0fe;
+}
+
+.selectedRow:hover {
+  background-color: #d6e4fc;
+}
+
+.activeRow {
+  background: #f0f9f0;
+}
+
+.activeRow:hover {
+  background: #e5f5e5;
+}
+
+.activeRow.selectedRow {
+  background-color: #e0f0e8;
+}
+
+.activeRow.selectedRow:hover {
+  background-color: #d4e8dc;
+}
+
+.tableCell {
+  padding: 6px 8px;
+  font-size: 12px;
+  color: #242424;
+  vertical-align: middle;
+}
+
+.actionsCell {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 4px;
+}
+
+.statusBadge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 3px;
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+.statusActive {
+  background: #dff6dd;
+  color: #107c10;
+}
+
+.statusInactive {
+  background: #f0f0f0;
+  color: #666;
+}
+
+.emptyState {
+  font-size: 13px;
+  color: #666;
+  padding: 24px 0;
+}

@@ -1,0 +1,92 @@
+.pageContainer {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  padding: 24px 32px;
+  box-sizing: border-box;
+  overflow-y: auto;
+}
+
+.pageHeader {
+  margin-bottom: 16px;
+}
+
+.pageName {
+  font-size: 20px;
+  font-weight: 600;
+  color: #242424;
+  display: block;
+  margin-bottom: 4px;
+}
+
+.pageCode {
+  font-size: 13px;
+  color: #666;
+  display: block;
+  margin-bottom: 2px;
+}
+
+.pageIcon {
+  font-size: 12px;
+  color: #888;
+  display: block;
+}
+
+.tabsContainer {
+  padding: 0;
+  border-bottom: 1px solid #e0e0e0;
+  background-color: #fff;
+
+  :global(.fui-Tab) {
+    padding-top: 5px;
+    padding-bottom: 5px;
+  }
+}
+
+.tabContent {
+  flex: 1;
+  padding: 16px 0;
+  overflow-y: auto;
+}
+
+.badge {
+  display: inline-block;
+  padding: 1px 6px;
+  border-radius: 3px;
+  font-size: 11px;
+  font-weight: 500;
+  margin-left: 6px;
+  vertical-align: middle;
+}
+
+.badgeRuntime {
+  background-color: #e1f3fb;
+  color: #0078d4;
+}
+
+.badgeDeployment {
+  background-color: #f0f0f0;
+  color: #666;
+}
+
+.notFoundMessage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 24px;
+  font-size: 14px;
+  color: #666;
+}
+
+.loadingText {
+  font-size: 13px;
+  color: #666;
+  padding: 16px 0;
+}
+
+.errorText {
+  font-size: 13px;
+  color: #d13438;
+  margin-bottom: 8px;
+}

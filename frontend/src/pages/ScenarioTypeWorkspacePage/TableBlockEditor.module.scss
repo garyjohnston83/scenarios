@@ -1,0 +1,188 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.blockHeader {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.typeBadge {
+  display: inline-block;
+  padding: 1px 6px;
+  border-radius: 3px;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  background: #e0e7ff;
+  color: #3b5998;
+}
+
+.fieldGrid {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.field {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+}
+
+.fieldLabel {
+  font-size: 12px;
+  font-weight: 600;
+  color: #242424;
+  min-width: 60px;
+  flex-shrink: 0;
+}
+
+/* Inputs inside .field should fill remaining width */
+.field :global(.fui-Input) {
+  flex: 1;
+  min-width: 0;
+}
+
+.invalidInput {
+  border-color: #d13438 !important;
+}
+
+.validationError {
+  font-size: 11px;
+  color: #d13438;
+}
+
+/* Sub-sections */
+.subSection {
+  margin-top: 12px;
+  border-top: 1px solid #e8e8e8;
+  padding-top: 8px;
+}
+
+.subSectionHeader {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.subSectionTitle {
+  font-size: 12px;
+  font-weight: 600;
+  color: #666;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Inline rows for key/header pairs */
+.inlineRow {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-end;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.inlineField {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+}
+
+.inlineLabel {
+  font-size: 11px;
+  color: #666;
+}
+
+/* Column Group Card */
+.columnGroupCard {
+  border: 1px solid #e8e8e8;
+  border-radius: 4px;
+  margin-bottom: 8px;
+  background: #fafafa;
+}
+
+.columnGroupHeader {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-end;
+  gap: 8px;
+  padding: 8px;
+  border-bottom: 1px solid #e8e8e8;
+}
+
+.columnsContainer {
+  padding: 8px;
+}
+
+.columnsHeader {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+
+.columnsTitle {
+  font-size: 11px;
+  font-weight: 600;
+  color: #888;
+}
+
+/* Row Card */
+.rowCard {
+  border: 1px solid #e8e8e8;
+  border-radius: 4px;
+  margin-bottom: 8px;
+  background: #fafafa;
+}
+
+.rowHeader {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-end;
+  gap: 8px;
+  padding: 8px;
+  border-bottom: 1px solid #e8e8e8;
+}
+
+/* Cell editors */
+.cellsGrid {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px;
+}
+
+.cellEditor {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 4px 0;
+  border-bottom: 1px solid #f0f0f0;
+
+  &:last-child {
+    border-bottom: none;
+  }
+}
+
+.cellLabel {
+  font-size: 11px;
+  font-weight: 600;
+  color: #666;
+}
+
+.cellFields {
+  display: flex;
+  flex-direction: row;
+  gap: 8px;
+  align-items: center;
+}

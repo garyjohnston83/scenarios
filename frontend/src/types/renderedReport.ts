@@ -74,6 +74,7 @@ export interface ColumnLayout {
 export interface RowColumnDef {
   key: string;
   header: string;
+  width?: string;
 }
 
 /** A group header spanning its child columns (e.g., "Production", "Scenario", "Delta") */
@@ -87,6 +88,7 @@ export interface ColumnDef {
   key: string;
   header: string;
   formatToken?: string;
+  width?: string;
 }
 
 /** A row of data in a table block, keyed by column key */

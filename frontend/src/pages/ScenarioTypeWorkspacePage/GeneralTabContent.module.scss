@@ -1,0 +1,26 @@
+.formContainer {
+  max-width: 480px;
+}
+
+.dialogField {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 12px;
+}
+
+.dialogFieldLabel {
+  font-size: 12px;
+  font-weight: 600;
+  color: #242424;
+}
+
+.readOnlyValue {
+  font-size: 13px;
+  color: #666;
+  padding: 4px 0;
+}
+
+.formActions {
+  margin-top: 16px;
+}

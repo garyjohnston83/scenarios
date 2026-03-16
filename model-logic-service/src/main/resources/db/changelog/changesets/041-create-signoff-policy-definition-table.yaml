@@ -1,0 +1,98 @@
+databaseChangeLog:
+  - property:
+      name: jsonColumnType
+      value: JSONB
+      dbms: postgresql
+  - property:
+      name: jsonColumnType
+      value: CLOB
+
+  - changeSet:
+      id: 041-create-signoff-policy-definition-table
+      author: scenarios-team
+      changes:
+        - createTable:
+            tableName: signoff_policy_definition
+            columns:
+              - column:
+                  name: id
+                  type: uuid
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: scenario_type_code
+                  type: varchar(50)
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_signoff_policy_def_scenario_type
+                    references: scenario_type(code)
+              - column:
+                  name: policy_key
+                  type: varchar(100)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: version
+                  type: int
+                  defaultValueNumeric: 1
+                  constraints:
+                    nullable: false
+              - column:
+                  name: definition
+                  type: ${jsonColumnType}
+                  constraints:
+                    nullable: false
+              - column:
+                  name: is_active
+                  type: boolean
+                  defaultValueBoolean: true
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: timestamp
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: timestamp
+                  constraints:
+                    nullable: false
+
+  - changeSet:
+      id: 041-add-unique-constraint-signoff-policy-def
+      author: scenarios-team
+      changes:
+        - addUniqueConstraint:
+            tableName: signoff_policy_definition
+            columnNames: scenario_type_code, policy_key, version
+            constraintName: uq_signoff_policy_def_type_key_version
+
+  - changeSet:
+      id: 041-create-signoff-policy-def-lookup-index
+      author: scenarios-team
+      changes:
+        - createIndex:
+            indexName: idx_signoff_policy_def_lookup
+            tableName: signoff_policy_definition
+            columns:
+              - column:
+                  name: scenario_type_code
+              - column:
+                  name: policy_key
+              - column:
+                  name: is_active
+
+  - changeSet:
+      id: 041-create-signoff-policy-def-gin-index
+      author: scenarios-team
+      preConditions:
+        - onFail: MARK_RAN
+        - dbms:
+            type: postgresql
+      changes:
+        - sql:
+            sql: |
+              CREATE INDEX idx_signoff_policy_def_definition_gin
+                ON signoff_policy_definition USING GIN (definition);

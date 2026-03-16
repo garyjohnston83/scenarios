@@ -1,0 +1,29 @@
+databaseChangeLog:
+  - changeSet:
+      id: 040-seed-change-view-definitions
+      author: scenarios-team
+      changes:
+        - sql:
+            sql: |
+              INSERT INTO change_view_definition (id, scenario_type_code, template_key, version, definition, is_active, created_at, updated_at)
+              VALUES
+              (
+                'cccccccc-cccc-4ccc-8ccc-ccccccccc001',
+                'FRTB_SA',
+                'sa_direct_changes',
+                1,
+                '{"schema_version":"1.0","template_key":"sa_direct_changes","scenario_type":"FRTB_SA","display_name":"SA Direct Changes View","description":"Displays direct data changes applied to the FRTB SA scenario, including risk weight overrides and notional adjustments.","metadata":{"author":"system","tags":["frtb","sa","direct_changes"]},"sections":[{"key":"change_summary","title":"Change Summary","order":1,"contentBlocks":[{"blockType":"text","key":"summary_text","content":"This section summarises the direct changes applied to the FRTB SA scenario. All modifications shown below were entered manually by the scenario owner."}]},{"key":"risk_weight_overrides","title":"Risk Weight Overrides","order":2,"contentBlocks":[{"blockType":"text","key":"rw_description","content":"The following table lists all risk weight overrides applied in this scenario."},{"blockType":"table","key":"rw_override_table","label":"Risk Weight Overrides","rowColumns":[{"key":"risk_class","header":"Risk Class"},{"key":"bucket","header":"Bucket"}],"columnGroups":[{"groupLabel":"Original","columns":[{"key":"original_rw","header":"Risk Weight (%)"}]},{"groupLabel":"Override","columns":[{"key":"override_rw","header":"Risk Weight (%)"},{"key":"change_reason","header":"Reason"}]}],"rows":[{"rowId":"row_girr_1","cells":{"risk_class":{"value":"GIRR"},"bucket":{"value":"Bucket 1"},"original_rw":{"value":"1.5%"},"override_rw":{"value":"2.0%","formatToken":"warning"},"change_reason":{"value":"Stress calibration"}}},{"rowId":"row_fx_1","cells":{"risk_class":{"value":"FX"},"bucket":{"value":"Bucket 1"},"original_rw":{"value":"8.0%"},"override_rw":{"value":"10.0%","formatToken":"negative"},"change_reason":{"value":"Emerging market adjustment"}}}]}]}]}',
+                true,
+                NOW(),
+                NOW()
+              ),
+              (
+                'cccccccc-cccc-4ccc-8ccc-ccccccccc002',
+                'MARKET_DATA',
+                'market_data_changes',
+                1,
+                '{"schema_version":"1.0","template_key":"market_data_changes","scenario_type":"MARKET_DATA","display_name":"Market Data Changes View","description":"Displays direct market data changes including curve shifts and spot rate overrides.","metadata":{"author":"system","tags":["market_data","direct_changes"]},"sections":[{"key":"overview","title":"Changes Overview","order":1,"contentBlocks":[{"blockType":"text","key":"overview_text","content":"This view shows all direct market data changes applied to the scenario. Changes include curve shifts, spot rate overrides, and volatility surface adjustments."}]},{"key":"spot_rate_changes","title":"Spot Rate Changes","order":2,"contentBlocks":[{"blockType":"table","key":"spot_rates_table","label":"Spot Rate Overrides","rowColumns":[{"key":"currency_pair","header":"Currency Pair"},{"key":"original_rate","header":"Original Rate"}],"columnGroups":[{"groupLabel":"Adjustment","columns":[{"key":"new_rate","header":"New Rate"},{"key":"change_pct","header":"Change (%)"}]}],"rows":[{"rowId":"row_eurusd","cells":{"currency_pair":{"value":"EUR/USD"},"original_rate":{"value":"1.0850"},"new_rate":{"value":"1.0950","formatToken":"positive"},"change_pct":{"value":"+0.92%","formatToken":"positive"}}},{"rowId":"row_gbpusd","cells":{"currency_pair":{"value":"GBP/USD"},"original_rate":{"value":"1.2650"},"new_rate":{"value":"1.2400","formatToken":"negative"},"change_pct":{"value":"-1.98%","formatToken":"negative"}}}]}]}]}',
+                true,
+                NOW(),
+                NOW()
+              );

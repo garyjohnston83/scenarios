@@ -1,0 +1,15 @@
+databaseChangeLog:
+  - changeSet:
+      id: 038-seed-url-templates
+      author: scenarios-team
+      changes:
+        - sql:
+            sql: |
+              UPDATE scenario_type
+              SET direct_changes_external_url_template = 'https://market-data.example.com/changes?scenario=${scenarioId}&type=${scenarioTypeCode}'
+              WHERE code = 'MARKET_DATA';
+
+              UPDATE scenario_type
+              SET direct_changes_external_url_template = 'https://risk-factor.example.com/changes?scenario=${scenarioId}&type=${scenarioTypeCode}',
+                  impact_external_url_template = 'https://risk-factor.example.com/impact?scenario=${scenarioId}&type=${scenarioTypeCode}'
+              WHERE code = 'RISK_FACTOR';

@@ -12,25 +12,34 @@ export const TableBlockRenderer: React.FC<TableBlockRendererProps> = ({ block })
   const { rowColumns, columnGroups } = columnLayout;
   const hasColumnGroups = columnGroups.length > 0;
 
-  // Build fixed column widths: 300px first col, 75px Impact (empty groupLabel), 125px all others
-  const colWidths: string[] = [];
-  rowColumns.forEach((_, index) => {
-    colWidths.push(index === 0 ? '300px' : '125px');
+  // Collect explicit widths; columns without width get auto-sized
+  const colEntries: Array<{ width?: string }> = [];
+  rowColumns.forEach((rc) => {
+    colEntries.push({ width: rc.width || undefined });
   });
   columnGroups.forEach((group) => {
-    group.columns.forEach(() => {
-      colWidths.push(group.groupLabel === '' ? '75px' : '150px');
+    group.columns.forEach((col) => {
+      colEntries.push({ width: col.width || undefined });
     });
   });
+
+  const allHaveWidth = colEntries.length > 0 && colEntries.every((e) => !!e.width);
+  // If all columns have explicit widths, table width = sum of those widths (fixed layout).
+  // If any column has no width, table = 100% with auto layout so columns size to content.
+  const tableStyle: React.CSSProperties = allHaveWidth
+    ? { width: colEntries.reduce((sum, e) => sum + parseInt(e.width!, 10), 0) + 'px', tableLayout: 'fixed' }
+    : { width: '100%', tableLayout: 'auto' };
 
   return (
     <div className={styles.tableBlockContainer} data-testid={`table-block-${block.tableKey}`}>
       <div className={styles.tableWrapper}>
-        <table className={styles.table}>
+        <table className={styles.table} style={tableStyle}>
           <colgroup>
-            {colWidths.map((w, i) => (
-              <col key={i} style={{ width: w, minWidth: w }} />
-            ))}
+            {colEntries.map((e, i) =>
+              e.width
+                ? <col key={i} style={{ width: e.width, minWidth: e.width }} />
+                : <col key={i} />
+            )}
           </colgroup>
           <thead>
             {hasColumnGroups ? (

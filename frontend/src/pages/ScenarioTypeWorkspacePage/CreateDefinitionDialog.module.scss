@@ -1,0 +1,35 @@
+.dialogSurface {
+  max-width: 640px;
+  width: 100%;
+}
+
+.dialogField {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 12px;
+}
+
+.dialogFieldLabel {
+  font-size: 12px;
+  font-weight: 600;
+  color: #242424;
+}
+
+.jsonTextarea {
+  min-height: 300px;
+  font-family: 'Consolas', 'Courier New', monospace;
+  font-size: 12px;
+}
+
+.validationError {
+  font-size: 11px;
+  color: #d13438;
+}
+
+.errorText {
+  font-size: 13px;
+  color: #d13438;
+  margin-top: 8px;
+  display: block;
+}

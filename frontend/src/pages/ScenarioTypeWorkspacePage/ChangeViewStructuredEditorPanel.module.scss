@@ -1,0 +1,197 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+}
+
+.toolbar {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 0;
+  border-bottom: 1px solid #e0e0e0;
+  flex-shrink: 0;
+}
+
+.formContent {
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px 0;
+  min-height: 0;
+}
+
+.emptyState {
+  font-size: 13px;
+  color: #666;
+  padding: 24px 8px;
+}
+
+.placeholderText {
+  font-size: 13px;
+  color: #999;
+}
+
+.jsonModePlaceholder {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Section cards */
+.sectionCard {
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  margin-bottom: 12px;
+  background: #fff;
+}
+
+.sectionTitle {
+  font-size: 13px;
+  font-weight: 600;
+  color: #242424;
+  margin-bottom: 8px;
+}
+
+.sectionCardHeader {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: #fafafa;
+  border-bottom: 1px solid #e0e0e0;
+  cursor: pointer;
+  user-select: none;
+
+  &:hover {
+    background: #f0f0f0;
+  }
+}
+
+.sectionCardTitle {
+  flex: 1;
+  font-size: 13px;
+  font-weight: 600;
+  color: #242424;
+}
+
+.sectionCardBody {
+  padding: 12px;
+}
+
+.collapseIcon {
+  font-size: 16px;
+  color: #666;
+  flex-shrink: 0;
+}
+
+.sectionsHeader {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 16px;
+  margin-bottom: 8px;
+}
+
+/* Field layout */
+.fieldGrid {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.fieldLabel {
+  font-size: 12px;
+  font-weight: 600;
+  color: #242424;
+}
+
+.readOnlyValue {
+  font-size: 13px;
+  color: #666;
+  padding: 4px 0;
+}
+
+/* Content blocks */
+.blocksContainer {
+  margin-top: 12px;
+}
+
+.blocksTitle {
+  font-size: 12px;
+  font-weight: 600;
+  color: #666;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  display: block;
+  margin-bottom: 8px;
+}
+
+.blockCard {
+  border: 1px solid #e8e8e8;
+  border-radius: 4px;
+  margin-bottom: 8px;
+  background: #fcfcfc;
+}
+
+.blockCardHeader {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  background: #f5f5f5;
+  border-bottom: 1px solid #e8e8e8;
+  cursor: pointer;
+  user-select: none;
+
+  &:hover {
+    background: #ebebeb;
+  }
+}
+
+.blockTypeBadge {
+  display: inline-block;
+  padding: 1px 6px;
+  border-radius: 3px;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  background: #e0e7ff;
+  color: #3b5998;
+}
+
+.blockKeyLabel {
+  flex: 1;
+  font-size: 12px;
+  color: #666;
+}
+
+.blockCardBody {
+  padding: 10px;
+}
+
+/* Add block row */
+.addBlockRow {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.addSectionRow {
+  margin-top: 8px;
+  margin-bottom: 16px;
+}

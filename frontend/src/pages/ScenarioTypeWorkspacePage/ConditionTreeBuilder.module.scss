@@ -1,0 +1,90 @@
+/* ConditionTreeBuilder styles */
+
+/* GROUP node */
+.groupNode {
+  display: flex;
+  flex-direction: column;
+  border-left: 3px solid #0078d4;
+  background: #fafbfc;
+  border-radius: 4px;
+  margin-bottom: 8px;
+}
+
+.groupNodeNested {
+  border-left-color: #7eb7e4;
+  background: #f5f8fb;
+}
+
+.groupHeader {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-bottom: 1px solid #e8ecf0;
+  flex-wrap: wrap;
+}
+
+.groupLabel {
+  font-size: 12px;
+  color: #666;
+  font-style: italic;
+  flex-shrink: 0;
+}
+
+.groupActions {
+  display: flex;
+  flex-direction: row;
+  gap: 4px;
+  align-items: center;
+  margin-left: auto;
+}
+
+.groupChildren {
+  padding: 8px 8px 4px 8px;
+}
+
+.emptyChildren {
+  font-size: 12px;
+  color: #999;
+  padding: 8px 4px;
+  font-style: italic;
+}
+
+/* FACT node */
+.factNode {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  background: #fff;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  margin-bottom: 6px;
+  flex-wrap: wrap;
+}
+
+.factField {
+  flex: 0 0 auto;
+  min-width: 140px;
+}
+
+.factValueField {
+  flex: 1;
+  min-width: 120px;
+}
+
+/* Multi-value container (for IN operator) */
+.multiValueContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.multiValueRow {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 4px;
+}
