@@ -20,6 +20,7 @@ import com.prototypes.scenarios.dto.SummaryCardsDto;
 import com.prototypes.scenarios.dto.WorkflowDto;
 import com.prototypes.scenarios.repository.ScenarioRepository;
 import com.prototypes.scenarios.service.ScenarioDetailService;
+import com.prototypes.scenarios.service.DirectChangesRuntimeService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -63,6 +64,9 @@ class ScenarioControllerTest {
 
     @MockitoBean
     private ScenarioDetailService scenarioDetailService;
+
+    @MockitoBean
+    private DirectChangesRuntimeService directChangesRuntimeService;
 
     private static final UUID SCENARIO_ID = UUID.fromString("11111111-1111-1111-1111-111111111111");
 
@@ -1183,7 +1187,7 @@ class ScenarioControllerTest {
     @Test
     void getScenario_expandHeader_withScenarioType_returnsScenarioTypeBlockInHeader() throws Exception {
         ScenarioTypeDto scenarioTypeDto = new ScenarioTypeDto(
-                "MARKET_DATA", "Market Data", "ChartMultiple", "EXTERNAL", "EXTERNAL"
+                "MARKET_DATA", "Market Data", "ChartMultiple", "EXTERNAL", "EXTERNAL", null
         );
         ScenarioHeaderDto header = new ScenarioHeaderDto(
                 "IMPACT_AVAILABLE",

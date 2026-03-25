@@ -6,6 +6,7 @@ public record ScenarioTypeAdminDto(
         String icon,
         String directChangesMode,
         String impactDataMode,
+        String directChangesInternalRenderMode,
         boolean isEnabled,
         Integer sortOrder
 ) {

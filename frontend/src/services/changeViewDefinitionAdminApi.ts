@@ -9,6 +9,7 @@ export interface ChangeViewDefinitionListItem {
   scenarioTypeCode: string;
   templateKey: string;
   displayName: string;
+  renderMode: string | null;
   version: number;
   isActive: boolean;
   createdAt: string;

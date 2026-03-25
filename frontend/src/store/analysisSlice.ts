@@ -1,5 +1,5 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import type { ScenarioTypeData, DirectChangesData, SummaryCardsData } from './scenariosSlice';
+import type { ScenarioTypeData, DirectChangesData, SummaryCardsData, DirectChangesRuntimeResponse } from './scenariosSlice';
 import type { ImpactReportSummaryFe, ImpactReportDetailFe, ReportDetailState } from '../types/renderedReport';
 import type { RootState } from './store';
 
@@ -17,6 +17,11 @@ export interface AnalysisState {
   directChanges: DirectChangesData | null;
   directChangesLoading: boolean;
   directChangesError: string | null;
+
+  // Direct Changes Delta data (DELTA_BY_UNIQUE_ID render mode)
+  directChangesDeltaData: DirectChangesRuntimeResponse | null;
+  directChangesDeltaLoading: boolean;
+  directChangesDeltaError: string | null;
 
   // Header/metadata loading
   headerLoading: boolean;
@@ -43,6 +48,9 @@ const initialState: AnalysisState = {
   directChanges: null,
   directChangesLoading: false,
   directChangesError: null,
+  directChangesDeltaData: null,
+  directChangesDeltaLoading: false,
+  directChangesDeltaError: null,
   headerLoading: false,
   headerError: null,
   reportSummaries: null,
@@ -63,6 +71,9 @@ const analysisSlice = createSlice({
       state.directChangesLoading = true;
       state.directChangesError = null;
       state.directChanges = null;
+      state.directChangesDeltaLoading = true;
+      state.directChangesDeltaData = null;
+      state.directChangesDeltaError = null;
       state.scenarioName = null;
       state.workflowState = null;
       state.scenarioType = null;
@@ -99,6 +110,14 @@ const analysisSlice = createSlice({
     fetchDirectChangesFailure(state, action: PayloadAction<string>) {
       state.directChangesError = action.payload;
       state.directChangesLoading = false;
+    },
+    fetchDirectChangesDeltaSuccess(state, action: PayloadAction<DirectChangesRuntimeResponse>) {
+      state.directChangesDeltaData = action.payload;
+      state.directChangesDeltaLoading = false;
+    },
+    fetchDirectChangesDeltaFailure(state, action: PayloadAction<string>) {
+      state.directChangesDeltaError = action.payload;
+      state.directChangesDeltaLoading = false;
     },
     fetchReportSummariesSuccess(state, action: PayloadAction<ImpactReportSummaryFe[]>) {
       state.reportSummaries = action.payload;
@@ -142,6 +161,8 @@ export const {
   fetchAnalysisHeaderFailure,
   fetchDirectChangesSuccess,
   fetchDirectChangesFailure,
+  fetchDirectChangesDeltaSuccess,
+  fetchDirectChangesDeltaFailure,
   fetchReportSummariesSuccess,
   fetchReportSummariesFailure,
   fetchReportDetailRequest,
@@ -155,6 +176,10 @@ export const {
 export const selectDirectChanges = (state: RootState) => state.analysis.directChanges;
 export const selectDirectChangesLoading = (state: RootState) => state.analysis.directChangesLoading;
 export const selectDirectChangesError = (state: RootState) => state.analysis.directChangesError;
+
+export const selectDirectChangesDeltaData = (state: RootState) => state.analysis.directChangesDeltaData;
+export const selectDirectChangesDeltaLoading = (state: RootState) => state.analysis.directChangesDeltaLoading;
+export const selectDirectChangesDeltaError = (state: RootState) => state.analysis.directChangesDeltaError;
 
 export const selectAnalysisHeader = (state: RootState) => ({
   scenarioId: state.analysis.scenarioId,
@@ -171,6 +196,6 @@ export const selectReportDetails = (state: RootState) => state.analysis.reportDe
 export const selectActiveTab = (state: RootState) => state.analysis.activeTab;
 
 export const selectAnalysisLoading = (state: RootState) =>
-  state.analysis.headerLoading || state.analysis.directChangesLoading || state.analysis.reportSummariesLoading;
+  state.analysis.headerLoading || state.analysis.directChangesLoading || state.analysis.directChangesDeltaLoading || state.analysis.reportSummariesLoading;
 
 export default analysisSlice.reducer;

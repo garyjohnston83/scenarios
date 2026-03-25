@@ -110,6 +110,7 @@ export const ScenarioTypeWorkspacePage: React.FC = () => {
           <ChangeViewDefinitionsTab
             scenarioTypeCode={selectedDetail.code}
             directChangesMode={selectedDetail.directChangesMode}
+            directChangesInternalRenderMode={selectedDetail.directChangesInternalRenderMode}
           />
         );
       case 'signoff-rules':

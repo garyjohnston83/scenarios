@@ -1,0 +1,75 @@
+/* ColumnDefinitionsEditor styles */
+
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.header {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 4px;
+}
+
+.title {
+  font-size: 13px;
+  font-weight: 600;
+  color: #242424;
+}
+
+.columnsTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.columnsTable th {
+  text-align: left;
+  padding: 6px 8px;
+  background: #fafafa;
+  border-bottom: 2px solid #e0e0e0;
+  font-size: 12px;
+  font-weight: 600;
+  color: #666;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.columnsTable td {
+  padding: 4px 6px;
+  border-bottom: 1px solid #f0f0f0;
+  vertical-align: top;
+}
+
+.fieldCell {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.columnActions {
+  display: flex;
+  flex-direction: row;
+  gap: 2px;
+  align-items: center;
+}
+
+.invalidInput {
+  border-color: #d13438 !important;
+}
+
+.validationError {
+  font-size: 11px;
+  color: #d13438;
+}
+
+.emptyState {
+  font-size: 13px;
+  color: #999;
+  padding: 12px 8px;
+  text-align: center;
+}

@@ -1,0 +1,76 @@
+/* DataTypeList styles -- matches SignoffPolicyEditorPanel rules table pattern */
+
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.rulesHeader {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.rulesTitle {
+  font-size: 13px;
+  font-weight: 600;
+  color: #242424;
+}
+
+.rulesTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.rulesTable th {
+  text-align: left;
+  padding: 6px 8px;
+  background: #fafafa;
+  border-bottom: 2px solid #e0e0e0;
+  font-size: 12px;
+  font-weight: 600;
+  color: #666;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.rulesTable td {
+  padding: 6px 8px;
+  border-bottom: 1px solid #f0f0f0;
+  vertical-align: middle;
+}
+
+.ruleRow {
+  cursor: pointer;
+  transition: background-color 0.1s ease;
+
+  &:hover {
+    background-color: #f5f5f5;
+  }
+}
+
+.ruleRowSelected {
+  background-color: #e8f0fe !important;
+
+  &:hover {
+    background-color: #d4e4fc !important;
+  }
+}
+
+.ruleActions {
+  display: flex;
+  flex-direction: row;
+  gap: 2px;
+  align-items: center;
+}
+
+.emptyState {
+  font-size: 13px;
+  color: #999;
+  padding: 12px 8px;
+  text-align: center;
+}

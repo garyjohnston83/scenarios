@@ -93,3 +93,15 @@ databaseChangeLog:
       file: db/changelog/changesets/046-add-column-widths-to-rendered-reports.yaml
   - include:
       file: db/changelog/changesets/047-add-name-to-data-template.yaml
+  - include:
+      file: db/changelog/changesets/048-add-direct-changes-internal-render-mode.yaml
+  - include:
+      file: db/changelog/changesets/049-seed-direct-changes-internal-render-mode.yaml
+  - include:
+      file: db/changelog/changesets/050-seed-delta-by-unique-id-change-view-definition.yaml
+  - include:
+      file: db/changelog/changesets/051-update-market-data-render-mode.yaml
+  - include:
+      file: db/changelog/changesets/052-update-market-data-direct-changes-mode.yaml
+  - include:
+      file: db/changelog/changesets/053-update-market-data-change-view-5-datatypes.yaml

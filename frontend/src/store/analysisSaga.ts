@@ -1,11 +1,13 @@
 import { call, put, takeLatest, takeEvery, all } from 'redux-saga/effects';
-import { fetchDirectChanges, fetchAnalysisHeader, fetchImpactReportSummaries, fetchImpactReportDetail } from '../services/scenarioApi';
+import { fetchDirectChanges, fetchAnalysisHeader, fetchImpactReportSummaries, fetchImpactReportDetail, getDirectChangesView } from '../services/scenarioApi';
 import {
   fetchAnalysisDataRequest,
   fetchAnalysisHeaderSuccess,
   fetchAnalysisHeaderFailure,
   fetchDirectChangesSuccess,
   fetchDirectChangesFailure,
+  fetchDirectChangesDeltaSuccess,
+  fetchDirectChangesDeltaFailure,
   fetchReportSummariesSuccess,
   fetchReportSummariesFailure,
   fetchReportDetailRequest,
@@ -18,10 +20,12 @@ function* fetchAnalysisHeaderSaga(scenarioId: string) {
   try {
     const result: Awaited<ReturnType<typeof fetchAnalysisHeader>> = yield call(fetchAnalysisHeader, scenarioId);
     yield put(fetchAnalysisHeaderSuccess(result));
+    return result;
   } catch (error: unknown) {
     const message =
       error instanceof Error ? error.message : 'Failed to fetch analysis header';
     yield put(fetchAnalysisHeaderFailure(message));
+    return null;
   }
 }
 
@@ -33,6 +37,17 @@ function* fetchDirectChangesSaga(scenarioId: string) {
     const message =
       error instanceof Error ? error.message : 'Failed to fetch direct changes';
     yield put(fetchDirectChangesFailure(message));
+  }
+}
+
+function* fetchDirectChangesDeltaSaga(scenarioId: string) {
+  try {
+    const result: Awaited<ReturnType<typeof getDirectChangesView>> = yield call(getDirectChangesView, scenarioId);
+    yield put(fetchDirectChangesDeltaSuccess(result));
+  } catch (error: unknown) {
+    const message =
+      error instanceof Error ? error.message : 'Failed to fetch direct changes delta';
+    yield put(fetchDirectChangesDeltaFailure(message));
   }
 }
 
@@ -79,10 +94,22 @@ function* fetchImpactReportsSaga(scenarioId: string) {
 }
 
 function* handleFetchAnalysisData(action: PayloadAction<string>) {
+  const scenarioId = action.payload;
+
+  // Step 1: Fetch header FIRST to determine the render mode for direct changes
+  const headerResult: Awaited<ReturnType<typeof fetchAnalysisHeader>> | null = yield call(fetchAnalysisHeaderSaga, scenarioId);
+
+  // Step 2: Read directChangesInternalRenderMode from the header result
+  const renderMode = headerResult?.scenarioType?.directChangesInternalRenderMode;
+
+  // Step 3: Branch direct changes fetch based on render mode, run in parallel with report summaries
+  const directChangesFetch = renderMode === 'DELTA_BY_UNIQUE_ID'
+    ? call(fetchDirectChangesDeltaSaga, scenarioId)
+    : call(fetchDirectChangesSaga, scenarioId);
+
   yield all([
-    call(fetchAnalysisHeaderSaga, action.payload),
-    call(fetchDirectChangesSaga, action.payload),
-    call(fetchImpactReportsSaga, action.payload),
+    directChangesFetch,
+    call(fetchImpactReportsSaga, scenarioId),
   ]);
 }
 

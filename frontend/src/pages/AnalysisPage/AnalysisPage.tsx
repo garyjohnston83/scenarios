@@ -27,6 +27,7 @@ import { normalizeMode } from '../../utils/normalizeMode';
 import { AnalysisHeader } from '../../components/AnalysisHeader';
 import { AnalysisTabs } from '../../components/AnalysisTabs';
 import { DirectChangesAnalysisView } from '../../components/DirectChangesAnalysisView';
+import { DirectChangesDeltaView } from '../../components/DirectChangesDeltaView';
 import { ExternalRedirectView } from '../../components/ExternalRedirectView';
 import { ReportRenderer } from '../../components/ReportRenderer';
 import styles from './AnalysisPage.module.scss';
@@ -258,6 +259,9 @@ export const AnalysisPage: React.FC = () => {
     }
 
     if (activeTab === 'direct-changes') {
+      if (scenarioType?.directChangesInternalRenderMode === 'DELTA_BY_UNIQUE_ID') {
+        return <DirectChangesDeltaView />;
+      }
       return <DirectChangesAnalysisView />;
     }
 

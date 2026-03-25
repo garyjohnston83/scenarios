@@ -13,6 +13,7 @@ public record ChangeViewDefinitionDetailDto(
         LocalDateTime createdAt,
         LocalDateTime updatedAt,
         String definition,
-        String schemaVersion
+        String schemaVersion,
+        String renderMode
 ) {
 }

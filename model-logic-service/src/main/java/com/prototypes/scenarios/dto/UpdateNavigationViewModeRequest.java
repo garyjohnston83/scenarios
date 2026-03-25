@@ -4,6 +4,7 @@ public record UpdateNavigationViewModeRequest(
         String directChangesMode,
         String impactDataMode,
         String directChangesExternalUrlTemplate,
-        String impactExternalUrlTemplate
+        String impactExternalUrlTemplate,
+        String directChangesInternalRenderMode
 ) {
 }

@@ -22,10 +22,12 @@ import styles from './ChangeViewDefinitionListPanel.module.scss';
 
 interface ChangeViewDefinitionListPanelProps {
   scenarioTypeCode: string;
+  directChangesInternalRenderMode: string;
 }
 
 export const ChangeViewDefinitionListPanel: React.FC<ChangeViewDefinitionListPanelProps> = ({
   scenarioTypeCode,
+  directChangesInternalRenderMode,
 }) => {
   const dispatch = useAppDispatch();
   const definitions = useAppSelector(
@@ -203,6 +205,7 @@ export const ChangeViewDefinitionListPanel: React.FC<ChangeViewDefinitionListPan
         open={createDialogOpen}
         onDismiss={() => setCreateDialogOpen(false)}
         scenarioTypeCode={scenarioTypeCode}
+        directChangesInternalRenderMode={directChangesInternalRenderMode}
       />
 
       {/* Deactivate Confirmation Dialog */}

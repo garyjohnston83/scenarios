@@ -5,6 +5,10 @@ databaseChangeLog:
       dbms: postgresql
   - property:
       name: binaryColumnType
+      value: BYTEA
+      dbms: h2
+  - property:
+      name: binaryColumnType
       value: BLOB
 
   - changeSet:

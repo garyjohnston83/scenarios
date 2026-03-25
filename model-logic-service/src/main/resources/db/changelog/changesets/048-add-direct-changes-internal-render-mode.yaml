@@ -1,0 +1,11 @@
+databaseChangeLog:
+  - changeSet:
+      id: 048-add-direct-changes-internal-render-mode
+      author: scenarios-team
+      changes:
+        - addColumn:
+            tableName: scenario_type
+            columns:
+              - column:
+                  name: direct_changes_internal_render_mode
+                  type: varchar(50)

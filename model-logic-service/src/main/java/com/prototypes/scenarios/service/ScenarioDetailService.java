@@ -71,7 +71,7 @@ import java.util.UUID;
 public class ScenarioDetailService {
 
     private static final Logger logger = LoggerFactory.getLogger(ScenarioDetailService.class);
-    private static final String DEFAULT_DIRECT_CHANGES_LABEL = "Open in Market Data UI \u2192";
+    private static final String DEFAULT_DIRECT_CHANGES_LABEL = "View Changes \u2192";
     private static final String DEFAULT_IMPACT_REPORTS_LABEL = "View all impact reports \u2192";
 
     private static final int PROGRESS_TOTAL = 5;
@@ -314,8 +314,8 @@ public class ScenarioDetailService {
         link.setId(UUID.randomUUID());
         link.setScenario(scenario);
         link.setLinkType("DIRECT_CHANGES");
-        link.setLabel("Open in Market Data UI \u2192");
-        link.setUrl("https://market-data-ui.example.com/scenarios/" + scenarioId);
+        link.setLabel("View Changes \u2192");
+        link.setUrl("/scenarios/" + scenarioId + "/analysis?initial-tab=direct-changes");
         link.setCreatedAt(now);
         scenarioLinkRepository.save(link);
 
@@ -741,7 +741,8 @@ public class ScenarioDetailService {
                         scenarioType.getName(),
                         scenarioType.getIcon(),
                         scenarioType.getDirectChangesMode(),
-                        scenarioType.getImpactDataMode()
+                        scenarioType.getImpactDataMode(),
+                        scenarioType.getDirectChangesInternalRenderMode()
                 );
             }
 

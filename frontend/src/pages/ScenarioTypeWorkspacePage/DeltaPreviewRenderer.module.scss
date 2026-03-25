@@ -1,0 +1,31 @@
+.container {
+  padding: 8px 0;
+}
+
+.sectionWrapper {
+  margin-bottom: 4px;
+}
+
+.stateToggleGroup {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  background-color: #f5f5f5;
+  border-radius: 4px;
+  margin-bottom: 2px;
+}
+
+.toggleLabel {
+  font-size: 11px;
+  color: #666;
+  margin-right: 4px;
+  white-space: nowrap;
+}
+
+.toggleButton {
+  min-width: auto;
+  font-size: 11px;
+  padding: 2px 8px;
+  height: 24px;
+}

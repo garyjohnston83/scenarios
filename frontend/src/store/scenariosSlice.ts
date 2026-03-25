@@ -17,6 +17,7 @@ export interface ScenarioTypeData {
   icon: string;
   directChangesMode: DataMode;
   impactDataMode: DataMode;
+  directChangesInternalRenderMode?: string;
 }
 
 export interface ScenarioHeaderData {
@@ -118,6 +119,10 @@ export interface ImpactDataData {
   rows: GridRowData[];
   compareCta: CtaData | null;
 }
+
+// Direct Changes API response interfaces (DELTA_BY_UNIQUE_ID render mode)
+// Re-exported from shared types file for backward compatibility
+export type { DirectChangesColumnDefinitionFe, DirectChangesDataSectionFe, DirectChangesRuntimeResponse } from '../types/directChanges';
 
 export interface ScenarioDetail {
   id: string;

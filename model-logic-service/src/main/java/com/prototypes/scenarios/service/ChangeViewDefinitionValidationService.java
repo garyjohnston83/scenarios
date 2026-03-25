@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 @Service
@@ -17,6 +18,10 @@ public class ChangeViewDefinitionValidationService {
     private static final Pattern TEMPLATE_KEY_PATTERN = Pattern.compile("^[a-z0-9_]+$");
     private static final Pattern SCENARIO_TYPE_PATTERN = Pattern.compile("^[A-Z0-9_]+$");
     private static final Set<String> VALID_FORMAT_TOKENS = Set.of("positive", "warning", "negative", "neutral");
+    private static final Set<String> VALID_COLUMN_TYPES = Set.of("string", "number", "date", "boolean");
+    private static final Set<String> VALID_SORT_DIRECTIONS = Set.of("ASC", "DESC");
+    private static final Pattern PLACEHOLDER_PATTERN = Pattern.compile("\\$\\{([^}]+)}");
+    private static final Set<String> VALID_PLACEHOLDERS = Set.of("changedValuesCount", "changedEntitiesCount");
 
     private final ObjectMapper objectMapper;
 
@@ -35,7 +40,20 @@ public class ChangeViewDefinitionValidationService {
         List<String> errors = new ArrayList<>();
 
         validateTopLevelFields(root, errors);
-        validateSections(root, errors);
+
+        // Branch validation by renderMode
+        JsonNode renderModeNode = root.get("renderMode");
+        String renderMode = (renderModeNode != null && renderModeNode.isTextual() && !renderModeNode.asText().isEmpty())
+                ? renderModeNode.asText()
+                : null;
+
+        if (renderMode == null || "FULL_DATA_CHANGES".equals(renderMode)) {
+            validateSections(root, errors);
+        } else if ("DELTA_BY_UNIQUE_ID".equals(renderMode)) {
+            validateDeltaByUniqueIdDefinition(root, errors);
+        } else {
+            errors.add("renderMode: must be 'FULL_DATA_CHANGES' or 'DELTA_BY_UNIQUE_ID'");
+        }
 
         return errors;
     }
@@ -355,6 +373,167 @@ public class ChangeViewDefinitionValidationService {
                                 }
                             }
                         }
+                    }
+                }
+            }
+        }
+    }
+
+    // ========================================================================
+    // DELTA_BY_UNIQUE_ID validation
+    // ========================================================================
+
+    private void validateDeltaByUniqueIdDefinition(JsonNode root, List<String> errors) {
+        // Validate dataTypes array: required, non-empty
+        JsonNode dataTypesNode = root.get("dataTypes");
+        if (dataTypesNode == null || dataTypesNode.isNull()) {
+            errors.add("dataTypes: must be present");
+            return;
+        }
+        if (!dataTypesNode.isArray()) {
+            errors.add("dataTypes: must be a non-empty array");
+            return;
+        }
+        if (dataTypesNode.isEmpty()) {
+            errors.add("dataTypes: must be a non-empty array");
+            return;
+        }
+
+        Set<String> allDataTypeIds = new HashSet<>();
+
+        for (int i = 0; i < dataTypesNode.size(); i++) {
+            JsonNode dataType = dataTypesNode.get(i);
+            String prefix = "dataTypes[" + i + "]";
+
+            // Validate dataTypeId (required string, unique across template)
+            JsonNode dataTypeIdNode = dataType.get("dataTypeId");
+            String dataTypeId = null;
+            if (dataTypeIdNode == null || dataTypeIdNode.isNull() || !dataTypeIdNode.isTextual() || dataTypeIdNode.asText().isEmpty()) {
+                errors.add(prefix + ".dataTypeId: must be a non-empty string");
+            } else {
+                dataTypeId = dataTypeIdNode.asText();
+                if (!allDataTypeIds.add(dataTypeId)) {
+                    errors.add("Duplicate dataTypeId: '" + dataTypeId + "'");
+                }
+            }
+
+            // Validate dataTypeTitle (required string)
+            JsonNode dataTypeTitleNode = dataType.get("dataTypeTitle");
+            if (dataTypeTitleNode == null || dataTypeTitleNode.isNull() || !dataTypeTitleNode.isTextual() || dataTypeTitleNode.asText().isEmpty()) {
+                errors.add(prefix + ".dataTypeTitle: must be a non-empty string");
+            }
+
+            // Validate headerSummaryTextTemplate (optional string; only specific placeholders allowed)
+            JsonNode headerSummaryNode = dataType.get("headerSummaryTextTemplate");
+            if (headerSummaryNode != null && !headerSummaryNode.isNull()) {
+                if (!headerSummaryNode.isTextual()) {
+                    errors.add(prefix + ".headerSummaryTextTemplate: must be a string");
+                } else {
+                    String template = headerSummaryNode.asText();
+                    Matcher matcher = PLACEHOLDER_PATTERN.matcher(template);
+                    while (matcher.find()) {
+                        String placeholder = matcher.group(1);
+                        if (!VALID_PLACEHOLDERS.contains(placeholder)) {
+                            errors.add(prefix + ".headerSummaryTextTemplate: invalid placeholder '${" + placeholder + "}'; allowed placeholders are ${changedValuesCount} and ${changedEntitiesCount}");
+                        }
+                    }
+                }
+            }
+
+            // Validate columnDefinitions: non-empty array
+            JsonNode columnDefsNode = dataType.get("columnDefinitions");
+            Set<String> dataAttributes = new HashSet<>();
+            if (columnDefsNode == null || columnDefsNode.isNull()) {
+                errors.add(prefix + ".columnDefinitions: must be present");
+            } else if (!columnDefsNode.isArray()) {
+                errors.add(prefix + ".columnDefinitions: must be a non-empty array");
+            } else if (columnDefsNode.isEmpty()) {
+                errors.add(prefix + ".columnDefinitions: must be a non-empty array");
+            } else {
+                int entityIdCount = 0;
+
+                for (int j = 0; j < columnDefsNode.size(); j++) {
+                    JsonNode colDef = columnDefsNode.get(j);
+                    String colPrefix = prefix + ".columnDefinitions[" + j + "]";
+
+                    // Required: dataAttribute (unique within dataType)
+                    JsonNode dataAttributeNode = colDef.get("dataAttribute");
+                    if (dataAttributeNode == null || dataAttributeNode.isNull() || !dataAttributeNode.isTextual() || dataAttributeNode.asText().isEmpty()) {
+                        errors.add(colPrefix + ".dataAttribute: must be a non-empty string");
+                    } else {
+                        String dataAttribute = dataAttributeNode.asText();
+                        if (!dataAttributes.add(dataAttribute)) {
+                            errors.add(colPrefix + ".dataAttribute: duplicate value '" + dataAttribute + "' within dataType" + (dataTypeId != null ? " '" + dataTypeId + "'" : ""));
+                        }
+                    }
+
+                    // Required: type (one of: string, number, date, boolean)
+                    JsonNode typeNode = colDef.get("type");
+                    if (typeNode == null || typeNode.isNull() || !typeNode.isTextual() || typeNode.asText().isEmpty()) {
+                        errors.add(colPrefix + ".type: must be a non-empty string");
+                    } else if (!VALID_COLUMN_TYPES.contains(typeNode.asText())) {
+                        errors.add(colPrefix + ".type: must be one of [string, number, date, boolean], got '" + typeNode.asText() + "'");
+                    }
+
+                    // Required: display
+                    JsonNode displayNode = colDef.get("display");
+                    if (displayNode == null || displayNode.isNull() || !displayNode.isTextual() || displayNode.asText().isEmpty()) {
+                        errors.add(colPrefix + ".display: must be a non-empty string");
+                    }
+
+                    // Optional: isEntityId (boolean)
+                    JsonNode isEntityIdNode = colDef.get("isEntityId");
+                    if (isEntityIdNode != null && !isEntityIdNode.isNull()) {
+                        if (!isEntityIdNode.isBoolean()) {
+                            errors.add(colPrefix + ".isEntityId: must be a boolean");
+                        } else if (isEntityIdNode.asBoolean()) {
+                            entityIdCount++;
+                        }
+                    }
+                }
+
+                // Exactly one column with isEntityId: true per dataType
+                if (entityIdCount == 0) {
+                    errors.add(prefix + ".columnDefinitions: exactly one column must have isEntityId: true");
+                } else if (entityIdCount > 1) {
+                    errors.add(prefix + ".columnDefinitions: exactly one column must have isEntityId: true, found " + entityIdCount);
+                }
+            }
+
+            // Validate optional sortOrdering
+            JsonNode sortOrderingNode = dataType.get("sortOrdering");
+            if (sortOrderingNode != null && !sortOrderingNode.isNull()) {
+                if (!sortOrderingNode.isObject()) {
+                    errors.add(prefix + ".sortOrdering: must be an object");
+                } else {
+                    // dataAttribute must reference an existing columnDefinition
+                    JsonNode sortDataAttrNode = sortOrderingNode.get("dataAttribute");
+                    if (sortDataAttrNode == null || sortDataAttrNode.isNull() || !sortDataAttrNode.isTextual() || sortDataAttrNode.asText().isEmpty()) {
+                        errors.add(prefix + ".sortOrdering.dataAttribute: must be a non-empty string");
+                    } else if (!dataAttributes.contains(sortDataAttrNode.asText())) {
+                        errors.add(prefix + ".sortOrdering.dataAttribute: '" + sortDataAttrNode.asText() + "' does not reference an existing columnDefinition");
+                    }
+
+                    // direction must be ASC or DESC
+                    JsonNode directionNode = sortOrderingNode.get("direction");
+                    if (directionNode == null || directionNode.isNull() || !directionNode.isTextual() || directionNode.asText().isEmpty()) {
+                        errors.add(prefix + ".sortOrdering.direction: must be a non-empty string");
+                    } else if (!VALID_SORT_DIRECTIONS.contains(directionNode.asText())) {
+                        errors.add(prefix + ".sortOrdering.direction: must be 'ASC' or 'DESC', got '" + directionNode.asText() + "'");
+                    }
+                }
+            }
+
+            // Validate optional rowThreshold
+            JsonNode rowThresholdNode = dataType.get("rowThreshold");
+            if (rowThresholdNode != null && !rowThresholdNode.isNull()) {
+                if (!rowThresholdNode.isInt() || rowThresholdNode.asInt() < 1) {
+                    errors.add(prefix + ".rowThreshold: must be a positive integer");
+                } else {
+                    // overflowMessage required when rowThreshold is set
+                    JsonNode overflowMessageNode = dataType.get("overflowMessage");
+                    if (overflowMessageNode == null || overflowMessageNode.isNull() || !overflowMessageNode.isTextual() || overflowMessageNode.asText().isEmpty()) {
+                        errors.add(prefix + ".overflowMessage: required when rowThreshold is set");
                     }
                 }
             }

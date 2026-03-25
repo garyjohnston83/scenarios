@@ -1,5 +1,5 @@
 import axios from 'axios';
-import type { ScenarioListItem, ScenarioDetail, MessageData, CombineScenariosRequest, DirectChangesData, ScenarioTypeData, SummaryCardsData } from '../store/scenariosSlice';
+import type { ScenarioListItem, ScenarioDetail, MessageData, CombineScenariosRequest, DirectChangesData, ScenarioTypeData, SummaryCardsData, DirectChangesRuntimeResponse } from '../store/scenariosSlice';
 import type { ImpactReportSummaryFe, ImpactReportDetailFe } from '../types/renderedReport';
 import { CURRENT_USER_ID } from '../constants/user';
 
@@ -100,6 +100,15 @@ export async function fetchImpactReportDetail(
 ): Promise<ImpactReportDetailFe> {
   const response = await axios.get<ImpactReportDetailFe>(
     `${API_BASE_URL}/scenarios/${scenarioId}/impact-reports/${reportId}`
+  );
+  return response.data;
+}
+
+export async function getDirectChangesView(
+  scenarioId: string
+): Promise<DirectChangesRuntimeResponse> {
+  const response = await axios.get<DirectChangesRuntimeResponse>(
+    `${API_BASE_URL}/scenarios/${scenarioId}/direct-changes`
   );
   return response.data;
 }

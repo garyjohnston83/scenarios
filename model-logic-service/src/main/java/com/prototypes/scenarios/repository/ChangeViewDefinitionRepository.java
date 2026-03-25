@@ -21,4 +21,6 @@ public interface ChangeViewDefinitionRepository extends JpaRepository<ChangeView
 
     Optional<ChangeViewDefinition> findFirstByScenarioTypeCodeAndTemplateKeyAndIsActiveTrueOrderByVersionDesc(
             String scenarioTypeCode, String templateKey);
+
+    List<ChangeViewDefinition> findAllByScenarioTypeCodeAndIsActiveTrue(String scenarioTypeCode);
 }

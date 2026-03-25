@@ -1,0 +1,19 @@
+databaseChangeLog:
+  - changeSet:
+      id: 050-seed-delta-by-unique-id-change-view-definition
+      author: scenarios-team
+      changes:
+        - sql:
+            sql: |
+              INSERT INTO change_view_definition (id, scenario_type_code, template_key, version, definition, is_active, created_at, updated_at)
+              VALUES
+              (
+                'cccccccc-cccc-4ccc-8ccc-ccccccccc003',
+                'MARKET_DATA',
+                'market_data_delta_by_unique_id',
+                1,
+                '{"renderMode":"DELTA_BY_UNIQUE_ID","dataTypes":[{"dataTypeId":"timeSeriesValues","dataTypeTitle":"Time-Series Values","headerSummaryTextTemplate":"${changedValuesCount} Time-series Points have been changed for ${changedEntitiesCount} Time-Series","columnDefinitions":[{"dataAttribute":"tsName","type":"string","display":"Time-Series Name","isEntityId":true},{"dataAttribute":"date","type":"date","display":"Date"},{"dataAttribute":"cur","type":"number","display":"Current Value"},{"dataAttribute":"new","type":"number","display":"New Value"}],"sortOrdering":{"dataAttribute":"tsName","direction":"ASC"},"rowThreshold":50,"overflowMessage":"Too many time-series changes to display inline. Please use the external link to view all changes."},{"dataTypeId":"curvePoints","dataTypeTitle":"Curve Points","headerSummaryTextTemplate":"${changedValuesCount} Curve Points have been changed for ${changedEntitiesCount} Curves","columnDefinitions":[{"dataAttribute":"curveName","type":"string","display":"Curve Name","isEntityId":true},{"dataAttribute":"tenor","type":"string","display":"Tenor"},{"dataAttribute":"curValue","type":"number","display":"Current Value"},{"dataAttribute":"newValue","type":"number","display":"New Value"}],"sortOrdering":{"dataAttribute":"curveName","direction":"ASC"},"rowThreshold":50,"overflowMessage":"Too many curve point changes to display inline. Please use the external link to view all changes."}]}',
+                true,
+                NOW(),
+                NOW()
+              );

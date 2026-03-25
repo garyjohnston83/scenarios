@@ -19,6 +19,7 @@ interface FormState {
   impactDataMode: string;
   directChangesExternalUrlTemplate: string;
   impactExternalUrlTemplate: string;
+  directChangesInternalRenderMode: string;
 }
 
 export const NavigationViewModeTabContent: React.FC<NavigationViewModeTabContentProps> = ({ detail, saving }) => {
@@ -29,6 +30,7 @@ export const NavigationViewModeTabContent: React.FC<NavigationViewModeTabContent
     impactDataMode: detail.impactDataMode,
     directChangesExternalUrlTemplate: detail.directChangesExternalUrlTemplate ?? '',
     impactExternalUrlTemplate: detail.impactExternalUrlTemplate ?? '',
+    directChangesInternalRenderMode: detail.directChangesInternalRenderMode ?? 'FULL_DATA_CHANGES',
   });
 
   // Re-initialize form when detail prop changes (e.g., after save success)
@@ -38,6 +40,7 @@ export const NavigationViewModeTabContent: React.FC<NavigationViewModeTabContent
       impactDataMode: detail.impactDataMode,
       directChangesExternalUrlTemplate: detail.directChangesExternalUrlTemplate ?? '',
       impactExternalUrlTemplate: detail.impactExternalUrlTemplate ?? '',
+      directChangesInternalRenderMode: detail.directChangesInternalRenderMode ?? 'FULL_DATA_CHANGES',
     });
   }, [detail]);
 
@@ -50,6 +53,7 @@ export const NavigationViewModeTabContent: React.FC<NavigationViewModeTabContent
           impactDataMode: formState.impactDataMode,
           directChangesExternalUrlTemplate: formState.directChangesExternalUrlTemplate || null,
           impactExternalUrlTemplate: formState.impactExternalUrlTemplate || null,
+          directChangesInternalRenderMode: formState.directChangesInternalRenderMode || null,
         },
       })
     );
@@ -99,6 +103,28 @@ export const NavigationViewModeTabContent: React.FC<NavigationViewModeTabContent
           />
           <div className={styles.helperText}>
             {'Supported placeholders: ${scenarioId}, ${scenarioTypeCode} (active); ${scenarioName}, ${impactRunId} (reserved, future)'}
+          </div>
+        </div>
+      )}
+
+      {formState.directChangesMode === 'INTERNAL' && (
+        <div className={styles.dialogField} data-testid="direct-changes-internal-render-mode-field">
+          <label htmlFor="direct-changes-internal-render-mode" className={styles.dialogFieldLabel}>Internal Render Mode</label>
+          <Select
+            id="direct-changes-internal-render-mode"
+            value={formState.directChangesInternalRenderMode}
+            onChange={(_e, data) =>
+              setFormState((prev) => ({ ...prev, directChangesInternalRenderMode: data.value }))
+            }
+            data-testid="direct-changes-internal-render-mode-select"
+          >
+            <option value="FULL_DATA_CHANGES">FULL_DATA_CHANGES</option>
+            <option value="DELTA_BY_UNIQUE_ID">DELTA_BY_UNIQUE_ID</option>
+          </Select>
+          <div className={styles.helperText}>
+            {formState.directChangesInternalRenderMode === 'DELTA_BY_UNIQUE_ID'
+              ? 'Shows grouped change summaries per configured data type, with optional section-header external links if provided by the runtime payload.'
+              : 'Shows the uploaded change data in the existing full grid format.'}
           </div>
         </div>
       )}

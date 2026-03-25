@@ -259,15 +259,20 @@ public class ChangeViewDefinitionAdminService {
 
     /**
      * Maps a ChangeViewDefinition entity to ChangeViewDefinitionListItemDto.
-     * Extracts displayName from the definition JSON; falls back to templateKey on parse failure.
+     * Extracts displayName and renderMode from the definition JSON; falls back to templateKey on parse failure.
      */
     private ChangeViewDefinitionListItemDto toListItemDto(ChangeViewDefinition entity) {
         String displayName = entity.getTemplateKey(); // fallback
+        String renderMode = null;
         try {
             JsonNode root = objectMapper.readTree(entity.getDefinition());
             JsonNode displayNameNode = root.get("display_name");
             if (displayNameNode != null && displayNameNode.isTextual() && !displayNameNode.asText().isEmpty()) {
                 displayName = displayNameNode.asText();
+            }
+            JsonNode renderModeNode = root.get("renderMode");
+            if (renderModeNode != null && renderModeNode.isTextual() && !renderModeNode.asText().isEmpty()) {
+                renderMode = renderModeNode.asText();
             }
         } catch (JsonProcessingException e) {
             logger.warn("Failed to parse definition JSON for displayName extraction, falling back to templateKey: {}",
@@ -279,6 +284,7 @@ public class ChangeViewDefinitionAdminService {
                 entity.getScenarioTypeCode(),
                 entity.getTemplateKey(),
                 displayName,
+                renderMode,
                 entity.getVersion(),
                 entity.isActive(),
                 entity.getCreatedAt(),
@@ -288,11 +294,12 @@ public class ChangeViewDefinitionAdminService {
 
     /**
      * Maps a ChangeViewDefinition entity to ChangeViewDefinitionDetailDto.
-     * Extracts displayName and schemaVersion from the definition JSON.
+     * Extracts displayName, schemaVersion, and renderMode from the definition JSON.
      */
     private ChangeViewDefinitionDetailDto toDetailDto(ChangeViewDefinition entity) {
         String displayName = entity.getTemplateKey(); // fallback
         String schemaVersion = null;
+        String renderMode = null;
         try {
             JsonNode root = objectMapper.readTree(entity.getDefinition());
             JsonNode displayNameNode = root.get("display_name");
@@ -302,6 +309,10 @@ public class ChangeViewDefinitionAdminService {
             JsonNode schemaVersionNode = root.get("schema_version");
             if (schemaVersionNode != null && schemaVersionNode.isTextual()) {
                 schemaVersion = schemaVersionNode.asText();
+            }
+            JsonNode renderModeNode = root.get("renderMode");
+            if (renderModeNode != null && renderModeNode.isTextual() && !renderModeNode.asText().isEmpty()) {
+                renderMode = renderModeNode.asText();
             }
         } catch (JsonProcessingException e) {
             logger.warn("Failed to parse definition JSON for DTO extraction, falling back to templateKey: {}",
@@ -318,7 +329,8 @@ public class ChangeViewDefinitionAdminService {
                 entity.getCreatedAt(),
                 entity.getUpdatedAt(),
                 entity.getDefinition(),
-                schemaVersion
+                schemaVersion,
+                renderMode
         );
     }
 

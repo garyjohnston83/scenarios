@@ -1,6 +1,7 @@
 package com.prototypes.scenarios.controller;
 
 import com.prototypes.scenarios.dto.CombineScenariosRequestDto;
+import com.prototypes.scenarios.dto.DirectChangesRuntimeResponseDto;
 import com.prototypes.scenarios.dto.MessageDto;
 import com.prototypes.scenarios.dto.PostEventRequestDto;
 import com.prototypes.scenarios.dto.PostMessageRequestDto;
@@ -9,6 +10,7 @@ import com.prototypes.scenarios.dto.ScenarioListItemDto;
 import com.prototypes.scenarios.entity.Scenario;
 import com.prototypes.scenarios.entity.ScenarioSummary;
 import com.prototypes.scenarios.repository.ScenarioRepository;
+import com.prototypes.scenarios.service.DirectChangesRuntimeService;
 import com.prototypes.scenarios.service.ScenarioDetailService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -32,11 +34,14 @@ public class ScenarioController {
 
     private final ScenarioRepository scenarioRepository;
     private final ScenarioDetailService scenarioDetailService;
+    private final DirectChangesRuntimeService directChangesRuntimeService;
 
     public ScenarioController(ScenarioRepository scenarioRepository,
-                              ScenarioDetailService scenarioDetailService) {
+                              ScenarioDetailService scenarioDetailService,
+                              DirectChangesRuntimeService directChangesRuntimeService) {
         this.scenarioRepository = scenarioRepository;
         this.scenarioDetailService = scenarioDetailService;
+        this.directChangesRuntimeService = directChangesRuntimeService;
     }
 
     @GetMapping("/scenarios")
@@ -54,6 +59,12 @@ public class ScenarioController {
         return scenarioDetailService.getScenarioDetail(id, expandSections)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
+    }
+
+    @GetMapping("/scenarios/{id}/direct-changes")
+    public ResponseEntity<DirectChangesRuntimeResponseDto> getDirectChanges(
+            @PathVariable UUID id) {
+        return directChangesRuntimeService.getDirectChanges(id);
     }
 
     @PostMapping("/scenarios/{id}/messages")

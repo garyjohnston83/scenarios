@@ -9,6 +9,7 @@ export interface ScenarioTypeAdminDto {
   icon: string;
   directChangesMode: string;
   impactDataMode: string;
+  directChangesInternalRenderMode: string;
   isEnabled: boolean;
   sortOrder: number;
 }
@@ -21,6 +22,7 @@ export interface ScenarioTypeAdminDetailDto {
   impactDataMode: string;
   directChangesExternalUrlTemplate: string | null;
   impactExternalUrlTemplate: string | null;
+  directChangesInternalRenderMode: string;
   isEnabled: boolean;
   sortOrder: number;
   activeReportDefinitionCount: number;
@@ -41,6 +43,7 @@ export interface UpdateNavigationViewModeRequest {
   impactDataMode: string;
   directChangesExternalUrlTemplate: string | null;
   impactExternalUrlTemplate: string | null;
+  directChangesInternalRenderMode: string | null;
 }
 
 export interface ImpactExecutionSummaryDto {

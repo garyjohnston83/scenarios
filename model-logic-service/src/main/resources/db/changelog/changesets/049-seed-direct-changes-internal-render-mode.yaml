@@ -1,0 +1,9 @@
+databaseChangeLog:
+  - changeSet:
+      id: 049-seed-direct-changes-internal-render-mode
+      author: scenarios-team
+      changes:
+        - sql:
+            sql: |
+              UPDATE scenario_type
+              SET direct_changes_internal_render_mode = 'FULL_DATA_CHANGES';

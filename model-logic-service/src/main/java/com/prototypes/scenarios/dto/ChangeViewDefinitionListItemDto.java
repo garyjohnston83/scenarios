@@ -8,6 +8,7 @@ public record ChangeViewDefinitionListItemDto(
         String scenarioTypeCode,
         String templateKey,
         String displayName,
+        String renderMode,
         int version,
         boolean isActive,
         LocalDateTime createdAt,

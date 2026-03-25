@@ -1,0 +1,10 @@
+databaseChangeLog:
+  - changeSet:
+      id: 051-update-market-data-render-mode
+      author: scenarios-team
+      changes:
+        - sql:
+            sql: |
+              UPDATE scenario_type
+              SET direct_changes_internal_render_mode = 'DELTA_BY_UNIQUE_ID'
+              WHERE code = 'MARKET_DATA';

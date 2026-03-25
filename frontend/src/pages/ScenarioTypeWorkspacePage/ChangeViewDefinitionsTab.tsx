@@ -12,11 +12,13 @@ import styles from './ChangeViewDefinitionsTab.module.scss';
 interface ChangeViewDefinitionsTabProps {
   scenarioTypeCode: string;
   directChangesMode: string;
+  directChangesInternalRenderMode: string;
 }
 
 export const ChangeViewDefinitionsTab: React.FC<ChangeViewDefinitionsTabProps> = ({
   scenarioTypeCode,
   directChangesMode,
+  directChangesInternalRenderMode,
 }) => {
   const dispatch = useAppDispatch();
   const error = useAppSelector((state) => state.changeViewDefinitionAdmin.error);
@@ -64,6 +66,15 @@ export const ChangeViewDefinitionsTab: React.FC<ChangeViewDefinitionsTabProps> =
         <span className={`${styles.badge} ${styles.badgeDeployment}`}>
           Deployment Managed
         </span>
+        {directChangesMode === 'INTERNAL' && (
+          <span
+            className={`${styles.badge} ${styles.badgeDeployment}`}
+            data-testid="internal-render-mode-badge"
+            style={{ marginLeft: 8 }}
+          >
+            Internal Mode: {directChangesInternalRenderMode}
+          </span>
+        )}
       </div>
 
       {/* Warning banner when directChangesMode is EXTERNAL */}
@@ -107,7 +118,10 @@ export const ChangeViewDefinitionsTab: React.FC<ChangeViewDefinitionsTabProps> =
                 />
               </div>
             ) : (
-              <ChangeViewDefinitionListPanel scenarioTypeCode={scenarioTypeCode} />
+              <ChangeViewDefinitionListPanel
+                scenarioTypeCode={scenarioTypeCode}
+                directChangesInternalRenderMode={directChangesInternalRenderMode}
+              />
             )}
           </div>
         </Panel>

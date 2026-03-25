@@ -108,6 +108,17 @@ public class ScenarioTypeAdminService {
                     "URL template is required when mode is EXTERNAL");
         }
 
+        // Validate directChangesInternalRenderMode when directChangesMode is INTERNAL
+        String internalRenderMode = request.directChangesInternalRenderMode();
+        if ("INTERNAL".equals(request.directChangesMode())) {
+            if (internalRenderMode == null || internalRenderMode.isBlank()) {
+                internalRenderMode = "FULL_DATA_CHANGES";
+            } else if (!isValidInternalRenderMode(internalRenderMode)) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                        "Invalid value for directChangesInternalRenderMode: must be FULL_DATA_CHANGES or DELTA_BY_UNIQUE_ID");
+            }
+        }
+
         ScenarioType entity = scenarioTypeRepository.findById(code)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
                         "Scenario type not found: " + code));
@@ -116,6 +127,7 @@ public class ScenarioTypeAdminService {
         entity.setImpactDataMode(request.impactDataMode());
         entity.setDirectChangesExternalUrlTemplate(request.directChangesExternalUrlTemplate());
         entity.setImpactExternalUrlTemplate(request.impactExternalUrlTemplate());
+        entity.setDirectChangesInternalRenderMode(internalRenderMode);
 
         scenarioTypeRepository.save(entity);
 
@@ -149,6 +161,10 @@ public class ScenarioTypeAdminService {
         return "INTERNAL".equals(mode) || "EXTERNAL".equals(mode);
     }
 
+    private boolean isValidInternalRenderMode(String mode) {
+        return "FULL_DATA_CHANGES".equals(mode) || "DELTA_BY_UNIQUE_ID".equals(mode);
+    }
+
     private ScenarioTypeAdminDto toDto(ScenarioType entity) {
         return new ScenarioTypeAdminDto(
                 entity.getCode(),
@@ -156,6 +172,7 @@ public class ScenarioTypeAdminService {
                 entity.getIcon(),
                 entity.getDirectChangesMode(),
                 entity.getImpactDataMode(),
+                entity.getDirectChangesInternalRenderMode(),
                 entity.isEnabled(),
                 entity.getSortOrder()
         );
@@ -171,6 +188,7 @@ public class ScenarioTypeAdminService {
                 entity.getImpactDataMode(),
                 entity.getDirectChangesExternalUrlTemplate(),
                 entity.getImpactExternalUrlTemplate(),
+                entity.getDirectChangesInternalRenderMode(),
                 entity.isEnabled(),
                 entity.getSortOrder(),
                 reportCount,

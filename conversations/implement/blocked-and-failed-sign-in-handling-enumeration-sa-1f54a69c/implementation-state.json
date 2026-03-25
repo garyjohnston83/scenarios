@@ -1,0 +1,366 @@
+{
+  "schemaVersion": 1,
+  "sessionId": "8ca001ec-597f-4846-8e87-a2769fcd2426",
+  "latestPlannerResponse": {
+    "schemaVersion": "1.1",
+    "message": "Here’s my refined understanding and proposed defaults for enumeration-safe failed/blocked sign-in handling; if this aligns, I’m ready to proceed to spec.",
+    "featureUnderstanding": "Enhance Rivvy Portal sign-in to be enumeration-safe and enforce a temporary lockout for repeated failures while honoring disabled accounts. All unsuccessful attempts (invalid credentials, disabled, or currently locked) return a single generic outcome that never confirms whether an account exists or its state. Implement per-email failure counters with a rolling window, auto-lockout for a defined duration, counter reset on successful sign-in, structured security logging, and lightweight per-IP rate limiting on the sign-in endpoint. No changes to post-auth routing, password reset flows, or admin controls.",
+    "scope": {
+      "in": [
+        "Enumeration-safe handling of failed sign-ins via Portal API (ifc-mm2fbrdg-s9zlg) consumed by Login screen (/login)",
+        "Temporary account lockout after repeated failures; clear counters/lockout on successful sign-in",
+        "Honor UserAccount.status=disabled by preventing sign-in with the same generic response",
+        "Consistent API error schema/status for all unsuccessful attempts (invalid, disabled, locked) plus 429 for rate-limit breached",
+        "Lightweight per-IP rate limiting for the sign-in endpoint",
+        "Structured logging/telemetry for failed attempts, lockouts, and disabled-account attempts"
+      ],
+      "out": [
+        "Admin UI/API for enabling/disabling users (separate work item: Disabled account handling)",
+        "Password reset/forgot-password flows and their enumeration safety",
+        "SSO/OIDC customizations beyond honoring existing UserAccount fields",
+        "Post-auth routing and session lifetime (covered by sibling features)",
+        "MFA, CAPTCHA, device fingerprinting, or advanced bot mitigations",
+        "Database schema changes (use cache-based counters/lockouts; DB remains unchanged)"
+      ]
+    },
+    "assumptions": [
+      "Applies to native email+password sign-in handled by Rivvy Portal Services; SSO is out of scope.",
+      "Single generic end-user message for all unsuccessful attempts to prevent enumeration.",
+      "Default lockout policy: 5 failed attempts within 15 minutes triggers a 15-minute lockout; cleared on success.",
+      "Failure counters are tracked per normalized email across all IPs; rate limiting is per IP.",
+      "Default rate limit: 10 sign-in requests per IP per minute.",
+      "Counters/lockout state stored in a shared cache (e.g., Redis) with in-memory fallback for dev/test; no DB schema change.",
+      "Uniform timing and payload size for all failure paths to reduce timing-based enumeration signals.",
+      "Existing successful sign-in and session creation flow remains unchanged."
+    ],
+    "acceptanceCriteria": [
+      "Given an incorrect email or password, when I attempt to sign in on /login, then no session is created and a single generic error is shown; the API returns 401 with a standardized error body that does not reveal account existence.",
+      "Given a UserAccount with status=disabled, when I attempt to sign in with any password, then no session is created and the same generic error is shown; the API returns 401 with the same standardized error body.",
+      "Given 5 failed attempts within 15 minutes for the same normalized email, when the 5th failure occurs, then the account is locked for 15 minutes and any attempts during lockout return 401 with the same standardized error body.",
+      "Given a lockout has expired after 15 minutes, when I attempt to sign in again, then the system evaluates credentials normally.",
+      "Given a successful sign-in after prior failures or lockout, when authentication completes, then failure counters and any active temporary lockout for that email are cleared.",
+      "All failed attempts, lockout activations, and attempts during lockout are logged with timestamp, normalized email reference, source IP, correlation/request ID, and a reason code; no sensitive data such as passwords is logged.",
+      "The Login screen never displays messaging that distinguishes invalid credentials, disabled accounts, or lockouts; copy and visual treatment are identical for all unsuccessful attempts.",
+      "Rate limiting on the sign-in endpoint enforces 10 requests per IP per minute and returns 429 with a generic error body when exceeded."
+    ],
+    "openQuestions": [],
+    "plannerReadyForSpec": true,
+    "implementationPlan": {
+      "planTitle": "Implementation Plan for Blocked and failed sign-in handling (enumeration-safe, lockout, disabled)",
+      "increments": [
+        {
+          "id": "INC-1",
+          "partIndex": 1,
+          "title": "Enumeration-safe sign-in failures with lockout and disabled-account enforcement",
+          "intent": "- Backend (Rivvy Portal Services)\n  - Extend sign-in pipeline in Portal API (ifc-mm2fbrdg-s9zlg) controller/service to enforce enumeration-safe handling and lockout logic.\n  - Normalize email consistently (trim + lowercase) before all checks.\n  - Introduce a LockoutStore abstraction with two implementations:\n    - InMemoryLockoutStore (local/dev): key=email, values: { failureCount, firstFailureAt, lockoutUntil }, TTL-based maintenance.\n    - RedisLockoutStore (prod): Redis keys with TTL; auth:fail:{email} and auth:lock:{email}; atomic increments via INCR + EXPIRE.\n  - Lockout policy (config via env):\n    - RIVVY_AUTH_LOCKOUT_THRESHOLD=5\n    - RIVVY_AUTH_LOCKOUT_WINDOW_MIN=15\n    - RIVVY_AUTH_LOCKOUT_DURATION_MIN=15\n    - RIVVY_AUTH_STORE=memory|redis; REDIS_URL for redis.\n  - Rate limiting middleware on sign-in route:\n    - Per-IP sliding window or token bucket; default 10/min (RIVVY_AUTH_RATE_LIMIT_PER_MIN_PER_IP=10).\n    - On breach: 429 with generic error body (see Error schema).\n  - Failure/lockout flow:\n    1) Apply IP rate limit; if exceeded -> 429 generic.\n    2) Check lockout for normalized email; if active -> 401 generic; log reason=LOCKOUT_ACTIVE.\n    3) Fetch user by normalized email (case-insensitive). If found and status=disabled -> treat as failure (no reveal); increment failure counter; if threshold reached, set lockout and log LOCKOUT_ACTIVATED; return 401 generic.\n    4) If user missing OR password invalid -> increment failure counter; if threshold within window -> set lockout and log LOCKOUT_ACTIVATED; return 401 generic.\n    5) On success -> clear failure counter and lockout entries for email; update last_login_at; continue existing session issuance flow.\n  - Counter algorithm (rolling window):\n    - Per-email failure counter key with TTL=window; first failure sets EXPIRE; subsequent within TTL increment; if count >= threshold, set a lock key with TTL=duration and reset failures.\n  - Error schema and status:\n    - Unsuccessful attempts (invalid, disabled, locked): HTTP 401; body: { \"code\": \"AUTH_INVALID\", \"message\": \"Invalid email or password.\", \"correlationId\": \"<uuid>\" }.\n    - IP rate limit: HTTP 429; body: { \"code\": \"RATE_LIMITED\", \"message\": \"Too many attempts. Please try again later.\", \"correlationId\": \"<uuid>\" }.\n    - Apply response latency floor (e.g., 250–350ms jitter) uniformly across failure paths to reduce timing-based enumeration.\n  - Logging/telemetry (structured):\n    - On each attempt log { correlationId, normalizedEmailHash (SHA-256 of normalized email), sourceIp, outcome: SUCCESS|FAIL|LOCKOUT_ACTIVE|RATE_LIMITED|DISABLED_BLOCKED, reasonCode, attempts, lockoutUntil?, ts }.\n    - Never log passwords or raw email.\n  - Config & ops:\n    - Feature flag RIVVY_AUTH_LOCKOUT_ENABLED to quickly disable lockout if needed.\n    - Default to InMemoryLockoutStore when REDIS_URL not set; warn if multi-instance without Redis.\n\n- Frontend (Rivvy Portal UI, /login)\n  - Display a single generic error for 401 and 429; no differentiation among invalid/disabled/locked.\n  - Do not alter successful sign-in flow or post-auth routing.\n  - Preserve input normalization behavior (trim, case-insensitive compare handled server-side).\n\n- Tests\n  - Unit: LockoutStore (in-memory) counters, window, duration; threshold boundaries; TTL expiry.\n  - Service: invalid credentials, disabled account, lockout activation at Nth failure, attempts during lockout, counter clear on success.\n  - Middleware: rate limiting returns 429 and UI shows generic message.\n  - Contract: API returns standardized error schema for 401 and 429.\n\n- Security & QA\n  - Verify uniform error messaging and status codes; ensure no account existence is disclosed via payload, headers, or UI copy.\n  - Spot-check timing equalization across failure paths.\n  - Validate logs contain hashed emails and reason codes, no sensitive data.\n\n- Documentation\n  - Update developer docs: env vars, error schema, lockout policy, ops notes (use Redis in multi-instance), runbook for disabling lockout and interpreting logs.\n\n- Deployment/rollback\n  - Safe-by-default: fallback to in-memory if Redis missing; toggle RIVVY_AUTH_LOCKOUT_ENABLED=false to disable quickly.\n  - No DB migrations; no interface breaking changes.",
+          "dependencies": []
+        }
+      ]
+    }
+  },
+  "answers": {},
+  "questionStatuses": {},
+  "streamedQuestions": [],
+  "streamedAnswers": {},
+  "latestFolder": "2026-03-23-authentication-lockout-enumeration-safety",
+  "incrementStatuses": {
+    "INC-1": "COMPLETED"
+  },
+  "activeIncrementId": "INC-1",
+  "prefetchedSpecs": {},
+  "partStatuses": {
+    "1": "COMPLETED"
+  },
+  "activePartIndex": 1,
+  "currentJobId": null,
+  "partTranscripts": {},
+  "hasBootstrapped": true,
+  "hasPlan": true,
+  "hasTriggeredOrchestration": true,
+  "inputDraft": "",
+  "messages": [
+    {
+      "id": "msg-1774269181764-o6arhw9ou",
+      "role": "assistant",
+      "content": "Welcome! We’ll be working on “Blocked and failed sign-in handling (enumeration-safe, lockout, disabled).” I have the product backlog and full architecture context available. Are there any specific architecture entities or diagrams you’d like to highlight as most relevant to this story?",
+      "timestamp": "2026-03-23T12:33:01.764Z",
+      "persona": "Product Manager"
+    },
+    {
+      "id": "msg-1774269188423-iwayzgukf",
+      "role": "user",
+      "content": "I've provided the architectural context, please give me your understanding of this feature",
+      "timestamp": "2026-03-23T12:33:08.423Z"
+    },
+    {
+      "id": "msg-1774269421458-72gcm0njv",
+      "role": "assistant",
+      "content": "I couldn't parse the structured response. Please try again.",
+      "timestamp": "2026-03-23T12:37:01.458Z",
+      "persona": "Product Manager"
+    },
+    {
+      "id": "msg-1774269490832-pf5pkx0x7",
+      "role": "user",
+      "content": "try again",
+      "timestamp": "2026-03-23T12:38:10.832Z"
+    },
+    {
+      "id": "msg-1774269577826-do2fhlie4",
+      "role": "assistant",
+      "content": "Here’s my refined understanding and proposed defaults for enumeration-safe failed/blocked sign-in handling; if this aligns, I’m ready to proceed to spec.",
+      "timestamp": "2026-03-23T12:39:37.826Z",
+      "persona": "Product Manager"
+    },
+    {
+      "id": "msg-1774269577845-j3a2p2ibu",
+      "role": "assistant",
+      "content": "Okay, let's see if we need to break this work item into parts...",
+      "timestamp": "2026-03-23T12:39:37.845Z",
+      "persona": "Product Manager"
+    },
+    {
+      "id": "msg-1774269701108-o8ghdj5cd",
+      "role": "assistant",
+      "content": "This item is small enough, so let's get the software developer to review this.",
+      "timestamp": "2026-03-23T12:41:41.108Z",
+      "persona": "Product Manager"
+    },
+    {
+      "id": "msg-1774269701271-dzg9yet2l",
+      "role": "assistant",
+      "content": "Now let's get the Test Engineer to review this and define the test plan...",
+      "timestamp": "2026-03-23T12:41:41.271Z",
+      "persona": "Product Manager"
+    },
+    {
+      "id": "msg-1774269807126-eywxzg42c",
+      "role": "assistant",
+      "content": "Defined backend unit and frontend functional tests covering enumeration-safe failures, lockout policy, disabled accounts, logging, and per-IP rate limiting. Tests align with project strategy (JUnit/Mockito for backend, React Testing Library/MSW for UI) and map to all acceptance criteria.",
+      "timestamp": "2026-03-23T12:43:27.127Z",
+      "persona": "Test Engineer"
+    },
+    {
+      "id": "msg-1774270070074-08e1v9nnf",
+      "role": "user",
+      "content": "Q: Should UI copy for 429 be identical to 401 (single generic string), or may it show a specific but still generic rate-limit message? Current plan assumes identical treatment.\nA: generic 401\n\nQ: Do attempts during active lockout increment the failure counter (for telemetry) or leave it unchanged? Tests assume no increment.\nA: leave unchanged\n\nQ: Confirm precedence when both rate limit and lockout conditions apply: should middleware return 429 before evaluating lockout? Tests assume 429 precedence.\nA: correct assumption\n\nQ: Is the lockout feature flag (RIVVY_AUTH_LOCKOUT_ENABLED) part of MVP, and if turned off should counters still increment without ever setting a lock?\nA: no increment if turned off\n\nQ: What exact latency floor and jitter tolerance should be enforced for failure paths (e.g., 250–350 ms), and should success be exempt?\nA: 500ms\n\nQ: Should disabled-account attempts contribute to failure counters and potential lockout as currently planned?\nA: yes",
+      "timestamp": "2026-03-23T12:47:50.074Z"
+    },
+    {
+      "id": "msg-1774270115469-gpbbdte1v",
+      "role": "assistant",
+      "content": "Unit and functional tests defined for enumeration-safe failures, lockout, disabled accounts, structured logging, normalization, rate limiting, and timing floor. Tests reflect final decisions: 429 uses same UI copy as 401, no counter increments during lockout, 429 precedence, feature flag disables increments/locks, 500ms failure latency floor, and disabled attempts count toward lockout.\n\nI have 1 question for you to answer.",
+      "timestamp": "2026-03-23T12:48:35.469Z",
+      "persona": "Test Engineer"
+    },
+    {
+      "id": "msg-1774270204078-unmmvm7os",
+      "role": "user",
+      "content": "Q: Confirm the 500ms latency floor applies only to failure paths and that successful sign-ins remain exempt (no artificial delay).\nA: confirmed",
+      "timestamp": "2026-03-23T12:50:04.078Z"
+    },
+    {
+      "id": "msg-1774270239470-6qfsqp9rs",
+      "role": "assistant",
+      "content": "Updated test plan reflects final decisions: 429 uses same UI copy as 401, no counter increments during lockout, 429 takes precedence over lockout, feature flag disables both increments and locks, and a 500ms latency floor applies only to failure paths (success exempt).",
+      "timestamp": "2026-03-23T12:50:39.470Z",
+      "persona": "Test Engineer"
+    },
+    {
+      "id": "msg-1774270358429-voft3q7ad",
+      "role": "assistant",
+      "content": "Error: HTTP error: 503",
+      "timestamp": "2026-03-23T12:52:38.429Z",
+      "persona": "Software Developer"
+    },
+    {
+      "id": "msg-1774270363186-pq7v9s6ad",
+      "role": "assistant",
+      "content": "Error: HTTP error: 503",
+      "timestamp": "2026-03-23T12:52:43.186Z",
+      "persona": "Software Developer"
+    },
+    {
+      "id": "msg-1774270369681-liyl51rlf",
+      "role": "assistant",
+      "content": "Error: HTTP error: 503",
+      "timestamp": "2026-03-23T12:52:49.681Z",
+      "persona": "Software Developer"
+    },
+    {
+      "id": "msg-1774270789007-pqbz1dhyp",
+      "role": "user",
+      "content": "1. Correct 2. Correct and nothing else 3. you decide exact sensible wording 4. Seems sensible 5. yes 500ms 6. generic error body 7. yes, locate and modify this existing endpoint.  Created whatever else you need 8. Stick to what is in and out of scope as per spec 9. Check the code base 10. none",
+      "timestamp": "2026-03-23T12:59:49.007Z"
+    },
+    {
+      "id": "msg-1774270979496-um06l2rx2",
+      "role": "assistant",
+      "content": "Okay, I'll start implementing the code change now. Speak to you soon!",
+      "timestamp": "2026-03-23T13:02:59.496Z",
+      "persona": "Software Developer"
+    },
+    {
+      "id": "msg-1774272884224-6txjvdw9i",
+      "role": "assistant",
+      "content": "Part 1 implementation completed successfully.",
+      "timestamp": "2026-03-23T13:34:44.224Z",
+      "persona": "Software Developer"
+    }
+  ],
+  "latestTestPlannerResponse": {
+    "schemaVersion": "1.0",
+    "message": "Updated test plan reflects final decisions: 429 uses same UI copy as 401, no counter increments during lockout, 429 takes precedence over lockout, feature flag disables both increments and locks, and a 500ms latency floor applies only to failure paths (success exempt).",
+    "testPlan": [
+      {
+        "title": "Given invalid credentials When sign-in attempted Then return 401 AUTH_INVALID and increment failure counter",
+        "description": "Backend unit (AuthService): for unknown email or wrong password, assert HTTP 401 with {code: AUTH_INVALID, message: generic, correlationId present}; verify per-email counter increments and no session issuance occurs.",
+        "type": "unit"
+      },
+      {
+        "title": "Given disabled account When sign-in attempted Then return 401 AUTH_INVALID and increment counter",
+        "description": "Backend unit (AuthService): for user status=disabled, assert 401 AUTH_INVALID with standardized body and correlationId; ensure no session is issued and per-email failure counter increments (contributes to lockout).",
+        "type": "unit"
+      },
+      {
+        "title": "Given disabled account failures When repeated Then they contribute to threshold and trigger lockout",
+        "description": "Backend unit (AuthService + LockoutStore): perform a mix of failures including disabled-account attempts to reach 5 within 15 minutes; assert lockout is activated (lock key with 15-min TTL) and 5th response is 401 AUTH_INVALID.",
+        "type": "unit"
+      },
+      {
+        "title": "Given 5 failures within 15 minutes When 5th failure occurs Then activate 15-minute lockout and return 401",
+        "description": "Backend unit (AuthService + InMemoryLockoutStore): simulate 5 failed attempts within a 15-minute window; assert lock key is created with ~15-minute TTL and response on 5th is 401 AUTH_INVALID; verify log includes reason LOCKOUT_ACTIVATED.",
+        "type": "unit"
+      },
+      {
+        "title": "Given active lockout When sign-in attempted Then short-circuit with 401 and do not increment counters",
+        "description": "Backend unit (AuthService): with an existing lockout for the normalized email, ensure password verification is not invoked, response is 401 AUTH_INVALID, and failure counter remains unchanged; log outcome LOCKOUT_ACTIVE.",
+        "type": "unit"
+      },
+      {
+        "title": "Given lockout expired When valid credentials provided Then authenticate and clear all lockout state",
+        "description": "Backend unit (AuthService + fake clock): after lockout TTL elapses, a valid sign-in succeeds and both the lock key and failure counter for that email are removed.",
+        "type": "unit"
+      },
+      {
+        "title": "Given prior failures When a successful sign-in completes Then clear failure counter and any lockout",
+        "description": "Backend unit (AuthService): after several failed attempts (no lockout), a successful sign-in clears the per-email failure counter and any residual lockout keys so subsequent attempts are unaffected.",
+        "type": "unit"
+      },
+      {
+        "title": "Given failures spread beyond 15-minute window When attempts made Then lockout does not trigger",
+        "description": "Backend unit (LockoutStore + fake clock): perform N-1 failures, advance clock past the window TTL, then fail again; verify the earlier failures roll off and no lockout occurs.",
+        "type": "unit"
+      },
+      {
+        "title": "Given mixed IPs for same email When failures occur Then counters aggregate per normalized email",
+        "description": "Backend unit (AuthService): generate failures from two different IPs against the same normalized email; verify the unified per-email counter reaches threshold and triggers lockout on the 5th failure.",
+        "type": "unit"
+      },
+      {
+        "title": "Given request rate exceeds 10/min per IP When 11th request arrives Then return 429 RATE_LIMITED",
+        "description": "Backend unit (RateLimiter middleware): simulate 11 POST /login requests from one IP within 60 seconds; assert the 11th returns 429 with {code: RATE_LIMITED, message: generic, correlationId present} and AuthService is not invoked.",
+        "type": "unit"
+      },
+      {
+        "title": "Given both lockout and rate-limit conditions When request processed Then 429 takes precedence",
+        "description": "Backend unit (Pipeline order): with active lockout and exhausted IP quota, verify middleware returns 429 RATE_LIMITED before AuthService executes; no lockout checks or counters are touched for the rejected request.",
+        "type": "unit"
+      },
+      {
+        "title": "Given different failure reasons When response returned Then 401 body is standardized and indistinguishable",
+        "description": "Backend unit (AuthService): for invalid credentials, unknown email, disabled, and lockout, assert identical HTTP 401, code=AUTH_INVALID, identical user-facing message, and presence of correlationId; confirm no extra fields vary.",
+        "type": "unit"
+      },
+      {
+        "title": "Given rate-limited attempt When logged Then structured telemetry records RATE_LIMITED outcome",
+        "description": "Backend unit (Middleware logging): mock logger and exceed rate limit; assert log includes timestamp, sourceIp, correlationId, outcome=RATE_LIMITED, and excludes passwords or raw emails.",
+        "type": "unit"
+      },
+      {
+        "title": "Given unsuccessful attempts When logged Then hashed email is recorded and no sensitive data leaks",
+        "description": "Backend unit (Logging in AuthService): for invalid, disabled, and lockout outcomes, assert normalizedEmailHash (SHA-256), sourceIp, correlationId, reason code, attempts, and optional lockoutUntil are present; ensure raw email/password are not logged.",
+        "type": "unit"
+      },
+      {
+        "title": "Given email variants with case/whitespace When processed Then normalization unifies lookup and counters",
+        "description": "Backend unit (Normalizer + AuthService): submit ' Test@Example.COM ' and 'test@example.com' and verify same normalized value is used for lookup, counters, and email hash, aggregating attempts.",
+        "type": "unit"
+      },
+      {
+        "title": "Given lockout feature disabled When failures occur Then counters do not increment and no lockout is created",
+        "description": "Backend unit (Config): with RIVVY_AUTH_LOCKOUT_ENABLED=false, perform multiple failures; assert no failure counter increments, no lock keys are set, and responses are 401 AUTH_INVALID.",
+        "type": "unit"
+      },
+      {
+        "title": "Given failure timing equalization When failures occur Then latency floor is ≥500ms and success is not delayed",
+        "description": "Backend unit (TimingEqualizer + fake clock): validate invalid, disabled, and lockout responses each take at least 500ms; verify a successful sign-in is not artificially delayed by the timing floor.",
+        "type": "unit"
+      },
+      {
+        "title": "Given threshold reached When lockout is set Then rolling-window failure counter is reset",
+        "description": "Backend unit (LockoutStore): after activating lockout at threshold, verify the per-email failure counter is cleared/reset so post-lockout counting restarts cleanly.",
+        "type": "unit"
+      },
+      {
+        "title": "Given 401 AUTH_INVALID from API When user submits login Then UI shows a single generic error with fixed copy",
+        "description": "Frontend functional (React Testing Library + MSW): mock POST /login -> 401 {code: AUTH_INVALID}; verify a single generic error banner renders with the expected fixed copy and no differentiation or field-level hints.",
+        "type": "functional"
+      },
+      {
+        "title": "Given disabled-account 401 response When user submits login Then UI error matches invalid-credentials error exactly",
+        "description": "Frontend functional: mock 401 standardized body for a disabled user; ensure the error text and styling are identical to the invalid-credentials case.",
+        "type": "functional"
+      },
+      {
+        "title": "Given lockout 401 response When user submits login Then UI error matches other 401 failures exactly",
+        "description": "Frontend functional: mock 401 standardized body representing lockout; confirm the UI renders the same generic error message and style as other 401 cases.",
+        "type": "functional"
+      },
+      {
+        "title": "Given 429 RATE_LIMITED from API When user submits login Then UI displays the same generic copy as 401",
+        "description": "Frontend functional: mock POST /login -> 429 {code: RATE_LIMITED}; assert the rendered error text is exactly the same string as for 401 AUTH_INVALID and uses the same component/styling.",
+        "type": "functional"
+      },
+      {
+        "title": "Given prior UI error When subsequent login succeeds Then error clears and normal success flow proceeds",
+        "description": "Frontend functional: produce a 401 error, then mock a successful sign-in; assert the error banner is removed and the component triggers the existing success behavior (e.g., navigation/session callback).",
+        "type": "functional"
+      },
+      {
+        "title": "Given multiple 401 reasons across retries When user reattempts Then UI messaging remains constant",
+        "description": "Frontend functional: return 401 for invalid, then disabled, then lockout sequentially; verify identical error text and styling across all attempts without any distinguishing hints.",
+        "type": "functional"
+      },
+      {
+        "title": "Given rapid submissions exceed per-IP quota When 11th request is sent Then UI shows the same generic error as 401",
+        "description": "Frontend functional: simulate 11 rapid submissions via MSW; ensure the 11th is 429 and the UI displays the same generic error message and treatment as the 401 path.",
+        "type": "functional"
+      }
+    ],
+    "openQuestions": []
+  },
+  "hasTestPlan": true,
+  "teAnswers": {
+    "925df3dc-2577-420f-9dd7-004b3b6af72f": "generic 401",
+    "a431a9cc-76ff-43e0-b4ae-f2333627647f": "leave unchanged",
+    "2bb378e5-4a26-40aa-b5f3-22b78c327527": "correct assumption",
+    "155e450a-dc8e-4f6b-b210-b6468cf5a49e": "no increment if turned off",
+    "3a2cbb64-4982-4bfa-b465-2515be311482": "500ms",
+    "4743b3e2-7f94-4d3b-b69c-c3546c8f8497": "yes",
+    "224b3f5b-5684-47fa-bfa0-259d12644634": "confirmed"
+  },
+  "teQuestionStatuses": {
+    "925df3dc-2577-420f-9dd7-004b3b6af72f": "Answered",
+    "a431a9cc-76ff-43e0-b4ae-f2333627647f": "Answered",
+    "2bb378e5-4a26-40aa-b5f3-22b78c327527": "Answered",
+    "155e450a-dc8e-4f6b-b210-b6468cf5a49e": "Answered",
+    "3a2cbb64-4982-4bfa-b465-2515be311482": "Answered",
+    "4743b3e2-7f94-4d3b-b69c-c3546c8f8497": "Answered",
+    "224b3f5b-5684-47fa-bfa0-259d12644634": "Answered"
+  },
+  "specIntentTexts": {
+    "INC-1": "/shape-spec ## Feature Description\nEnhance Rivvy Portal sign-in to be enumeration-safe and enforce a temporary lockout for repeated failures while honoring disabled accounts. All unsuccessful attempts (invalid credentials, disabled, or currently locked) return a single generic outcome that never confirms whether an account exists or its state. Implement per-email failure counters with a rolling window, auto-lockout for a defined duration, counter reset on successful sign-in, structured security logging, and lightweight per-IP rate limiting on the sign-in endpoint. No changes to post-auth routing, password reset flows, or admin controls.\n\n## In Scope\n- Enumeration-safe handling of failed sign-ins via Portal API (ifc-mm2fbrdg-s9zlg) consumed by Login screen (/login)\n- Temporary account lockout after repeated failures; clear counters/lockout on successful sign-in\n- Honor UserAccount.status=disabled by preventing sign-in with the same generic response\n- Consistent API error schema/status for all unsuccessful attempts (invalid, disabled, locked) plus 429 for rate-limit breached\n- Lightweight per-IP rate limiting for the sign-in endpoint\n- Structured logging/telemetry for failed attempts, lockouts, and disabled-account attempts\n\n## Out of Scope\n- Admin UI/API for enabling/disabling users (separate work item: Disabled account handling)\n- Password reset/forgot-password flows and their enumeration safety\n- SSO/OIDC customizations beyond honoring existing UserAccount fields\n- Post-auth routing and session lifetime (covered by sibling features)\n- MFA, CAPTCHA, device fingerprinting, or advanced bot mitigations\n- Database schema changes (use cache-based counters/lockouts; DB remains unchanged)\n\n## Sibling Items (handled separately — do NOT implement these)\n- [COMPLETED] Sign in with valid credentials: As a user, I can successfully authenticate with a valid email and password, resulting in an authenticated session; post-authentication destination is handled by the role-based routing feature.\n\nAcceptance Criteria:\n- Given a valid, active user account with the correct email and password, when I submit the login form, then an authenticated session is established.\n- Given I sign in successfully without selecting Remember me, when I am inactive for 8 consecutive hours, then my session expires and I must sign in again.\n- Given I enter an email with leading or trailing whitespace, when I attempt to sign in, then the whitespace is ignored and the trimmed value is validated.\n- Given I enter an email using different letter casing than stored, when I attempt to sign in, then the comparison is case-insensitive and I can still sign in if the credentials are correct.\n- Post-authentication destination is handled by the Post-Login Role & Organization Routing feature and validated by its acceptance criteria.\n- [IN_PROGRESS] Disabled account handling\n\n## Assumptions\n- Applies to native email+password sign-in handled by Rivvy Portal Services; SSO is out of scope.\n- Single generic end-user message for all unsuccessful attempts to prevent enumeration.\n- Default lockout policy: 5 failed attempts within 15 minutes triggers a 15-minute lockout; cleared on success.\n- Failure counters are tracked per normalized email across all IPs; rate limiting is per IP.\n- Default rate limit: 10 sign-in requests per IP per minute.\n- Counters/lockout state stored in a shared cache (e.g., Redis) with in-memory fallback for dev/test; no DB schema change.\n- Uniform timing and payload size for all failure paths to reduce timing-based enumeration signals.\n- Existing successful sign-in and session creation flow remains unchanged.\n\n## Acceptance Criteria\n- Given an incorrect email or password, when I attempt to sign in on /login, then no session is created and a single generic error is shown; the API returns 401 with a standardized error body that does not reveal account existence.\n- Given a UserAccount with status=disabled, when I attempt to sign in with any password, then no session is created and the same generic error is shown; the API returns 401 with the same standardized error body.\n- Given 5 failed attempts within 15 minutes for the same normalized email, when the 5th failure occurs, then the account is locked for 15 minutes and any attempts during lockout return 401 with the same standardized error body.\n- Given a lockout has expired after 15 minutes, when I attempt to sign in again, then the system evaluates credentials normally.\n- Given a successful sign-in after prior failures or lockout, when authentication completes, then failure counters and any active temporary lockout for that email are cleared.\n- All failed attempts, lockout activations, and attempts during lockout are logged with timestamp, normalized email reference, source IP, correlation/request ID, and a reason code; no sensitive data such as passwords is logged.\n- The Login screen never displays messaging that distinguishes invalid credentials, disabled accounts, or lockouts; copy and visual treatment are identical for all unsuccessful attempts.\n- Rate limiting on the sign-in endpoint enforces 10 requests per IP per minute and returns 429 with a generic error body when exceeded.\n\n# Architecture Meta-Model Reference\r\n\r\nThis section describes the entity types and relationship types in the Architecture Meta-Model. Use this reference to understand the structure of the architecture model data that follows.\r\n\r\n> **Note:** `ui_contracts` is excluded from the model data below. It is a deprecated duplicate of `interfaces` and is pending removal.\r\n\r\n## Entity Types\r\n\r\n### Application Architecture\r\n\r\n- **`applications`** -- Top-level deployable systems\r\n- **`app_components`** -- Human-defined grouping of service types/tiers/layers within an application on a technical basis (e.g. \"Web Tier\", \"Persistence Tier\"), so that certain important things can be stated about this grouping e.g. \"our company uses React/TS for all frontends\" + if a project has 3 services whose parent app_component is \"UI Tier\", then those 3 deployed services should be React/TS according to company technical standards.\r\n- **`services`** -- Runtime components within an application\r\n- **`interfaces`** -- API boundaries exposed by services\r\n- **`endpoints`** -- Individual operations on an interface\r\n- **`application_points`** -- **Polymorphic wrapper (1:1 with a concrete entity)**. Every application_point row maps to exactly one concrete entity (application, app_component, service, or interface). This mechanism allows relationships like `data_movements` to flexibly reference any level of the application architecture as source/target. **AUTO-MANAGED by the backend -- the LLM must NEVER create these directly.**\r\n\r\n### Code-Level Entities\r\n\r\n- **`classes`** -- Code-level entities. E.g. if Java, it's a Java class. Used in UML \"Class diagrams\".\r\n- **`methods`** -- Code-level methods on classes. Used in \"Class diagrams\" and referenced in other diagrams e.g. a sequence diagram might show an internal calculation `calcMyNumbers(...)`.\r\n\r\n### Data Entities\r\n\r\n- **`logical_data_entities`** -- Conceptual data objects (DTOs), often representing the actual shape of data transferring between applications in APIs.\r\n- **`logical_data_attributes`** -- Fields on logical data entities (name, dataType, isPrimaryKey, isNullable).\r\n- **`physical_data_entities`** -- Persisted storage structures (database tables, collections, physical files).\r\n- **`physical_data_attributes`** -- Columns on physical data entities (name, dataType, isPrimaryKey, isNullable).\r\n- **`data_entity_points`** -- **Polymorphic wrapper (1:1 with a concrete entity)**. Every data_entity_point maps to exactly one logical or physical data entity. Allows relationships to flexibly reference either type. **AUTO-MANAGED by the backend -- the LLM must NEVER create these directly.**\r\n\r\n### Business Domain\r\n\r\n- **`business_users`** -- Actors/roles who use the system.\r\n- **`business_processes`** -- High-level business workflows.\r\n- **`process_activities`** -- Steps within a business process.\r\n- **`business_points`** -- **Polymorphic wrapper (1:1 with a concrete entity)**. Every business_point maps to either a `business_process` or an `activity`. Allows relationships to reference either a very high-level business process or a medium-to-high level business activity. **AUTO-MANAGED by the backend -- the LLM must NEVER create these directly.**\r\n- **`app_business_points`** -- **Super-polymorphic wrapper**. Allows the flexible choice of either an `application_point` or a `business_point` in a relationship. **AUTO-MANAGED by the backend -- the LLM must NEVER create these directly.**\r\n- **`interactions`** -- A flexible definition allowing you to define any kind of interaction that a user may have with `application_points` or `business_points` (hence the use of `app_business_points`). Architecturally loose by design.\r\n\r\n### State Machine\r\n\r\n- **`events`** -- Events in a state machine model.\r\n- **`states`** -- States in a state machine model.\r\n- **`state_transitions`** -- Transitions between states in a state machine.\r\n\r\n### Activity/Workflow\r\n\r\n- **`activities`** -- Steps in an activity/workflow diagram.\r\n- **`activity_flows`** -- Connections between activities in a workflow.\r\n- **`activity_partitions`** -- Swimlanes/groupings in activity diagrams.\r\n\r\n### UI Architecture\r\n\r\n- **`ui_screens`** -- Frontend pages/views. Key attributes: **`route`** (the URL path pattern this screen is served at, e.g. `/dashboard`, `/projects/:id/settings`), **`description`** (purpose and content of the screen). When the architecture model includes UI screens, their `route` attribute tells you the exact URL path for navigation.\r\n- **`ui_components`** -- Component/element within a screen (not a UI widget). What would be defined in multiple frontend frameworks in code in `src/components`. Components build on top of each other e.g. basic components are used in the definition of parent, more complex components. Key attributes: **`description`** (what the component renders/does).\r\n- **`ui_actions`** -- User-triggered or system-triggered actions in UI. Key attributes: **`description`** (what happens when the action fires), **`trigger`** (what initiates the action, e.g. button click, form submit).\r\n- **`ui_characteristics`** -- Business features / UX characteristics linked to services that are \"UI tier\" i.e. frontend UIs.\r\n\r\n### Business Logic & Packaging\r\n\r\n- **`business_logics`** -- Business rules/domain logic owned by a service.\r\n- **`package_sets`** -- A set of \"packages\" that allows someone to state their full src directory/package structure.\r\n- **`packages`** -- Code packaging (think Java Package, albeit this word is different in other languages e.g. Python Module).\r\n- **`package_set_default_rules`** -- Auto-resolution rules for package set selection.\r\n\r\n## Relationship Types\r\n\r\n- **`business_user_business_points`** -- Links business users to business points (polymorphic: business processes or activities).\r\n- **`application_point_business_points`** -- Links application points to business points.\r\n- **`logical_data_entity_relationships`** -- Links between logical data entities (e.g. FK-style references, associations).\r\n- **`logical_data_entity_physical_data_entities`** -- Maps logical entities to physical entities (logical<->physical mapping).\r\n- **`logical_data_attribute_physical_data_attributes`** -- Maps logical attributes to physical attributes.\r\n- **`data_movements`** -- Data flowing between application points, optionally referencing a data entity point or interface.\r\n- **`interface_logical_entities`** -- Links interfaces to the logical entities they expose.\r\n- **`ui_workflow_transitions`** -- Navigation/flow between UI screens.\r\n- **`application_point_business_logics`** -- Links application points to business logic rules.\r\n\r\n## Important Notes on Polymorphic Wrappers\r\n\r\nThe following entity types are **polymorphic wrappers** that are **automatically managed by the backend**. The LLM must **NEVER** create, update, or delete these entities directly. They are created and maintained automatically when their corresponding concrete entities are saved:\r\n\r\n1. **`application_points`** -- Auto-created for applications, app_components, services, and interfaces\r\n2. **`data_entity_points`** -- Auto-created for logical_data_entities and physical_data_entities\r\n3. **`business_points`** -- Auto-created for business_processes and activities\r\n4. **`app_business_points`** -- Auto-created to bridge application_points and business_points\r\n\n\n## Architecture Context\nHere is the part of the architecture that directly applies to this spec and it must be reviewed as part of the spec above. It is expressed as a JSON payload about business, application, data, behavioural and/or UI architecture:\n\n{\"entities\":[{\"id\":1,\"name\":\"RS UI Tier\",\"type\":\"appComponents\",\"fields\":{\"applicationId\":\"app-mlxwja0d-7swkq\"}},{\"id\":2,\"name\":\"RS Service Tier\",\"type\":\"appComponents\",\"fields\":{\"applicationId\":\"app-mlxwja0d-7swkq\"}},{\"id\":3,\"name\":\"RS Persistence Tier\",\"type\":\"appComponents\",\"fields\":{\"applicationId\":\"app-mlxwja0d-7swkq\"}},{\"id\":4,\"name\":\"Rivvy Portal\",\"type\":\"applications\",\"fields\":{\"appType\":\"\",\"status\":\"\"}},{\"id\":5,\"name\":\"Role\",\"type\":\"logicalDataEntities\",\"fields\":{}},{\"id\":6,\"name\":\"BriefItem\",\"type\":\"logicalDataEntities\",\"fields\":{}},{\"id\":7,\"name\":\"OrgRoleAssignment\",\"type\":\"logicalDataEntities\",\"fields\":{}},{\"id\":8,\"name\":\"StorageObject\",\"type\":\"logicalDataEntities\",\"fields\":{}},{\"id\":9,\"name\":\"Video\",\"type\":\"logicalDataEntities\",\"fields\":{}},{\"id\":10,\"name\":\"BriefItemDeliverable\",\"type\":\"logicalDataEntities\",\"fields\":{}},{\"id\":11,\"name\":\"CommentMention\",\"type\":\"logicalDataEntities\",\"fields\":{}},{\"id\":12,\"name\":\"ApprovalRequest\",\"type\":\"logicalDataEntities\",\"fields\":{}},{\"id\":13,\"name\":\"VideoVersion\",\"type\":\"logicalDataEntities\",\"fields\":{}},{\"id\":14,\"name\":\"Project\",\"type\":\"logicalDataEntities\",\"fields\":{}},{\"id\":15,\"name\":\"BrandAssetVersion\",\"type\":\"logicalDataEntities\",\"fields\":{}},{\"id\":16,\"name\":\"ProducerAssignment\",\"type\":\"logicalDataEntities\",\"fields\":{}},{\"id\":17,\"name\":\"Organization\",\"type\":\"logicalDataEntities\",\"fields\":{}},{\"id\":18,\"name\":\"UserAccount\",\"type\":\"logicalDataEntities\",\"fields\":{}},{\"id\":19,\"name\":\"ReviewComment\",\"type\":\"logicalDataEntities\",\"fields\":{}},{\"id\":20,\"name\":\"Brief\",\"type\":\"logicalDataEntities\",\"fields\":{}},{\"id\":21,\"name\":\"ApprovalEvent\",\"type\":\"logicalDataEntities\",\"fields\":{}},{\"id\":22,\"name\":\"OrganizationMember\",\"type\":\"logicalDataEntities\",\"fields\":{}},{\"id\":23,\"name\":\"BrandAsset\",\"type\":\"logicalDataEntities\",\"fields\":{}},{\"id\":24,\"name\":\"organization\",\"type\":\"physicalDataEntities\",\"fields\":{\"database\":\"rivvy_portal\",\"physicalType\":\"Table\",\"attributes\":[{\"name\":\"id\",\"type\":\"UUID\",\"pk\":true,\"nullable\":false},{\"name\":\"name\",\"type\":\"TEXT\",\"pk\":false,\"nullable\":false},{\"name\":\"slug\",\"type\":\"TEXT\",\"pk\":false,\"nullable\":false},{\"name\":\"status\",\"type\":\"TEXT\",\"pk\":false,\"nullable\":false},{\"name\":\"created_at\",\"type\":\"TIMESTAMPTZ\",\"pk\":false,\"nullable\":false},{\"name\":\"updated_at\",\"type\":\"TIMESTAMPTZ\",\"pk\":false,\"nullable\":true}]}},{\"id\":25,\"name\":\"brand_asset_version\",\"type\":\"physicalDataEntities\",\"fields\":{\"database\":\"rivvy_portal\",\"physicalType\":\"Table\",\"attributes\":[{\"name\":\"id\",\"type\":\"UUID\",\"pk\":true,\"nullable\":false},{\"name\":\"asset_id\",\"type\":\"UUID\",\"pk\":false,\"nullable\":false},{\"name\":\"version_number\",\"type\":\"INT\",\"pk\":false,\"nullable\":false},{\"name\":\"storage_object_id\",\"type\":\"UUID\",\"pk\":false,\"nullable\":false},{\"name\":\"uploaded_by\",\"type\":\"UUID\",\"pk\":false,\"nullable\":false},{\"name\":\"notes\",\"type\":\"TEXT\",\"pk\":false,\"nullable\":true},{\"name\":\"created_at\",\"type\":\"TIMESTAMPTZ\",\"pk\":false,\"nullable\":false}]}},{\"id\":26,\"name\":\"project\",\"type\":\"physicalDataEntities\",\"fields\":{\"database\":\"rivvy_portal\",\"physicalType\":\"Table\",\"attributes\":[{\"name\":\"id\",\"type\":\"UUID\",\"pk\":true,\"nullable\":false},{\"name\":\"org_id\",\"type\":\"UUID\",\"pk\":false,\"nullable\":false},{\"name\":\"brief_id\",\"type\":\"UUID\",\"pk\":false,\"nullable\":true},{\"name\":\"key\",\"type\":\"TEXT\",\"pk\":false,\"nullable\":false},{\"name\":\"title\",\"type\":\"TEXT\",\"pk\":false,\"nullable\":false},{\"name\":\"status\",\"type\":\"TEXT\",\"pk\":false,\"nullable\":false},{\"name\":\"due_date\",\"type\":\"DATE\",\"pk\":false,\"nullable\":true},{\"name\":\"assigned_producer_user_id\",\"type\":\"UUID\",\"pk\":false,\"nullable\":true},{\"name\":\"created_by\",\"type\":\"UUID\",\"pk\":false,\"nullable\":false},{\"name\":\"created_at\",\"type\":\"TIMESTAMPTZ\",\"pk\":false,\"nullable\":false},{\"name\":\"updated_at\",\"type\":\"TIMESTAMPTZ\",\"pk\":false,\"nullable\":true}]}},{\"id\":27,\"name\":\"brand_asset\",\"type\":\"physicalDataEntities\",\"fields\":{\"database\":\"rivvy_portal\",\"physicalType\":\"Table\",\"attributes\":[{\"name\":\"id\",\"type\":\"UUID\",\"pk\":true,\"nullable\":false},{\"name\":\"org_id\",\"type\":\"UUID\",\"pk\":false,\"nullable\":false},{\"name\":\"project_id\",\"type\":\"UUID\",\"pk\":false,\"nullable\":true},{\"name\":\"name\",\"type\":\"TEXT\",\"pk\":false,\"nullable\":false},{\"name\":\"description\",\"type\":\"TEXT\",\"pk\":false,\"nullable\":true},{\"name\":\"asset_type\",\"type\":\"TEXT\",\"pk\":false,\"nullable\":false},{\"name\":\"tags\",\"type\":\"JSONB\",\"pk\":false,\"nullable\":false},{\"name\":\"visibility\",\"type\":\"TEXT\",\"pk\":false,\"nullable\":false},{\"name\":\"status\",\"type\":\"TEXT\",\"pk\":false,\"nullable\":false},{\"name\":\"created_by\",\"type\":\"UUID\",\"pk\":false,\"nullable\":false},{\"name\":\"created_at\",\"type\":\"TIMESTAMPTZ\",\"pk\":false,\"nullable\":false},{\"name\":\"updated_at\",\"type\":\"TIMESTAMPTZ\",\"pk\":false,\"nullable\":true}]}},{\"id\":28,\"name\":\"role\",\"type\":\"physicalDataEntities\",\"fields\":{\"database\":\"rivvy_portal\",\"physicalType\":\"Table\",\"attributes\":[{\"name\":\"id\",\"type\":\"UUID\",\"pk\":true,\"nullable\":false},{\"name\":\"code\",\"type\":\"TEXT\",\"pk\":false,\"nullable\":false},{\"name\":\"display_name\",\"type\":\"TEXT\",\"pk\":false,\"nullable\":true},{\"name\":\"description\",\"type\":\"TEXT\",\"pk\":false,\"nullable\":true}]}},{\"id\":29,\"name\":\"approval_event\",\"type\":\"physicalDataEntities\",\"fields\":{\"database\":\"rivvy_portal\",\"physicalType\":\"Table\",\"attributes\":[{\"name\":\"id\",\"type\":\"UUID\",\"pk\":true,\"nullable\":false},{\"name\":\"approval_request_id\",\"type\":\"UUID\",\"pk\":false,\"nullable\":false},{\"name\":\"actor_user_id\",\"type\":\"UUID\",\"pk\":false,\"nullable\":false},{\"name\":\"event_type\",\"type\":\"TEXT\",\"pk\":false,\"nullable\":false},{\"name\":\"note\",\"type\":\"TEXT\",\"pk\":false,\"nullable\":true},{\"name\":\"created_at\",\"type\":\"TIMESTAMPTZ\",\"pk\":false,\"nullable\":false}]}},{\"id\":30,\"name\":\"brief\",\"type\":\"physicalDataEntities\",\"fields\":{\"database\":\"rivvy_portal\",\"physicalType\":\"Table\",\"attributes\":[{\"name\":\"id\",\"type\":\"UUID\",\"pk\":true,\"nullable\":false},{\"name\":\"org_id\",\"type\":\"UUID\",\"pk\":false,\"nullable\":false},{\"name\":\"submitted_by\",\"type\":\"UUID\",\"pk\":false,\"nullable\":false},{\"name\":\"title\",\"type\":\"TEXT\",\"pk\":false,\"nullable\":false},{\"name\":\"description\",\"type\":\"TEXT\",\"pk\":false,\"nullable\":true},{\"name\":\"status\",\"type\":\"TEXT\",\"pk\":false,\"nullable\":false},{\"name\":\"priority\",\"type\":\"TEXT\",\"pk\":false,\"nullable\":false},{\"name\":\"desired_due_date\",\"type\":\"DATE\",\"pk\":false,\"nullable\":true},{\"name\":\"budget\",\"type\":\"NUMERIC(12,2)\",\"pk\":false,\"nullable\":true},{\"name\":\"creative_direction\",\"type\":\"TEXT\",\"pk\":false,\"nullable\":true},{\"name\":\"references\",\"type\":\"JSONB\",\"pk\":false,\"nullable\":false},{\"name\":\"metadata\",\"type\":\"JSONB\",\"pk\":false,\"nullable\":false},{\"name\":\"created_at\",\"type\":\"TIMESTAMPTZ\",\"pk\":false,\"nullable\":false},{\"name\":\"updated_at\",\"type\":\"TIMESTAMPTZ\",\"pk\":false,\"nullable\":true}]}},{\"id\":31,\"name\":\"review_comment\",\"type\":\"physicalDataEntities\",\"fields\":{\"database\":\"rivvy_portal\",\"physicalType\":\"Table\",\"attributes\":[{\"name\":\"id\",\"type\":\"UUID\",\"pk\":true,\"nullable\":false},{\"name\":\"video_version_id\",\"type\":\"UUID\",\"pk\":false,\"nullable\":false},{\"name\":\"author_user_id\",\"type\":\"UUID\",\"pk\":false,\"nullable\":false},{\"name\":\"parent_comment_id\",\"type\":\"UUID\",\"pk\":false,\"nullable\":true},{\"name\":\"time_ms\",\"type\":\"INT\",\"pk\":false,\"nullable\":true},{\"name\":\"text\",\"type\":\"TEXT\",\"pk\":false,\"nullable\":false},{\"name\":\"resolved_by\",\"type\":\"UUID\",\"pk\":false,\"nullable\":true},{\"name\":\"resolved_at\",\"type\":\"TIMESTAMPTZ\",\"pk\":false,\"nullable\":true},{\"name\":\"resolution_note\",\"type\":\"TEXT\",\"pk\":false,\"nullable\":true},{\"name\":\"is_deleted\",\"type\":\"BOOLEAN\",\"pk\":false,\"nullable\":false},{\"name\":\"created_at\",\"type\":\"TIMESTAMPTZ\",\"pk\":false,\"nullable\":false},{\"name\":\"updated_at\",\"type\":\"TIMESTAMPTZ\",\"pk\":false,\"nullable\":true}]}},{\"id\":32,\"name\":\"video_version\",\"type\":\"physicalDataEntities\",\"fields\":{\"database\":\"rivvy_portal\",\"physicalType\":\"Table\",\"attributes\":[{\"name\":\"id\",\"type\":\"UUID\",\"pk\":true,\"nullable\":false},{\"name\":\"video_id\",\"type\":\"UUID\",\"pk\":false,\"nullable\":false},{\"name\":\"version_number\",\"type\":\"INT\",\"pk\":false,\"nullable\":false},{\"name\":\"storage_object_id\",\"type\":\"UUID\",\"pk\":false,\"nullable\":false},{\"name\":\"uploaded_by\",\"type\":\"UUID\",\"pk\":false,\"nullable\":false},{\"name\":\"upload_status\",\"type\":\"TEXT\",\"pk\":false,\"nullable\":false},{\"name\":\"transcode_status\",\"type\":\"TEXT\",\"pk\":false,\"nullable\":false},{\"name\":\"is_current\",\"type\":\"BOOLEAN\",\"pk\":false,\"nullable\":false},{\"name\":\"is_approved\",\"type\":\"BOOLEAN\",\"pk\":false,\"nullable\":false},{\"name\":\"notes\",\"type\":\"TEXT\",\"pk\":false,\"nullable\":true},{\"name\":\"created_at\",\"type\":\"TIMESTAMPTZ\",\"pk\":false,\"nullable\":false}]}},{\"id\":33,\"name\":\"storage_object\",\"type\":\"physicalDataEntities\",\"fields\":{\"database\":\"rivvy_portal\",\"physicalType\":\"Table\",\"attributes\":[{\"name\":\"id\",\"type\":\"UUID\",\"pk\":true,\"nullable\":false},{\"name\":\"provider\",\"type\":\"TEXT\",\"pk\":false,\"nullable\":false},{\"name\":\"bucket\",\"type\":\"TEXT\",\"pk\":false,\"nullable\":false},{\"name\":\"object_key\",\"type\":\"TEXT\",\"pk\":false,\"nullable\":false},{\"name\":\"version_id\",\"type\":\"TEXT\",\"pk\":false,\"nullable\":true},{\"name\":\"region\",\"type\":\"TEXT\",\"pk\":false,\"nullable\":true},{\"name\":\"size_bytes\",\"type\":\"BIGINT\",\"pk\":false,\"nullable\":true},{\"name\":\"content_type\",\"type\":\"TEXT\",\"pk\":false,\"nullable\":true},{\"name\":\"etag\",\"type\":\"TEXT\",\"pk\":false,\"nullable\":true},{\"name\":\"sha256\",\"type\":\"TEXT\",\"pk\":false,\"nullable\":true},{\"name\":\"width\",\"type\":\"INT\",\"pk\":false,\"nullable\":true},{\"name\":\"height\",\"type\":\"INT\",\"pk\":false,\"nullable\":true},{\"name\":\"duration_ms\",\"type\":\"INT\",\"pk\":false,\"nullable\":true},{\"name\":\"created_by\",\"type\":\"UUID\",\"pk\":false,\"nullable\":false},{\"name\":\"created_at\",\"type\":\"TIMESTAMPTZ\",\"pk\":false,\"nullable\":false}]}},{\"id\":34,\"name\":\"brief_item\",\"type\":\"physicalDataEntities\",\"fields\":{\"database\":\"rivvy_portal\",\"physicalType\":\"Table\",\"attributes\":[{\"name\":\"id\",\"type\":\"UUID\",\"pk\":true,\"nullable\":false},{\"name\":\"brief_id\",\"type\":\"UUID\",\"pk\":false,\"nullable\":false},{\"name\":\"title\",\"type\":\"TEXT\",\"pk\":false,\"nullable\":false},{\"name\":\"description\",\"type\":\"TEXT\",\"pk\":false,\"nullable\":true},{\"name\":\"expected_duration_ms\",\"type\":\"INT\",\"pk\":false,\"nullable\":true},{\"name\":\"primary_aspect_ratio\",\"type\":\"TEXT\",\"pk\":false,\"nullable\":true},{\"name\":\"audience\",\"type\":\"TEXT\",\"pk\":false,\"nullable\":true},{\"name\":\"order_index\",\"type\":\"INT\",\"pk\":false,\"nullable\":false}]}},{\"id\":35,\"name\":\"comment_mention\",\"type\":\"physicalDataEntities\",\"fields\":{\"database\":\"rivvy_portal\",\"physicalType\":\"Table\",\"attributes\":[{\"name\":\"id\",\"type\":\"UUID\",\"pk\":true,\"nullable\":false},{\"name\":\"comment_id\",\"type\":\"UUID\",\"pk\":false,\"nullable\":false},{\"name\":\"mentioned_user_id\",\"type\":\"UUID\",\"pk\":false,\"nullable\":false}]}},{\"id\":36,\"name\":\"user_account\",\"type\":\"physicalDataEntities\",\"fields\":{\"database\":\"rivvy_portal\",\"physicalType\":\"Table\",\"attributes\":[{\"name\":\"id\",\"type\":\"UUID\",\"pk\":true,\"nullable\":false},{\"name\":\"email\",\"type\":\"CITEXT\",\"pk\":false,\"nullable\":false},{\"name\":\"first_name\",\"type\":\"TEXT\",\"pk\":false,\"nullable\":true},{\"name\":\"last_name\",\"type\":\"TEXT\",\"pk\":false,\"nullable\":true},{\"name\":\"auth_provider\",\"type\":\"TEXT\",\"pk\":false,\"nullable\":true},{\"name\":\"external_subject_id\",\"type\":\"TEXT\",\"pk\":false,\"nullable\":true},{\"name\":\"status\",\"type\":\"TEXT\",\"pk\":false,\"nullable\":false},{\"name\":\"last_login_at\",\"type\":\"TIMESTAMPTZ\",\"pk\":false,\"nullable\":true},{\"name\":\"default_org_id\",\"type\":\"UUID\",\"pk\":false,\"nullable\":true},{\"name\":\"created_at\",\"type\":\"TIMESTAMPTZ\",\"pk\":false,\"nullable\":false},{\"name\":\"updated_at\",\"type\":\"TIMESTAMPTZ\",\"pk\":false,\"nullable\":true}]}},{\"id\":37,\"name\":\"approval_request\",\"type\":\"physicalDataEntities\",\"fields\":{\"database\":\"rivvy_portal\",\"physicalType\":\"Table\",\"attributes\":[{\"name\":\"id\",\"type\":\"UUID\",\"pk\":true,\"nullable\":false},{\"name\":\"video_version_id\",\"type\":\"UUID\",\"pk\":false,\"nullable\":false},{\"name\":\"producer_assignment_id\",\"type\":\"UUID\",\"pk\":false,\"nullable\":false},{\"name\":\"approver_member_id\",\"type\":\"UUID\",\"pk\":false,\"nullable\":false},{\"name\":\"requested_by\",\"type\":\"UUID\",\"pk\":false,\"nullable\":true},{\"name\":\"status\",\"type\":\"TEXT\",\"pk\":false,\"nullable\":false},{\"name\":\"decision_note\",\"type\":\"TEXT\",\"pk\":false,\"nullable\":true},{\"name\":\"decided_at\",\"type\":\"TIMESTAMPTZ\",\"pk\":false,\"nullable\":true},{\"name\":\"created_at\",\"type\":\"TIMESTAMPTZ\",\"pk\":false,\"nullable\":false},{\"name\":\"updated_at\",\"type\":\"TIMESTAMPTZ\",\"pk\":false,\"nullable\":true}]}},{\"id\":38,\"name\":\"producer_assignment\",\"type\":\"physicalDataEntities\",\"fields\":{\"database\":\"rivvy_portal\",\"physicalType\":\"Table\",\"attributes\":[{\"name\":\"id\",\"type\":\"UUID\",\"pk\":true,\"nullable\":false},{\"name\":\"producer_member_id\",\"type\":\"UUID\",\"pk\":false,\"nullable\":false},{\"name\":\"client_org_id\",\"type\":\"UUID\",\"pk\":false,\"nullable\":false},{\"name\":\"assigned_by\",\"type\":\"UUID\",\"pk\":false,\"nullable\":true},{\"name\":\"assigned_at\",\"type\":\"TIMESTAMPTZ\",\"pk\":false,\"nullable\":false}]}},{\"id\":39,\"name\":\"video\",\"type\":\"physicalDataEntities\",\"fields\":{\"database\":\"rivvy_portal\",\"physicalType\":\"Table\",\"attributes\":[{\"name\":\"id\",\"type\":\"UUID\",\"pk\":true,\"nullable\":false},{\"name\":\"project_id\",\"type\":\"UUID\",\"pk\":false,\"nullable\":false},{\"name\":\"brief_item_deliverable_id\",\"type\":\"UUID\",\"pk\":false,\"nullable\":false},{\"name\":\"brief_item_id\",\"type\":\"UUID\",\"pk\":false,\"nullable\":true},{\"name\":\"title\",\"type\":\"TEXT\",\"pk\":false,\"nullable\":false},{\"name\":\"description\",\"type\":\"TEXT\",\"pk\":false,\"nullable\":true},{\"name\":\"order_index\",\"type\":\"INT\",\"pk\":false,\"nullable\":false},{\"name\":\"latest_approved_version_id\",\"type\":\"UUID\",\"pk\":false,\"nullable\":true},{\"name\":\"created_at\",\"type\":\"TIMESTAMPTZ\",\"pk\":false,\"nullable\":false},{\"name\":\"updated_at\",\"type\":\"TIMESTAMPTZ\",\"pk\":false,\"nullable\":true}]}},{\"id\":40,\"name\":\"org_role_assignment\",\"type\":\"physicalDataEntities\",\"fields\":{\"database\":\"rivvy_portal\",\"physicalType\":\"Table\",\"attributes\":[{\"name\":\"id\",\"type\":\"UUID\",\"pk\":true,\"nullable\":false},{\"name\":\"member_id\",\"type\":\"UUID\",\"pk\":false,\"nullable\":false},{\"name\":\"role_id\",\"type\":\"UUID\",\"pk\":false,\"nullable\":false}]}},{\"id\":41,\"name\":\"brief_item_deliverable\",\"type\":\"physicalDataEntities\",\"fields\":{\"database\":\"rivvy_portal\",\"physicalType\":\"Table\",\"attributes\":[{\"name\":\"id\",\"type\":\"UUID\",\"pk\":true,\"nullable\":false},{\"name\":\"brief_item_id\",\"type\":\"UUID\",\"pk\":false,\"nullable\":false},{\"name\":\"platform\",\"type\":\"TEXT\",\"pk\":false,\"nullable\":false},{\"name\":\"aspect_ratio\",\"type\":\"TEXT\",\"pk\":false,\"nullable\":false},{\"name\":\"max_duration_ms\",\"type\":\"INT\",\"pk\":false,\"nullable\":true},{\"name\":\"target_width\",\"type\":\"INT\",\"pk\":false,\"nullable\":true},{\"name\":\"target_height\",\"type\":\"INT\",\"pk\":false,\"nullable\":true},{\"name\":\"frame_rate_numerator\",\"type\":\"INT\",\"pk\":false,\"nullable\":true},{\"name\":\"frame_rate_denominator\",\"type\":\"INT\",\"pk\":false,\"nullable\":true},{\"name\":\"audio_required\",\"type\":\"BOOLEAN\",\"pk\":false,\"nullable\":false},{\"name\":\"captions_required\",\"type\":\"BOOLEAN\",\"pk\":false,\"nullable\":false},{\"name\":\"localization_required\",\"type\":\"BOOLEAN\",\"pk\":false,\"nullable\":false},{\"name\":\"locales\",\"type\":\"TEXT[]\",\"pk\":false,\"nullable\":true},{\"name\":\"deliverable_notes\",\"type\":\"TEXT\",\"pk\":false,\"nullable\":true},{\"name\":\"extras\",\"type\":\"JSONB\",\"pk\":false,\"nullable\":false},{\"name\":\"order_index\",\"type\":\"INT\",\"pk\":false,\"nullable\":false},{\"name\":\"is_locked\",\"type\":\"BOOLEAN\",\"pk\":false,\"nullable\":false},{\"name\":\"locked_at\",\"type\":\"TIMESTAMPTZ\",\"pk\":false,\"nullable\":true},{\"name\":\"locked_by\",\"type\":\"UUID\",\"pk\":false,\"nullable\":true}]}},{\"id\":42,\"name\":\"organization_member\",\"type\":\"physicalDataEntities\",\"fields\":{\"database\":\"rivvy_portal\",\"physicalType\":\"Table\",\"attributes\":[{\"name\":\"id\",\"type\":\"UUID\",\"pk\":true,\"nullable\":false},{\"name\":\"org_id\",\"type\":\"UUID\",\"pk\":false,\"nullable\":false},{\"name\":\"user_id\",\"type\":\"UUID\",\"pk\":false,\"nullable\":false},{\"name\":\"invited_by\",\"type\":\"UUID\",\"pk\":false,\"nullable\":true},{\"name\":\"joined_at\",\"type\":\"TIMESTAMPTZ\",\"pk\":false,\"nullable\":false},{\"name\":\"is_primary\",\"type\":\"BOOLEAN\",\"pk\":false,\"nullable\":false}]}},{\"id\":43,\"name\":\"Login\",\"type\":\"uiScreens\",\"fields\":{\"route\":\"/login\"}}],\"diagrams\":[],\"relationships\":[]}"
+  },
+  "shapeSpecSessionId": null
+}

@@ -7,7 +7,7 @@ module.exports = {
     '^.+\\.(js|jsx)$': 'babel-jest',
   },
   transformIgnorePatterns: [
-    'node_modules/(?!(react-resizable-panels)/)',
+    'node_modules/(?!(react-resizable-panels|@fluentui)/)',
   ],
   moduleNameMapper: {
     '\\.module\\.scss$': 'identity-obj-proxy',

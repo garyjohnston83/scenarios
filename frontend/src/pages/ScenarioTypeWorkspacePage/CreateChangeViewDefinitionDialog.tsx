@@ -19,6 +19,7 @@ interface CreateChangeViewDefinitionDialogProps {
   open: boolean;
   onDismiss: () => void;
   scenarioTypeCode: string;
+  directChangesInternalRenderMode: string;
 }
 
 const TEMPLATE_KEY_PATTERN = /^[a-z0-9_]+$/;
@@ -69,10 +70,58 @@ function buildSkeletonTemplate(scenarioTypeCode: string, templateKey: string): s
   return JSON.stringify(skeleton, null, 2);
 }
 
+function buildDeltaByUniqueIdSkeletonTemplate(scenarioTypeCode: string, templateKey: string): string {
+  const skeleton = {
+    schema_version: '1.0',
+    template_key: templateKey || 'new_template',
+    scenario_type: scenarioTypeCode,
+    display_name: 'New Delta View Template',
+    description: '',
+    metadata: {
+      author: '',
+      tags: [],
+    },
+    renderMode: 'DELTA_BY_UNIQUE_ID',
+    dataTypes: [
+      {
+        dataTypeId: 'dataType1',
+        dataTypeTitle: 'Data Type 1',
+        headerSummaryTextTemplate: '${changedValuesCount} values changed across ${changedEntitiesCount} entities',
+        columnDefinitions: [
+          {
+            dataAttribute: 'entityName',
+            type: 'string',
+            display: 'Entity Name',
+            isEntityId: true,
+          },
+          {
+            dataAttribute: 'currentValue',
+            type: 'number',
+            display: 'Current Value',
+          },
+          {
+            dataAttribute: 'newValue',
+            type: 'number',
+            display: 'New Value',
+          },
+        ],
+        sortOrdering: {
+          dataAttribute: 'entityName',
+          direction: 'ASC',
+        },
+        rowThreshold: 500,
+        overflowMessage: 'Too many changes to display inline - see external link.',
+      },
+    ],
+  };
+  return JSON.stringify(skeleton, null, 2);
+}
+
 export const CreateChangeViewDefinitionDialog: React.FC<CreateChangeViewDefinitionDialogProps> = ({
   open,
   onDismiss,
   scenarioTypeCode,
+  directChangesInternalRenderMode,
 }) => {
   const dispatch = useAppDispatch();
   const saving = useAppSelector((state) => state.changeViewDefinitionAdmin.saving);
@@ -86,10 +135,14 @@ export const CreateChangeViewDefinitionDialog: React.FC<CreateChangeViewDefiniti
   useEffect(() => {
     if (open) {
       setTemplateKey('');
-      setDefinitionJson(buildSkeletonTemplate(scenarioTypeCode, ''));
       setKeyError(null);
+      if (directChangesInternalRenderMode === 'DELTA_BY_UNIQUE_ID') {
+        setDefinitionJson(buildDeltaByUniqueIdSkeletonTemplate(scenarioTypeCode, ''));
+      } else {
+        setDefinitionJson(buildSkeletonTemplate(scenarioTypeCode, ''));
+      }
     }
-  }, [open, scenarioTypeCode]);
+  }, [open, scenarioTypeCode, directChangesInternalRenderMode]);
 
   // Update the template when template key changes
   const handleTemplateKeyChange = useCallback(

@@ -8,6 +8,7 @@ public record ScenarioTypeAdminDetailDto(
         String impactDataMode,
         String directChangesExternalUrlTemplate,
         String impactExternalUrlTemplate,
+        String directChangesInternalRenderMode,
         boolean isEnabled,
         Integer sortOrder,
         long activeReportDefinitionCount,

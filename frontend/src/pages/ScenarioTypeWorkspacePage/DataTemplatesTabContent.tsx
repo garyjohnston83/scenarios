@@ -285,7 +285,7 @@ export const DataTemplatesTabContent: React.FC<DataTemplatesTabContentProps> = (
                     value={uploadName}
                     onChange={(_e, data) => setUploadName(data.value)}
                     placeholder="Enter a name for this template"
-                    autoFocus
+
                   />
                 </div>
               </div>

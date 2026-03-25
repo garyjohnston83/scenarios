@@ -6,6 +6,7 @@ import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { fetchCvPreviewRequest } from '../../store/changeViewDefinitionAdminSlice';
 import { ReportRenderer } from '../../components/ReportRenderer';
 import { fetchChangeViewPreview } from '../../services/changeViewDefinitionAdminApi';
+import { DeltaPreviewRenderer } from './DeltaPreviewRenderer';
 import type {
   RenderedReport,
   ReportSection,
@@ -19,6 +20,10 @@ import type {
   TableRow,
   TableCell,
 } from '../../types/renderedReport';
+import type {
+  DirectChangesDataSectionFe,
+  DirectChangesColumnDefinitionFe,
+} from '../../types/directChanges';
 import styles from './ChangeViewPreviewPanel.module.scss';
 
 interface ChangeViewPreviewPanelProps {
@@ -170,6 +175,146 @@ function buildTableBlock(raw: Record<string, unknown>, order: number): TableBloc
 }
 
 // ---------------------------------------------------------------------------
+// Client-side DELTA_BY_UNIQUE_ID preview builder (Task 7.2)
+// ---------------------------------------------------------------------------
+
+/** Mock number values used for number-type columns. */
+const MOCK_NUMBERS = [123.45, 456.78, 789.01, 234.56, 567.89];
+
+/** Mock date values used for date-type columns. */
+const MOCK_DATES = ['2026-01-15', '2026-02-20', '2026-03-10', '2026-04-05', '2026-05-18'];
+
+/**
+ * Parse a DELTA_BY_UNIQUE_ID definition JSON and build an array of
+ * DirectChangesDataSectionFe with mock data for preview purposes.
+ *
+ * For each dataType, generates 3-5 mock rows with type-appropriate values:
+ * - String columns: "Value_1", "Value_2", etc.; entityId string columns: "Entity_1", etc.
+ * - Number columns: 123.45, 456.78, 789.01, etc.
+ * - Date columns: ISO date strings like "2026-01-15", etc.
+ * - Boolean columns: alternating true, false
+ *
+ * Fills headerSummaryTextTemplate placeholders with mock counts.
+ */
+export function buildDeltaPreview(jsonStr: string): DirectChangesDataSectionFe[] | null {
+  let def: Record<string, unknown>;
+  try {
+    def = JSON.parse(jsonStr);
+  } catch {
+    return null;
+  }
+
+  // Check renderMode
+  if (def.renderMode !== 'DELTA_BY_UNIQUE_ID') {
+    return null;
+  }
+
+  const dataTypes = def.dataTypes as Array<Record<string, unknown>> | undefined;
+  if (!dataTypes || !Array.isArray(dataTypes) || dataTypes.length === 0) {
+    return null;
+  }
+
+  const sections: DirectChangesDataSectionFe[] = [];
+
+  for (const dt of dataTypes) {
+    const dataTypeId = (dt.dataTypeId as string) || 'unknown';
+    const columnDefs = (dt.columnDefinitions as Array<Record<string, unknown>>) || [];
+    const headerTemplate = (dt.headerSummaryTextTemplate as string) || '';
+
+    // Build column definitions for the section
+    const columnDefinitions: DirectChangesColumnDefinitionFe[] = columnDefs.map((col) => ({
+      dataAttribute: (col.dataAttribute as string) || '',
+      type: (col.type as string) || 'string',
+      display: (col.display as string) || '',
+      isEntityId: col.isEntityId === true,
+    }));
+
+    // Generate 3-5 mock rows (using 4 as the default count)
+    const rowCount = 4;
+    const rows: Record<string, unknown>[] = [];
+
+    for (let rowIdx = 0; rowIdx < rowCount; rowIdx++) {
+      const row: Record<string, unknown> = {};
+      const valueCounter = rowIdx + 1;
+
+      for (const col of columnDefinitions) {
+        const colType = col.type;
+        const isEntityId = col.isEntityId === true;
+
+        switch (colType) {
+          case 'string':
+            if (isEntityId) {
+              row[col.dataAttribute] = `Entity_${valueCounter}`;
+            } else {
+              row[col.dataAttribute] = `Value_${valueCounter}`;
+            }
+            break;
+          case 'number':
+            row[col.dataAttribute] = MOCK_NUMBERS[rowIdx % MOCK_NUMBERS.length];
+            break;
+          case 'date':
+            row[col.dataAttribute] = MOCK_DATES[rowIdx % MOCK_DATES.length];
+            break;
+          case 'boolean':
+            row[col.dataAttribute] = rowIdx % 2 === 0;
+            break;
+          default:
+            row[col.dataAttribute] = `Value_${valueCounter}`;
+            break;
+        }
+      }
+
+      rows.push(row);
+    }
+
+    // Compute mock counts for header placeholder replacement
+    const changedValuesCount = rowCount;
+
+    // Count unique entity values (from the entityId column)
+    const entityIdCol = columnDefinitions.find((c) => c.isEntityId === true);
+    let changedEntitiesCount = rowCount;
+    if (entityIdCol) {
+      const uniqueEntities = new Set(rows.map((r) => String(r[entityIdCol.dataAttribute])));
+      changedEntitiesCount = uniqueEntities.size;
+    }
+
+    // Fill headerSummaryTextTemplate placeholders
+    let header = headerTemplate;
+    header = header.replace(/\$\{changedValuesCount\}/g, String(changedValuesCount));
+    header = header.replace(/\$\{changedEntitiesCount\}/g, String(changedEntitiesCount));
+
+    // If no template was provided, use a default header
+    if (!header) {
+      header = `${changedValuesCount} changes in ${dataTypeId}`;
+    }
+
+    sections.push({
+      dataType: dataTypeId,
+      header,
+      externalLink: null,
+      totalDataChanges: changedValuesCount,
+      renderState: 'ROWS',
+      columnDefinitions,
+      data: rows,
+    });
+  }
+
+  return sections;
+}
+
+// ---------------------------------------------------------------------------
+// Extract renderMode from definition JSON
+// ---------------------------------------------------------------------------
+function extractRenderMode(jsonStr: string): string | null {
+  try {
+    const parsed = JSON.parse(jsonStr);
+    return parsed.renderMode || null;
+  } catch {
+    return null;
+  }
+}
+
+// ---------------------------------------------------------------------------
 // Extract definition display name and version from JSON
 // ---------------------------------------------------------------------------
 function extractDefinitionMeta(jsonStr: string): { displayName: string; version: string } {
@@ -198,8 +343,11 @@ export const ChangeViewPreviewPanel: React.FC<ChangeViewPreviewPanelProps> = ({
   // Preview mode: structural (client-side) or data-driven (backend)
   const [previewMode, setPreviewMode] = useState<'structural' | 'data-driven'>('structural');
 
-  // The rendered report for display
+  // The rendered report for display (FULL_DATA_CHANGES mode)
   const [renderedReport, setRenderedReport] = useState<RenderedReport | null>(null);
+
+  // Delta preview sections (DELTA_BY_UNIQUE_ID mode)
+  const [deltaPreviewSections, setDeltaPreviewSections] = useState<DirectChangesDataSectionFe[] | null>(null);
 
   // Errors
   const [previewError, setPreviewError] = useState<string | null>(null);
@@ -211,13 +359,15 @@ export const ChangeViewPreviewPanel: React.FC<ChangeViewPreviewPanelProps> = ({
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // -----------------------------------------------------------------------
-  // Client-side structural preview (debounced)
+  // Client-side structural preview (debounced) -- handles both
+  // FULL_DATA_CHANGES and DELTA_BY_UNIQUE_ID modes (Task 7.5)
   // -----------------------------------------------------------------------
   useEffect(() => {
     if (previewMode !== 'structural') return;
 
     if (!definitionJson || definitionJson.trim() === '') {
       setRenderedReport(null);
+      setDeltaPreviewSections(null);
       setPreviewError(null);
       return;
     }
@@ -228,16 +378,37 @@ export const ChangeViewPreviewPanel: React.FC<ChangeViewPreviewPanelProps> = ({
 
     debounceRef.current = setTimeout(() => {
       try {
-        const report = buildStructuralPreview(definitionJson);
-        if (report) {
-          setRenderedReport(report);
-          setPreviewError(null);
+        // Detect renderMode to decide which preview builder to use
+        const renderMode = extractRenderMode(definitionJson);
+
+        if (renderMode === 'DELTA_BY_UNIQUE_ID') {
+          // Use delta preview builder
+          const sections = buildDeltaPreview(definitionJson);
+          if (sections && sections.length > 0) {
+            setDeltaPreviewSections(sections);
+            setRenderedReport(null);
+            setPreviewError(null);
+          } else {
+            setDeltaPreviewSections(null);
+            setRenderedReport(null);
+            setPreviewError('Unable to build delta preview from definition JSON.');
+          }
         } else {
-          setRenderedReport(null);
-          setPreviewError('Unable to parse definition JSON for preview.');
+          // Use structural preview builder (existing FULL_DATA_CHANGES path)
+          const report = buildStructuralPreview(definitionJson);
+          if (report) {
+            setRenderedReport(report);
+            setDeltaPreviewSections(null);
+            setPreviewError(null);
+          } else {
+            setRenderedReport(null);
+            setDeltaPreviewSections(null);
+            setPreviewError('Unable to parse definition JSON for preview.');
+          }
         }
       } catch (err) {
         setRenderedReport(null);
+        setDeltaPreviewSections(null);
         setPreviewError(
           err instanceof Error ? err.message : 'Error building structural preview.'
         );
@@ -322,16 +493,34 @@ export const ChangeViewPreviewPanel: React.FC<ChangeViewPreviewPanelProps> = ({
     if (previewMode === 'structural') {
       if (!definitionJson || definitionJson.trim() === '') return;
       try {
-        const report = buildStructuralPreview(definitionJson);
-        if (report) {
-          setRenderedReport(report);
-          setPreviewError(null);
+        const renderMode = extractRenderMode(definitionJson);
+
+        if (renderMode === 'DELTA_BY_UNIQUE_ID') {
+          const sections = buildDeltaPreview(definitionJson);
+          if (sections && sections.length > 0) {
+            setDeltaPreviewSections(sections);
+            setRenderedReport(null);
+            setPreviewError(null);
+          } else {
+            setDeltaPreviewSections(null);
+            setRenderedReport(null);
+            setPreviewError('Unable to build delta preview from definition JSON.');
+          }
         } else {
-          setRenderedReport(null);
-          setPreviewError('Unable to parse definition JSON for preview.');
+          const report = buildStructuralPreview(definitionJson);
+          if (report) {
+            setRenderedReport(report);
+            setDeltaPreviewSections(null);
+            setPreviewError(null);
+          } else {
+            setRenderedReport(null);
+            setDeltaPreviewSections(null);
+            setPreviewError('Unable to parse definition JSON for preview.');
+          }
         }
       } catch (err) {
         setRenderedReport(null);
+        setDeltaPreviewSections(null);
         setPreviewError(
           err instanceof Error ? err.message : 'Error building structural preview.'
         );
@@ -349,6 +538,7 @@ export const ChangeViewPreviewPanel: React.FC<ChangeViewPreviewPanelProps> = ({
     setPreviewMode(newMode);
     // Clear current state so it rebuilds on the new mode
     setRenderedReport(null);
+    setDeltaPreviewSections(null);
     setPreviewError(null);
   };
 
@@ -370,6 +560,7 @@ export const ChangeViewPreviewPanel: React.FC<ChangeViewPreviewPanelProps> = ({
 
   const meta = extractDefinitionMeta(definitionJson);
   const isLoading = backendLoading || previewing;
+  const hasContent = renderedReport || deltaPreviewSections;
 
   return (
     <div className={styles.container} data-testid="cv-preview-panel">
@@ -419,15 +610,22 @@ export const ChangeViewPreviewPanel: React.FC<ChangeViewPreviewPanelProps> = ({
         </div>
       )}
 
-      {/* Rendered report */}
-      {!isLoading && renderedReport && (
+      {/* Delta preview (DELTA_BY_UNIQUE_ID mode) */}
+      {!isLoading && deltaPreviewSections && (
+        <div className={styles.previewContent} data-testid="cv-preview-content">
+          <DeltaPreviewRenderer sections={deltaPreviewSections} />
+        </div>
+      )}
+
+      {/* Rendered report (FULL_DATA_CHANGES mode) */}
+      {!isLoading && renderedReport && !deltaPreviewSections && (
         <div className={styles.previewContent} data-testid="cv-preview-content">
           <ReportRenderer renderedReport={renderedReport} />
         </div>
       )}
 
       {/* No content yet (not an error, just hasn't loaded) */}
-      {!isLoading && !renderedReport && !previewError && (
+      {!isLoading && !hasContent && !previewError && (
         <div className={styles.emptyState} data-testid="cv-preview-no-content">
           Preview will appear here once the definition is parsed.
         </div>

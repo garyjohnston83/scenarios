@@ -31,6 +31,9 @@ public class ScenarioType {
     @Column(name = "impact_external_url_template", length = 500)
     private String impactExternalUrlTemplate;
 
+    @Column(name = "direct_changes_internal_render_mode", length = 50)
+    private String directChangesInternalRenderMode;
+
     @Column(name = "is_enabled", nullable = false)
     private boolean isEnabled;
 
@@ -94,6 +97,14 @@ public class ScenarioType {
 
     public void setImpactExternalUrlTemplate(String impactExternalUrlTemplate) {
         this.impactExternalUrlTemplate = impactExternalUrlTemplate;
+    }
+
+    public String getDirectChangesInternalRenderMode() {
+        return directChangesInternalRenderMode;
+    }
+
+    public void setDirectChangesInternalRenderMode(String directChangesInternalRenderMode) {
+        this.directChangesInternalRenderMode = directChangesInternalRenderMode;
     }
 
     public boolean isEnabled() {

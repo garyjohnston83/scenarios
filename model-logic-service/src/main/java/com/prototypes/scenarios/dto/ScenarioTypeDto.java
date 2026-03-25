@@ -5,6 +5,7 @@ public record ScenarioTypeDto(
         String name,
         String icon,
         String directChangesMode,
-        String impactDataMode
+        String impactDataMode,
+        String directChangesInternalRenderMode
 ) {
 }

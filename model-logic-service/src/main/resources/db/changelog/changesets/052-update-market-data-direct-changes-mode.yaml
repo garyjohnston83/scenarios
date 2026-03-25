@@ -1,0 +1,21 @@
+databaseChangeLog:
+  - changeSet:
+      id: 052-update-market-data-direct-changes-mode
+      author: scenarios-team
+      comment: "Switch MARKET_DATA direct_changes_mode from EXTERNAL to INTERNAL and update DIRECT_CHANGES links to internal navigation"
+      changes:
+        - sql:
+            sql: |
+              UPDATE scenario_type
+              SET direct_changes_mode = 'INTERNAL'
+              WHERE code = 'MARKET_DATA';
+
+              UPDATE scenario_link
+              SET label = 'View Changes →',
+                  url = '/scenarios/a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d/analysis?initial-tab=direct-changes'
+              WHERE id = '1a2b3c4d-5e6f-4a7b-8c9d-0e1f2a3b4c01';
+
+              UPDATE scenario_link
+              SET label = 'View Changes →',
+                  url = '/scenarios/b2c3d4e5-f6a7-4b8c-9d0e-1f2a3b4c5d6e/analysis?initial-tab=direct-changes'
+              WHERE id = '3c4d5e6f-7a8b-4c9d-0e1f-2a3b4c5d6e03';
