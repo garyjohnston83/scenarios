@@ -3,10 +3,20 @@
   align-items: center;
   justify-content: space-between;
   width: 100%;
+  background-color: #5A287D;
+  border-radius: 10px;
 }
 
 .accordionHeader {
   flex: 1;
+  color: #fff;
+  font-weight: 700;
+
+  // Override Fluent UI AccordionHeader button styles
+  :global(button) {
+    color: #fff;
+    font-weight: 700;
+  }
 }
 
 .externalLinkWrapper {
@@ -15,7 +25,7 @@
 
   a {
     font-size: 13px;
-    color: #0078d4;
+    color: #fff;
     text-decoration: none;
 
     &:hover {
@@ -46,4 +56,45 @@
   padding: 12px 0;
   font-size: 13px;
   color: #666;
+}
+
+// Second-level (entity group) accordion styles
+.subHeaderWrapper {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  background-color: #7B4FA0;
+  border-radius: 6px;
+  margin-bottom: 1px;
+}
+
+.subAccordionHeader {
+  flex: 1;
+  color: #fff;
+  font-weight: 600;
+  font-size: 12px;
+
+  :global(button) {
+    color: #fff;
+    font-weight: 600;
+    font-size: 12px;
+    padding: 2px 8px;
+    min-height: 24px;
+  }
+}
+
+.subExternalLinkWrapper {
+  padding: 0 8px;
+  flex-shrink: 0;
+
+  a {
+    font-size: 11px;
+    color: #fff;
+    text-decoration: none;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
 }

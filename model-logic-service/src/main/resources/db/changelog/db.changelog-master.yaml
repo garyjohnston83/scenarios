@@ -105,3 +105,7 @@ databaseChangeLog:
       file: db/changelog/changesets/052-update-market-data-direct-changes-mode.yaml
   - include:
       file: db/changelog/changesets/053-update-market-data-change-view-5-datatypes.yaml
+  - include:
+      file: db/changelog/changesets/054-add-group-by-entity-id-to-change-view.yaml
+  - include:
+      file: db/changelog/changesets/055-add-required-fields-to-delta-definition.yaml

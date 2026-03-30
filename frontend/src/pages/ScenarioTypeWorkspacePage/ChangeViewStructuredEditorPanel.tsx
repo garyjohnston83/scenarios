@@ -79,6 +79,7 @@ export interface DeltaDataType {
   sortOrdering?: DeltaSortOrdering;
   rowThreshold?: number;
   overflowMessage?: string;
+  groupByEntityIdColumn?: boolean;
 }
 
 export interface DeltaDefinitionState {
@@ -169,6 +170,7 @@ export function parseDeltaDefinition(jsonString: string): DeltaDefinitionState |
           : undefined,
         rowThreshold: dt.rowThreshold != null ? (dt.rowThreshold as number) : undefined,
         overflowMessage: dt.overflowMessage != null ? (dt.overflowMessage as string) : undefined,
+        groupByEntityIdColumn: dt.groupByEntityIdColumn === true,
       })),
       metadata: parsed.metadata
         ? {
@@ -238,8 +240,27 @@ export const ChangeViewStructuredEditorPanel: React.FC<ChangeViewStructuredEdito
       jsonEditorValueRef.current = definition.definition;
 
       if (deltaMode) {
+        // Enrich the raw JSON with required top-level fields if they are missing.
+        // The DELTA_BY_UNIQUE_ID seed data may omit schema_version, template_key,
+        // scenario_type, and display_name — but the backend validator requires them.
+        let enrichedJson = definition.definition;
+        try {
+          const raw = JSON.parse(enrichedJson);
+          let patched = false;
+          if (!raw.schema_version) { raw.schema_version = '1.0'; patched = true; }
+          if (!raw.template_key) { raw.template_key = definition.templateKey || ''; patched = true; }
+          if (!raw.scenario_type) { raw.scenario_type = definition.scenarioTypeCode || ''; patched = true; }
+          if (!raw.display_name) { raw.display_name = definition.displayName || ''; patched = true; }
+          if (patched) {
+            enrichedJson = JSON.stringify(raw, null, 2);
+          }
+        } catch { /* keep original if unparseable */ }
+
+        setJsonEditorValue(enrichedJson);
+        jsonEditorValueRef.current = enrichedJson;
+
         // Parse using parseDeltaDefinition and set structured mode
-        const parsedDelta = parseDeltaDefinition(definition.definition);
+        const parsedDelta = parseDeltaDefinition(enrichedJson);
         setDeltaDefState(parsedDelta);
         setDefState(null);
         setEditorMode('structured');
@@ -279,18 +300,14 @@ export const ChangeViewStructuredEditorPanel: React.FC<ChangeViewStructuredEdito
     if (!definition) return;
 
     let json: string;
-    if (editorMode === 'json') {
-      // Save from JSON mode: use the raw JSON editor value
+    if (editorMode === 'json' || isDeltaMode) {
+      // Save from JSON mode or delta structured mode: use the raw JSON value
+      // (DeltaByUniqueIdEditorPanel pushes changes via handleJsonEditorChange which updates the ref)
       json = jsonEditorValueRef.current;
     } else {
-      // Save from structured mode
-      if (isDeltaMode) {
-        if (!deltaDefState) return;
-        json = serializeDeltaDefinition(deltaDefState);
-      } else {
-        if (!defState) return;
-        json = serializeDefinition(defState);
-      }
+      // Save from structured mode (non-delta)
+      if (!defState) return;
+      json = serializeDefinition(defState);
     }
 
     // Parse to extract scenario_type and template_key for the request

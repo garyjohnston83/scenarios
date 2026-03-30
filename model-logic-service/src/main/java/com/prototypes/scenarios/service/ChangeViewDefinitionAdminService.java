@@ -79,8 +79,10 @@ public class ChangeViewDefinitionAdminService {
 
     /**
      * Creates a new change view definition with validation, version computation,
-     * and retry on concurrent version conflict.
+     * and retry on concurrent version conflict. Auto-deactivates any previously
+     * active definition for the same (scenarioTypeCode, templateKey).
      */
+    @Transactional
     public ChangeViewDefinitionDetailDto createDefinition(String scenarioTypeCode,
                                                            CreateChangeViewDefinitionRequest request) {
         // 1. Validate definition JSON
@@ -123,10 +125,21 @@ public class ChangeViewDefinitionAdminService {
                 scenarioTypeCode, request.templateKey());
         int nextVersion = maxVersion.orElse(0) + 1;
 
-        // 5. Build entity
+        // 5. Deactivate any currently active definition for the same (scenarioTypeCode, templateKey)
+        Optional<ChangeViewDefinition> currentlyActive =
+                changeViewDefinitionRepository.findFirstByScenarioTypeCodeAndTemplateKeyAndIsActiveTrueOrderByVersionDesc(
+                        scenarioTypeCode, request.templateKey());
+        if (currentlyActive.isPresent()) {
+            ChangeViewDefinition prev = currentlyActive.get();
+            prev.setActive(false);
+            prev.setUpdatedAt(LocalDateTime.now());
+            changeViewDefinitionRepository.save(prev);
+        }
+
+        // 6. Build entity
         ChangeViewDefinition entity = buildEntity(scenarioTypeCode, request, nextVersion);
 
-        // 6. Save with optimistic concurrency retry
+        // 7. Save with optimistic concurrency retry
         try {
             ChangeViewDefinition saved = changeViewDefinitionRepository.save(entity);
             return toDetailDto(saved);

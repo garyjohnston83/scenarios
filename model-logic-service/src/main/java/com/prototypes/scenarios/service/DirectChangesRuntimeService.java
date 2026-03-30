@@ -167,6 +167,7 @@ public class DirectChangesRuntimeService {
         JsonNode columnDefsNode = dataTypeNode.get("columnDefinitions");
         JsonNode sortOrderingNode = dataTypeNode.get("sortOrdering");
         Integer rowThreshold = intOrNull(dataTypeNode, "rowThreshold");
+        Boolean groupByEntityIdColumn = booleanOrNull(dataTypeNode, "groupByEntityIdColumn");
 
         // Invoke provider
         DirectChangesSectionData sectionData = provider.getSectionData(scenarioId, scenarioTypeCode, dataTypeId);
@@ -201,12 +202,14 @@ public class DirectChangesRuntimeService {
 
         return new DirectChangesDataSection(
                 dataTypeId,
+                dataTypeTitle,
                 header,
                 sectionData.externalLink(),
                 totalDataChanges,
                 renderState,
                 columnDefinitions,
-                data
+                data,
+                groupByEntityIdColumn
         );
     }
 
@@ -355,6 +358,14 @@ public class DirectChangesRuntimeService {
         JsonNode node = parent.get(fieldName);
         if (node != null && node.isNumber()) {
             return node.asInt();
+        }
+        return null;
+    }
+
+    private Boolean booleanOrNull(JsonNode parent, String fieldName) {
+        JsonNode node = parent.get(fieldName);
+        if (node != null && node.isBoolean() && node.asBoolean()) {
+            return true;
         }
         return null;
     }

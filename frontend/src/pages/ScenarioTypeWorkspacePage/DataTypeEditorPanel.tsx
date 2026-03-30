@@ -3,6 +3,7 @@ import {
   Textarea,
   Select,
   SpinButton,
+  Checkbox,
 } from '@fluentui/react-components';
 import type { SpinButtonChangeEvent, SpinButtonOnChangeData } from '@fluentui/react-components';
 import { ColumnDefinitionsEditor } from './ColumnDefinitionsEditor';
@@ -208,6 +209,19 @@ export const DataTypeEditorPanel: React.FC<DataTypeEditorPanelProps> = ({
                 )}
               </div>
             )}
+          </div>
+
+          <div className={styles.fieldRow}>
+            <div className={styles.fieldGroup}>
+              <Checkbox
+                label="Group by Entity ID column (second-level accordion)"
+                checked={dataType.groupByEntityIdColumn ?? false}
+                onChange={(_e, data) =>
+                  handleFieldChange('groupByEntityIdColumn', data.checked === true)
+                }
+                data-testid="dt-groupByEntityIdColumn-checkbox"
+              />
+            </div>
           </div>
         </div>
       </div>

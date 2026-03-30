@@ -118,6 +118,12 @@ export const DeltaByUniqueIdReadOnlyView: React.FC<DeltaByUniqueIdReadOnlyViewPr
                   : '-'}
               </span>
             </div>
+            <div className={styles.field}>
+              <span className={styles.fieldLabel}>Group by Entity ID Column</span>
+              <span className={styles.readOnlyValue} data-testid={`delta-readonly-dt-${idx}-groupByEntityIdColumn`}>
+                {dt.groupByEntityIdColumn ? 'Yes' : 'No'}
+              </span>
+            </div>
           </div>
 
           {/* Column Definitions table */}

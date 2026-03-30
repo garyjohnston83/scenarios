@@ -1,4 +1,5 @@
 import {
+  Accordion,
   AccordionItem,
   AccordionHeader,
   AccordionPanel,
@@ -19,6 +20,9 @@ export const DirectChangesSectionAccordion: React.FC<DirectChangesSectionAccordi
   const renderBody = () => {
     switch (section.renderState) {
       case 'ROWS':
+        if (section.groupByEntityIdColumn) {
+          return renderGroupedBody();
+        }
         return (
           <DirectChangesTable
             columnDefinitions={section.columnDefinitions}
@@ -45,6 +49,71 @@ export const DirectChangesSectionAccordion: React.FC<DirectChangesSectionAccordi
       default:
         return null;
     }
+  };
+
+  const renderGroupedBody = () => {
+    const rows = section.data ?? [];
+    const entityCol = section.columnDefinitions.find((col) => col.isEntityId);
+    if (!entityCol) {
+      // Fallback to flat table if no entityId column found
+      return (
+        <DirectChangesTable
+          columnDefinitions={section.columnDefinitions}
+          rows={rows}
+        />
+      );
+    }
+
+    const entityAttr = entityCol.dataAttribute;
+    const title = section.dataTypeTitle || section.dataType;
+
+    // Group rows by entity value preserving insertion order
+    const groupMap = new Map<string, Record<string, unknown>[]>();
+    for (const row of rows) {
+      const key = String(row[entityAttr] ?? 'Unknown');
+      if (!groupMap.has(key)) {
+        groupMap.set(key, []);
+      }
+      groupMap.get(key)!.push(row);
+    }
+
+    const groups = Array.from(groupMap.entries());
+
+    return (
+      <Accordion multiple collapsible>
+        {groups.map(([entityValue, entityRows]) => (
+          <AccordionItem key={entityValue} value={entityValue}>
+            <div className={styles.subHeaderWrapper}>
+              <AccordionHeader className={styles.subAccordionHeader}>
+                {title} {entityValue} has {entityRows.length} change{entityRows.length !== 1 ? 's' : ''}
+              </AccordionHeader>
+              {section.externalLink && (
+                <div
+                  className={styles.subExternalLinkWrapper}
+                  role="presentation"
+                  onClick={(e) => e.stopPropagation()}
+                  onKeyDown={(e) => e.stopPropagation()}
+                >
+                  <a
+                    href={section.externalLink}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    Open in external view
+                  </a>
+                </div>
+              )}
+            </div>
+            <AccordionPanel>
+              <DirectChangesTable
+                columnDefinitions={section.columnDefinitions}
+                rows={entityRows}
+              />
+            </AccordionPanel>
+          </AccordionItem>
+        ))}
+      </Accordion>
+    );
   };
 
   return (

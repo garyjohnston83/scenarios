@@ -288,14 +288,19 @@ export function buildDeltaPreview(jsonStr: string): DirectChangesDataSectionFe[]
       header = `${changedValuesCount} changes in ${dataTypeId}`;
     }
 
+    const dataTypeTitle = (dt.dataTypeTitle as string) || dataTypeId;
+    const groupByEntityIdColumn = dt.groupByEntityIdColumn === true;
+
     sections.push({
       dataType: dataTypeId,
+      dataTypeTitle,
       header,
       externalLink: null,
       totalDataChanges: changedValuesCount,
       renderState: 'ROWS',
       columnDefinitions,
       data: rows,
+      groupByEntityIdColumn: groupByEntityIdColumn || undefined,
     });
   }
 

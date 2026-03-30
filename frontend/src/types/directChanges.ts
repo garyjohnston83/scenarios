@@ -10,12 +10,14 @@ export interface DirectChangesColumnDefinitionFe {
 
 export interface DirectChangesDataSectionFe {
   dataType: string;
+  dataTypeTitle?: string;
   header: string;
   externalLink: string | null;
   totalDataChanges: number;
   renderState: 'ROWS' | 'OVERFLOW' | 'NO_DATA';
   columnDefinitions: DirectChangesColumnDefinitionFe[];
   data: Record<string, unknown>[] | null;
+  groupByEntityIdColumn?: boolean;
 }
 
 export interface DirectChangesRuntimeResponse {
