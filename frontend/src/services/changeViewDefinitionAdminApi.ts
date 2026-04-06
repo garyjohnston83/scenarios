@@ -1,8 +1,5 @@
-import axios from 'axios';
+import apiClient from './axiosInstance';
 import type { RenderedReport } from '../types/renderedReport';
-
-const API_BASE_URL =
-  process.env.REACT_APP_API_BASE_URL || 'http://localhost:9090';
 
 export interface ChangeViewDefinitionListItem {
   id: string;
@@ -29,8 +26,8 @@ export interface CreateChangeViewDefinitionRequest {
 export async function fetchChangeViewDefinitions(
   scenarioTypeCode: string
 ): Promise<ChangeViewDefinitionListItem[]> {
-  const response = await axios.get<ChangeViewDefinitionListItem[]>(
-    `${API_BASE_URL}/admin/scenario-types/${scenarioTypeCode}/change-view-definitions`
+  const response = await apiClient.get<ChangeViewDefinitionListItem[]>(
+    `/admin/scenario-types/${scenarioTypeCode}/change-view-definitions`
   );
   return response.data;
 }
@@ -39,8 +36,8 @@ export async function fetchChangeViewDefinitionDetail(
   scenarioTypeCode: string,
   id: string
 ): Promise<ChangeViewDefinitionDetail> {
-  const response = await axios.get<ChangeViewDefinitionDetail>(
-    `${API_BASE_URL}/admin/scenario-types/${scenarioTypeCode}/change-view-definitions/${id}`
+  const response = await apiClient.get<ChangeViewDefinitionDetail>(
+    `/admin/scenario-types/${scenarioTypeCode}/change-view-definitions/${id}`
   );
   return response.data;
 }
@@ -49,8 +46,8 @@ export async function createChangeViewDefinition(
   scenarioTypeCode: string,
   body: CreateChangeViewDefinitionRequest
 ): Promise<ChangeViewDefinitionDetail> {
-  const response = await axios.post<ChangeViewDefinitionDetail>(
-    `${API_BASE_URL}/admin/scenario-types/${scenarioTypeCode}/change-view-definitions`,
+  const response = await apiClient.post<ChangeViewDefinitionDetail>(
+    `/admin/scenario-types/${scenarioTypeCode}/change-view-definitions`,
     body
   );
   return response.data;
@@ -60,8 +57,8 @@ export async function activateChangeViewDefinition(
   scenarioTypeCode: string,
   id: string
 ): Promise<ChangeViewDefinitionDetail> {
-  const response = await axios.post<ChangeViewDefinitionDetail>(
-    `${API_BASE_URL}/admin/scenario-types/${scenarioTypeCode}/change-view-definitions/${id}/activate`
+  const response = await apiClient.post<ChangeViewDefinitionDetail>(
+    `/admin/scenario-types/${scenarioTypeCode}/change-view-definitions/${id}/activate`
   );
   return response.data;
 }
@@ -70,8 +67,8 @@ export async function deactivateChangeViewDefinition(
   scenarioTypeCode: string,
   id: string
 ): Promise<ChangeViewDefinitionDetail> {
-  const response = await axios.post<ChangeViewDefinitionDetail>(
-    `${API_BASE_URL}/admin/scenario-types/${scenarioTypeCode}/change-view-definitions/${id}/deactivate`
+  const response = await apiClient.post<ChangeViewDefinitionDetail>(
+    `/admin/scenario-types/${scenarioTypeCode}/change-view-definitions/${id}/deactivate`
   );
   return response.data;
 }
@@ -80,8 +77,8 @@ export async function fetchChangeViewPreview(
   scenarioTypeCode: string,
   definition: string
 ): Promise<RenderedReport> {
-  const response = await axios.post(
-    `${API_BASE_URL}/admin/scenario-types/${scenarioTypeCode}/change-view-definitions/preview`,
+  const response = await apiClient.post(
+    `/admin/scenario-types/${scenarioTypeCode}/change-view-definitions/preview`,
     definition,
     { headers: { 'Content-Type': 'application/json' } }
   );
@@ -91,8 +88,8 @@ export async function fetchChangeViewPreview(
 export async function fetchChangeViewPreviewData(
   scenarioTypeCode: string
 ): Promise<Record<string, unknown>> {
-  const response = await axios.get(
-    `${API_BASE_URL}/admin/scenario-types/${scenarioTypeCode}/change-view-definitions/change-view-preview-data`
+  const response = await apiClient.get(
+    `/admin/scenario-types/${scenarioTypeCode}/change-view-definitions/change-view-preview-data`
   );
   return response.data;
 }

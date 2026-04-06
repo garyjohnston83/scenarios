@@ -1,4 +1,4 @@
-import axios from 'axios';
+import apiClient from '../axiosInstance';
 import { getDirectChangesView } from '../scenarioApi';
 import type {
   DirectChangesRuntimeResponse,
@@ -7,8 +7,8 @@ import type {
   ScenarioTypeData,
 } from '../../store/scenariosSlice';
 
-jest.mock('axios');
-const mockedAxios = axios as jest.Mocked<typeof axios>;
+jest.mock('../axiosInstance');
+const mockedApiClient = apiClient as jest.Mocked<typeof apiClient>;
 
 describe('getDirectChangesView API function', () => {
   beforeEach(() => {
@@ -40,15 +40,15 @@ describe('getDirectChangesView API function', () => {
       ],
     };
 
-    mockedAxios.get.mockResolvedValueOnce({ data: mockResponse });
+    mockedApiClient.get.mockResolvedValueOnce({ data: mockResponse });
 
     const result = await getDirectChangesView('sc-123');
 
-    expect(mockedAxios.get).toHaveBeenCalledWith(
+    expect(mockedApiClient.get).toHaveBeenCalledWith(
       expect.stringContaining('/scenarios/sc-123/direct-changes')
     );
     // Verify URL ends with /direct-changes (not the old ?expand=directChanges)
-    const calledUrl = mockedAxios.get.mock.calls[0][0];
+    const calledUrl = mockedApiClient.get.mock.calls[0][0];
     expect(calledUrl).toMatch(/\/scenarios\/sc-123\/direct-changes$/);
     expect(result).toEqual(mockResponse);
     expect(result.dataChanged).toHaveLength(1);
@@ -62,11 +62,11 @@ describe('getDirectChangesView API function', () => {
 
   it('propagates network errors correctly', async () => {
     const networkError = new Error('Network Error');
-    mockedAxios.get.mockRejectedValueOnce(networkError);
+    mockedApiClient.get.mockRejectedValueOnce(networkError);
 
     await expect(getDirectChangesView('sc-456')).rejects.toThrow('Network Error');
 
-    expect(mockedAxios.get).toHaveBeenCalledWith(
+    expect(mockedApiClient.get).toHaveBeenCalledWith(
       expect.stringContaining('/scenarios/sc-456/direct-changes')
     );
   });

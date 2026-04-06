@@ -1,4 +1,4 @@
-import axios from 'axios';
+import apiClient from '../axiosInstance';
 import { CURRENT_USER_ID } from '../../constants/user';
 import { postMessage, postEvent } from '../scenarioApi';
 import type { ScenarioHeaderData, ScenarioTypeData } from '../../store/scenariosSlice';
@@ -8,8 +8,8 @@ import scenariosReducer, {
 } from '../../store/scenariosSlice';
 import type { ScenarioDetail } from '../../store/scenariosSlice';
 
-jest.mock('axios');
-const mockedAxios = axios as jest.Mocked<typeof axios>;
+jest.mock('../axiosInstance');
+const mockedApiClient = apiClient as jest.Mocked<typeof apiClient>;
 
 describe('Increment 10 -- Frontend Changes', () => {
 
@@ -32,11 +32,11 @@ describe('Increment 10 -- Frontend Changes', () => {
         text: 'Hello',
       },
     };
-    mockedAxios.post.mockResolvedValueOnce(mockResponse);
+    mockedApiClient.post.mockResolvedValueOnce(mockResponse);
 
     await postMessage('sc-1', 'Hello');
 
-    expect(mockedAxios.post).toHaveBeenCalledWith(
+    expect(mockedApiClient.post).toHaveBeenCalledWith(
       expect.stringContaining('/scenarios/sc-1/messages'),
       { text: 'Hello' },
       { headers: { 'X-Actor-Id': 'current-user' } }
@@ -45,11 +45,11 @@ describe('Increment 10 -- Frontend Changes', () => {
 
   // Test 3: postEvent() sends X-Actor-Id header with value "current-user" on axios POST
   it('postEvent() sends X-Actor-Id header with value "current-user" on axios POST', async () => {
-    mockedAxios.post.mockResolvedValueOnce({ data: undefined });
+    mockedApiClient.post.mockResolvedValueOnce({ data: undefined });
 
     await postEvent('sc-1', 'SIGNOFF');
 
-    expect(mockedAxios.post).toHaveBeenCalledWith(
+    expect(mockedApiClient.post).toHaveBeenCalledWith(
       expect.stringContaining('/scenarios/sc-1/events'),
       { type: 'SIGNOFF' },
       { headers: { 'X-Actor-Id': 'current-user' } }
@@ -183,12 +183,12 @@ describe('Increment 10 -- Frontend Changes', () => {
     // Gap Test 3: postMessage error handling still works with X-Actor-Id header present
     it('postMessage error handling still works with X-Actor-Id header present', async () => {
       const networkError = new Error('Network Error');
-      mockedAxios.post.mockRejectedValueOnce(networkError);
+      mockedApiClient.post.mockRejectedValueOnce(networkError);
 
       await expect(postMessage('sc-1', 'Hello')).rejects.toThrow('Network Error');
 
       // Verify the call was still made with the X-Actor-Id header
-      expect(mockedAxios.post).toHaveBeenCalledWith(
+      expect(mockedApiClient.post).toHaveBeenCalledWith(
         expect.stringContaining('/scenarios/sc-1/messages'),
         { text: 'Hello' },
         { headers: { 'X-Actor-Id': 'current-user' } }
@@ -198,12 +198,12 @@ describe('Increment 10 -- Frontend Changes', () => {
     // Gap Test 4: postEvent error handling still works with X-Actor-Id header present
     it('postEvent error handling still works with X-Actor-Id header present', async () => {
       const serverError = new Error('Request failed with status code 400');
-      mockedAxios.post.mockRejectedValueOnce(serverError);
+      mockedApiClient.post.mockRejectedValueOnce(serverError);
 
       await expect(postEvent('sc-1', 'SIGNOFF')).rejects.toThrow('Request failed with status code 400');
 
       // Verify the call was still made with the X-Actor-Id header
-      expect(mockedAxios.post).toHaveBeenCalledWith(
+      expect(mockedApiClient.post).toHaveBeenCalledWith(
         expect.stringContaining('/scenarios/sc-1/events'),
         { type: 'SIGNOFF' },
         { headers: { 'X-Actor-Id': 'current-user' } }

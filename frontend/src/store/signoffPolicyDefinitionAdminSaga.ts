@@ -38,17 +38,23 @@ import {
   fetchRolesFailure,
 } from './signoffPolicyDefinitionAdminSlice';
 import type { PayloadAction } from '@reduxjs/toolkit';
+import { createLogger } from '../utils/logger';
+
+const logger = createLogger('saga:signoffPolicyDefinitionAdmin');
 
 function* handleFetchSpDefinitions(action: PayloadAction<string>) {
+  logger.debug('handleFetchSpDefinitions started', { scenarioTypeCode: action.payload });
   try {
     const definitions: SignoffPolicyDefinitionListItem[] = yield call(
       fetchSignoffPolicyDefinitions,
       action.payload
     );
+    logger.info('handleFetchSpDefinitions succeeded', { scenarioTypeCode: action.payload, count: definitions.length });
     yield put(fetchSpDefinitionsSuccess(definitions));
   } catch (error: unknown) {
     const message =
       error instanceof Error ? error.message : 'Failed to fetch definitions';
+    logger.error('handleFetchSpDefinitions failed', { error: message, scenarioTypeCode: action.payload });
     yield put(fetchSpDefinitionsFailure(message));
   }
 }
@@ -56,18 +62,21 @@ function* handleFetchSpDefinitions(action: PayloadAction<string>) {
 function* handleFetchSpDefinitionDetail(
   action: PayloadAction<{ scenarioTypeCode: string; id: string }>
 ) {
+  logger.debug('handleFetchSpDefinitionDetail started', { scenarioTypeCode: action.payload.scenarioTypeCode, id: action.payload.id });
   try {
     const detail: SignoffPolicyDefinitionDetail = yield call(
       fetchSignoffPolicyDefinitionDetail,
       action.payload.scenarioTypeCode,
       action.payload.id
     );
+    logger.info('handleFetchSpDefinitionDetail succeeded', { scenarioTypeCode: action.payload.scenarioTypeCode, id: action.payload.id });
     yield put(fetchSpDefinitionDetailSuccess(detail));
   } catch (error: unknown) {
     const message =
       error instanceof Error
         ? error.message
         : 'Failed to fetch definition detail';
+    logger.error('handleFetchSpDefinitionDetail failed', { error: message, scenarioTypeCode: action.payload.scenarioTypeCode, id: action.payload.id });
     yield put(fetchSpDefinitionDetailFailure(message));
   }
 }
@@ -79,6 +88,7 @@ function* handleCreateSpDefinition(
     definition: string;
   }>
 ) {
+  logger.debug('handleCreateSpDefinition started', { scenarioTypeCode: action.payload.scenarioTypeCode, policyKey: action.payload.policyKey });
   try {
     const created: SignoffPolicyDefinitionDetail = yield call(
       createSignoffPolicyDefinition,
@@ -88,6 +98,7 @@ function* handleCreateSpDefinition(
         definition: action.payload.definition,
       }
     );
+    logger.info('handleCreateSpDefinition succeeded', { scenarioTypeCode: action.payload.scenarioTypeCode, id: created.id });
     yield put(createSpDefinitionSuccess());
     yield put(fetchSpDefinitionsRequest(action.payload.scenarioTypeCode));
     yield put(
@@ -99,6 +110,7 @@ function* handleCreateSpDefinition(
   } catch (error: unknown) {
     const message =
       error instanceof Error ? error.message : 'Failed to create definition';
+    logger.error('handleCreateSpDefinition failed', { error: message, scenarioTypeCode: action.payload.scenarioTypeCode });
     yield put(createSpDefinitionFailure(message));
   }
 }
@@ -106,17 +118,20 @@ function* handleCreateSpDefinition(
 function* handleActivateSpDefinition(
   action: PayloadAction<{ scenarioTypeCode: string; id: string }>
 ) {
+  logger.debug('handleActivateSpDefinition started', { scenarioTypeCode: action.payload.scenarioTypeCode, id: action.payload.id });
   try {
     yield call(
       activateSignoffPolicyDefinition,
       action.payload.scenarioTypeCode,
       action.payload.id
     );
+    logger.info('handleActivateSpDefinition succeeded', { scenarioTypeCode: action.payload.scenarioTypeCode, id: action.payload.id });
     yield put(activateSpDefinitionSuccess());
     yield put(fetchSpDefinitionsRequest(action.payload.scenarioTypeCode));
   } catch (error: unknown) {
     const message =
       error instanceof Error ? error.message : 'Failed to activate definition';
+    logger.error('handleActivateSpDefinition failed', { error: message, scenarioTypeCode: action.payload.scenarioTypeCode, id: action.payload.id });
     yield put(activateSpDefinitionFailure(message));
   }
 }
@@ -124,12 +139,14 @@ function* handleActivateSpDefinition(
 function* handleDeactivateSpDefinition(
   action: PayloadAction<{ scenarioTypeCode: string; id: string }>
 ) {
+  logger.debug('handleDeactivateSpDefinition started', { scenarioTypeCode: action.payload.scenarioTypeCode, id: action.payload.id });
   try {
     yield call(
       deactivateSignoffPolicyDefinition,
       action.payload.scenarioTypeCode,
       action.payload.id
     );
+    logger.info('handleDeactivateSpDefinition succeeded', { scenarioTypeCode: action.payload.scenarioTypeCode, id: action.payload.id });
     yield put(deactivateSpDefinitionSuccess());
     yield put(fetchSpDefinitionsRequest(action.payload.scenarioTypeCode));
   } catch (error: unknown) {
@@ -137,28 +154,35 @@ function* handleDeactivateSpDefinition(
       error instanceof Error
         ? error.message
         : 'Failed to deactivate definition';
+    logger.error('handleDeactivateSpDefinition failed', { error: message, scenarioTypeCode: action.payload.scenarioTypeCode, id: action.payload.id });
     yield put(deactivateSpDefinitionFailure(message));
   }
 }
 
 function* handleFetchFactTypes() {
+  logger.debug('handleFetchFactTypes started');
   try {
     const factTypes: FactTypeCatalogEntry[] = yield call(fetchFactTypeCatalog);
+    logger.info('handleFetchFactTypes succeeded', { count: factTypes.length });
     yield put(fetchFactTypesSuccess(factTypes));
   } catch (error: unknown) {
     const message =
       error instanceof Error ? error.message : 'Failed to fetch fact types';
+    logger.error('handleFetchFactTypes failed', { error: message });
     yield put(fetchFactTypesFailure(message));
   }
 }
 
 function* handleFetchRoles() {
+  logger.debug('handleFetchRoles started');
   try {
     const roles: RoleCatalogEntry[] = yield call(fetchRoleCatalog);
+    logger.info('handleFetchRoles succeeded', { count: roles.length });
     yield put(fetchRolesSuccess(roles));
   } catch (error: unknown) {
     const message =
       error instanceof Error ? error.message : 'Failed to fetch roles';
+    logger.error('handleFetchRoles failed', { error: message });
     yield put(fetchRolesFailure(message));
   }
 }

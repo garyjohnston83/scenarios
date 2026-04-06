@@ -55,6 +55,7 @@ public class SignoffPolicyDefinitionAdminService {
      * ordered by policyKey ascending then version descending.
      */
     public List<SignoffPolicyDefinitionListItemDto> listDefinitions(String scenarioTypeCode) {
+        logger.info("listDefinitions scenarioTypeCode={}", scenarioTypeCode);
         if (!scenarioTypeRepository.existsById(scenarioTypeCode)) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND,
                     "Scenario type not found: " + scenarioTypeCode);
@@ -71,6 +72,7 @@ public class SignoffPolicyDefinitionAdminService {
      * Gets a single signoff policy definition by ID.
      */
     public SignoffPolicyDefinitionDetailDto getDefinition(UUID id) {
+        logger.info("getDefinition id={}", id);
         SignoffPolicyDefinition entity = signoffPolicyDefinitionRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
                         "Signoff policy definition not found: " + id));
@@ -83,6 +85,7 @@ public class SignoffPolicyDefinitionAdminService {
      */
     public SignoffPolicyDefinitionDetailDto createDefinition(String scenarioTypeCode,
                                                               CreateSignoffPolicyDefinitionRequest request) {
+        logger.info("createDefinition scenarioTypeCode={} policyKey={}", scenarioTypeCode, request.policyKey());
         // 1. Validate definition JSON
         List<String> errors = validationService.validate(request.definition());
         if (!errors.isEmpty()) {
@@ -156,6 +159,7 @@ public class SignoffPolicyDefinitionAdminService {
      */
     @Transactional
     public SignoffPolicyDefinitionDetailDto activateDefinition(UUID id) {
+        logger.info("activateDefinition id={}", id);
         SignoffPolicyDefinition definition = signoffPolicyDefinitionRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
                         "Signoff policy definition not found: " + id));
@@ -182,6 +186,7 @@ public class SignoffPolicyDefinitionAdminService {
      * Deactivates a signoff policy definition.
      */
     public SignoffPolicyDefinitionDetailDto deactivateDefinition(UUID id) {
+        logger.info("deactivateDefinition id={}", id);
         SignoffPolicyDefinition definition = signoffPolicyDefinitionRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
                         "Signoff policy definition not found: " + id));

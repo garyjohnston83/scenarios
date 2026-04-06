@@ -36,17 +36,23 @@ import {
   updateSampleDataFailure,
 } from './reportDefinitionAdminSlice';
 import type { PayloadAction } from '@reduxjs/toolkit';
+import { createLogger } from '../utils/logger';
+
+const logger = createLogger('saga:reportDefinitionAdmin');
 
 function* handleFetchDefinitions(action: PayloadAction<string>) {
+  logger.debug('handleFetchDefinitions started', { scenarioTypeCode: action.payload });
   try {
     const definitions: ImpactReportDefinitionListItem[] = yield call(
       fetchReportDefinitions,
       action.payload
     );
+    logger.info('handleFetchDefinitions succeeded', { scenarioTypeCode: action.payload, count: definitions.length });
     yield put(fetchDefinitionsSuccess(definitions));
   } catch (error: unknown) {
     const message =
       error instanceof Error ? error.message : 'Failed to fetch definitions';
+    logger.error('handleFetchDefinitions failed', { error: message, scenarioTypeCode: action.payload });
     yield put(fetchDefinitionsFailure(message));
   }
 }
@@ -54,18 +60,21 @@ function* handleFetchDefinitions(action: PayloadAction<string>) {
 function* handleFetchDefinitionDetail(
   action: PayloadAction<{ scenarioTypeCode: string; id: string }>
 ) {
+  logger.debug('handleFetchDefinitionDetail started', { scenarioTypeCode: action.payload.scenarioTypeCode, id: action.payload.id });
   try {
     const detail: ImpactReportDefinitionDetail = yield call(
       fetchReportDefinitionDetail,
       action.payload.scenarioTypeCode,
       action.payload.id
     );
+    logger.info('handleFetchDefinitionDetail succeeded', { scenarioTypeCode: action.payload.scenarioTypeCode, id: action.payload.id });
     yield put(fetchDefinitionDetailSuccess(detail));
   } catch (error: unknown) {
     const message =
       error instanceof Error
         ? error.message
         : 'Failed to fetch definition detail';
+    logger.error('handleFetchDefinitionDetail failed', { error: message, scenarioTypeCode: action.payload.scenarioTypeCode, id: action.payload.id });
     yield put(fetchDefinitionDetailFailure(message));
   }
 }
@@ -78,6 +87,7 @@ function* handleCreateDefinition(
     sampleData?: string;
   }>
 ) {
+  logger.debug('handleCreateDefinition started', { scenarioTypeCode: action.payload.scenarioTypeCode, reportKey: action.payload.reportKey });
   try {
     const created: ImpactReportDefinitionDetail = yield call(
       createReportDefinition,
@@ -88,6 +98,7 @@ function* handleCreateDefinition(
         sampleData: action.payload.sampleData,
       }
     );
+    logger.info('handleCreateDefinition succeeded', { scenarioTypeCode: action.payload.scenarioTypeCode, id: created.id });
     yield put(createDefinitionSuccess());
     yield put(fetchDefinitionsRequest(action.payload.scenarioTypeCode));
     yield put(
@@ -99,6 +110,7 @@ function* handleCreateDefinition(
   } catch (error: unknown) {
     const message =
       error instanceof Error ? error.message : 'Failed to create definition';
+    logger.error('handleCreateDefinition failed', { error: message, scenarioTypeCode: action.payload.scenarioTypeCode });
     yield put(createDefinitionFailure(message));
   }
 }
@@ -106,17 +118,20 @@ function* handleCreateDefinition(
 function* handleDeleteDefinition(
   action: PayloadAction<{ scenarioTypeCode: string; id: string }>
 ) {
+  logger.debug('handleDeleteDefinition started', { scenarioTypeCode: action.payload.scenarioTypeCode, id: action.payload.id });
   try {
     yield call(
       deleteReportDefinition,
       action.payload.scenarioTypeCode,
       action.payload.id
     );
+    logger.info('handleDeleteDefinition succeeded', { scenarioTypeCode: action.payload.scenarioTypeCode, id: action.payload.id });
     yield put(deleteDefinitionSuccess());
     yield put(fetchDefinitionsRequest(action.payload.scenarioTypeCode));
   } catch (error: unknown) {
     const message =
       error instanceof Error ? error.message : 'Failed to delete definition';
+    logger.error('handleDeleteDefinition failed', { error: message, scenarioTypeCode: action.payload.scenarioTypeCode, id: action.payload.id });
     yield put(deleteDefinitionFailure(message));
   }
 }
@@ -124,17 +139,20 @@ function* handleDeleteDefinition(
 function* handleActivateDefinition(
   action: PayloadAction<{ scenarioTypeCode: string; id: string }>
 ) {
+  logger.debug('handleActivateDefinition started', { scenarioTypeCode: action.payload.scenarioTypeCode, id: action.payload.id });
   try {
     yield call(
       activateReportDefinition,
       action.payload.scenarioTypeCode,
       action.payload.id
     );
+    logger.info('handleActivateDefinition succeeded', { scenarioTypeCode: action.payload.scenarioTypeCode, id: action.payload.id });
     yield put(activateDefinitionSuccess());
     yield put(fetchDefinitionsRequest(action.payload.scenarioTypeCode));
   } catch (error: unknown) {
     const message =
       error instanceof Error ? error.message : 'Failed to activate definition';
+    logger.error('handleActivateDefinition failed', { error: message, scenarioTypeCode: action.payload.scenarioTypeCode, id: action.payload.id });
     yield put(activateDefinitionFailure(message));
   }
 }
@@ -142,12 +160,14 @@ function* handleActivateDefinition(
 function* handleDeactivateDefinition(
   action: PayloadAction<{ scenarioTypeCode: string; id: string }>
 ) {
+  logger.debug('handleDeactivateDefinition started', { scenarioTypeCode: action.payload.scenarioTypeCode, id: action.payload.id });
   try {
     yield call(
       deactivateReportDefinition,
       action.payload.scenarioTypeCode,
       action.payload.id
     );
+    logger.info('handleDeactivateDefinition succeeded', { scenarioTypeCode: action.payload.scenarioTypeCode, id: action.payload.id });
     yield put(deactivateDefinitionSuccess());
     yield put(fetchDefinitionsRequest(action.payload.scenarioTypeCode));
   } catch (error: unknown) {
@@ -155,6 +175,7 @@ function* handleDeactivateDefinition(
       error instanceof Error
         ? error.message
         : 'Failed to deactivate definition';
+    logger.error('handleDeactivateDefinition failed', { error: message, scenarioTypeCode: action.payload.scenarioTypeCode, id: action.payload.id });
     yield put(deactivateDefinitionFailure(message));
   }
 }
@@ -166,6 +187,7 @@ function* handleUpdateSampleData(
     sampleData: string;
   }>
 ) {
+  logger.debug('handleUpdateSampleData started', { scenarioTypeCode: action.payload.scenarioTypeCode, id: action.payload.id });
   try {
     yield call(
       updateSampleDataApi,
@@ -173,10 +195,12 @@ function* handleUpdateSampleData(
       action.payload.id,
       action.payload.sampleData
     );
+    logger.info('handleUpdateSampleData succeeded', { scenarioTypeCode: action.payload.scenarioTypeCode, id: action.payload.id });
     yield put(updateSampleDataSuccess(action.payload.sampleData));
   } catch (error: unknown) {
     const message =
       error instanceof Error ? error.message : 'Failed to update sample data';
+    logger.error('handleUpdateSampleData failed', { error: message, scenarioTypeCode: action.payload.scenarioTypeCode, id: action.payload.id });
     yield put(updateSampleDataFailure(message));
   }
 }

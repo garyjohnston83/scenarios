@@ -1,7 +1,4 @@
-import axios from 'axios';
-
-const API_BASE_URL =
-  process.env.REACT_APP_API_BASE_URL || 'http://localhost:9090';
+import apiClient from './axiosInstance';
 
 export interface ImpactReportDefinitionListItem {
   id: string;
@@ -29,8 +26,8 @@ export interface CreateImpactReportDefinitionRequest {
 export async function fetchReportDefinitions(
   scenarioTypeCode: string
 ): Promise<ImpactReportDefinitionListItem[]> {
-  const response = await axios.get<ImpactReportDefinitionListItem[]>(
-    `${API_BASE_URL}/admin/scenario-types/${scenarioTypeCode}/impact-report-definitions`
+  const response = await apiClient.get<ImpactReportDefinitionListItem[]>(
+    `/admin/scenario-types/${scenarioTypeCode}/impact-report-definitions`
   );
   return response.data;
 }
@@ -39,8 +36,8 @@ export async function fetchReportDefinitionDetail(
   scenarioTypeCode: string,
   id: string
 ): Promise<ImpactReportDefinitionDetail> {
-  const response = await axios.get<ImpactReportDefinitionDetail>(
-    `${API_BASE_URL}/admin/scenario-types/${scenarioTypeCode}/impact-report-definitions/${id}`
+  const response = await apiClient.get<ImpactReportDefinitionDetail>(
+    `/admin/scenario-types/${scenarioTypeCode}/impact-report-definitions/${id}`
   );
   return response.data;
 }
@@ -49,8 +46,8 @@ export async function createReportDefinition(
   scenarioTypeCode: string,
   body: CreateImpactReportDefinitionRequest
 ): Promise<ImpactReportDefinitionDetail> {
-  const response = await axios.post<ImpactReportDefinitionDetail>(
-    `${API_BASE_URL}/admin/scenario-types/${scenarioTypeCode}/impact-report-definitions`,
+  const response = await apiClient.post<ImpactReportDefinitionDetail>(
+    `/admin/scenario-types/${scenarioTypeCode}/impact-report-definitions`,
     body
   );
   return response.data;
@@ -60,8 +57,8 @@ export async function activateReportDefinition(
   scenarioTypeCode: string,
   id: string
 ): Promise<ImpactReportDefinitionDetail> {
-  const response = await axios.post<ImpactReportDefinitionDetail>(
-    `${API_BASE_URL}/admin/scenario-types/${scenarioTypeCode}/impact-report-definitions/${id}/activate`
+  const response = await apiClient.post<ImpactReportDefinitionDetail>(
+    `/admin/scenario-types/${scenarioTypeCode}/impact-report-definitions/${id}/activate`
   );
   return response.data;
 }
@@ -70,8 +67,8 @@ export async function deactivateReportDefinition(
   scenarioTypeCode: string,
   id: string
 ): Promise<ImpactReportDefinitionDetail> {
-  const response = await axios.post<ImpactReportDefinitionDetail>(
-    `${API_BASE_URL}/admin/scenario-types/${scenarioTypeCode}/impact-report-definitions/${id}/deactivate`
+  const response = await apiClient.post<ImpactReportDefinitionDetail>(
+    `/admin/scenario-types/${scenarioTypeCode}/impact-report-definitions/${id}/deactivate`
   );
   return response.data;
 }
@@ -80,8 +77,8 @@ export async function deleteReportDefinition(
   scenarioTypeCode: string,
   id: string
 ): Promise<void> {
-  await axios.delete(
-    `${API_BASE_URL}/admin/scenario-types/${scenarioTypeCode}/impact-report-definitions/${id}`
+  await apiClient.delete(
+    `/admin/scenario-types/${scenarioTypeCode}/impact-report-definitions/${id}`
   );
 }
 
@@ -90,8 +87,8 @@ export async function updateSampleData(
   id: string,
   sampleData: string
 ): Promise<void> {
-  await axios.put(
-    `${API_BASE_URL}/admin/scenario-types/${scenarioTypeCode}/impact-report-definitions/${id}/sample-data`,
+  await apiClient.put(
+    `/admin/scenario-types/${scenarioTypeCode}/impact-report-definitions/${id}/sample-data`,
     { sampleData }
   );
 }

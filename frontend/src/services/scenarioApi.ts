@@ -1,14 +1,11 @@
-import axios from 'axios';
+import apiClient from './axiosInstance';
 import type { ScenarioListItem, ScenarioDetail, MessageData, CombineScenariosRequest, DirectChangesData, ScenarioTypeData, SummaryCardsData, DirectChangesRuntimeResponse } from '../store/scenariosSlice';
 import type { ImpactReportSummaryFe, ImpactReportDetailFe } from '../types/renderedReport';
 import { CURRENT_USER_ID } from '../constants/user';
 
-const API_BASE_URL =
-  process.env.REACT_APP_API_BASE_URL || 'http://localhost:9090';
-
 export async function fetchScenarioList(): Promise<ScenarioListItem[]> {
-  const response = await axios.get<ScenarioListItem[]>(
-    `${API_BASE_URL}/scenarios`
+  const response = await apiClient.get<ScenarioListItem[]>(
+    `/scenarios`
   );
   return response.data;
 }
@@ -16,8 +13,8 @@ export async function fetchScenarioList(): Promise<ScenarioListItem[]> {
 export async function fetchScenarioDetail(
   id: string
 ): Promise<ScenarioDetail> {
-  const response = await axios.get<ScenarioDetail>(
-    `${API_BASE_URL}/scenarios/${id}?expand=header,summaryCards,events`
+  const response = await apiClient.get<ScenarioDetail>(
+    `/scenarios/${id}?expand=header,summaryCards,events`
   );
   return response.data;
 }
@@ -26,8 +23,8 @@ export async function postMessage(
   scenarioId: string,
   text: string
 ): Promise<MessageData> {
-  const response = await axios.post<MessageData>(
-    `${API_BASE_URL}/scenarios/${scenarioId}/messages`,
+  const response = await apiClient.post<MessageData>(
+    `/scenarios/${scenarioId}/messages`,
     { text },
     { headers: { "X-Actor-Id": CURRENT_USER_ID } }
   );
@@ -43,8 +40,8 @@ export async function postEvent(
   if (message !== undefined) {
     body.message = message;
   }
-  await axios.post(
-    `${API_BASE_URL}/scenarios/${scenarioId}/events`,
+  await apiClient.post(
+    `/scenarios/${scenarioId}/events`,
     body,
     { headers: { "X-Actor-Id": CURRENT_USER_ID } }
   );
@@ -53,8 +50,8 @@ export async function postEvent(
 export async function combineScenarios(
   request: CombineScenariosRequest
 ): Promise<ScenarioListItem> {
-  const response = await axios.post<ScenarioListItem>(
-    `${API_BASE_URL}/scenarios/combine`,
+  const response = await apiClient.post<ScenarioListItem>(
+    `/scenarios/combine`,
     request,
     { headers: { "X-Actor-Id": CURRENT_USER_ID } }
   );
@@ -62,8 +59,8 @@ export async function combineScenarios(
 }
 
 export async function fetchDirectChanges(id: string): Promise<DirectChangesData> {
-  const response = await axios.get<{ directChanges: DirectChangesData }>(
-    `${API_BASE_URL}/scenarios/${id}?expand=directChanges`
+  const response = await apiClient.get<{ directChanges: DirectChangesData }>(
+    `/scenarios/${id}?expand=directChanges`
   );
   return response.data.directChanges;
 }
@@ -74,8 +71,8 @@ export async function fetchAnalysisHeader(id: string): Promise<{
   scenarioType: ScenarioTypeData | null;
   summaryCards: SummaryCardsData | null;
 }> {
-  const response = await axios.get(
-    `${API_BASE_URL}/scenarios/${id}?expand=header,summaryCards`
+  const response = await apiClient.get(
+    `/scenarios/${id}?expand=header,summaryCards`
   );
   return {
     name: response.data.name,
@@ -88,8 +85,8 @@ export async function fetchAnalysisHeader(id: string): Promise<{
 export async function fetchImpactReportSummaries(
   scenarioId: string
 ): Promise<ImpactReportSummaryFe[]> {
-  const response = await axios.get<ImpactReportSummaryFe[]>(
-    `${API_BASE_URL}/scenarios/${scenarioId}/impact-reports`
+  const response = await apiClient.get<ImpactReportSummaryFe[]>(
+    `/scenarios/${scenarioId}/impact-reports`
   );
   return response.data;
 }
@@ -98,8 +95,8 @@ export async function fetchImpactReportDetail(
   scenarioId: string,
   reportId: string
 ): Promise<ImpactReportDetailFe> {
-  const response = await axios.get<ImpactReportDetailFe>(
-    `${API_BASE_URL}/scenarios/${scenarioId}/impact-reports/${reportId}`
+  const response = await apiClient.get<ImpactReportDetailFe>(
+    `/scenarios/${scenarioId}/impact-reports/${reportId}`
   );
   return response.data;
 }
@@ -107,8 +104,8 @@ export async function fetchImpactReportDetail(
 export async function getDirectChangesView(
   scenarioId: string
 ): Promise<DirectChangesRuntimeResponse> {
-  const response = await axios.get<DirectChangesRuntimeResponse>(
-    `${API_BASE_URL}/scenarios/${scenarioId}/direct-changes`
+  const response = await apiClient.get<DirectChangesRuntimeResponse>(
+    `/scenarios/${scenarioId}/direct-changes`
   );
   return response.data;
 }

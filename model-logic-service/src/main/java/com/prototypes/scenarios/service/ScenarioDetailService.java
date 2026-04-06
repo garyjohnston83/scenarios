@@ -193,12 +193,14 @@ public class ScenarioDetailService {
 
     @Transactional(readOnly = true)
     public Optional<ScenarioDetailDto> getScenarioDetail(UUID id, Set<String> expandSections) {
+        logger.info("getScenarioDetail id={} expandSections={}", id, expandSections);
         return scenarioRepository.findByIdWithSummary(id)
                 .map(scenario -> toDetailDto(scenario, expandSections));
     }
 
     @Transactional
     public MessageDto postMessage(UUID scenarioId, String text, String actorId) {
+        logger.info("postMessage scenarioId={} actorId={}", scenarioId, actorId);
         Scenario scenario = scenarioRepository.findByIdWithSummary(scenarioId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Scenario not found"));
 
@@ -238,6 +240,7 @@ public class ScenarioDetailService {
 
     @Transactional
     public ScenarioListItemDto combineScenarios(CombineScenariosRequestDto request, String actorId) {
+        logger.info("combineScenarios scenarioTypeCode={} sourceCount={} actorId={}", request.scenarioTypeCode(), request.sourceScenarioIds() != null ? request.sourceScenarioIds().size() : 0, actorId);
         // Validate request
         if (request.name() == null || request.name().isBlank()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Name is required");
@@ -342,6 +345,7 @@ public class ScenarioDetailService {
 
     @Transactional
     public void processEvent(UUID scenarioId, PostEventRequestDto request, String actor, String actorId) {
+        logger.info("processEvent scenarioId={} type={} actor={}", scenarioId, request.type(), actor);
         Scenario scenario = scenarioRepository.findByIdWithSummary(scenarioId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Scenario not found"));
 

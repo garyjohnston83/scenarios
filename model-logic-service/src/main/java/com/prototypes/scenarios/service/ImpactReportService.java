@@ -49,6 +49,7 @@ public class ImpactReportService {
      * @throws ResponseStatusException with 404 status if the scenario does not exist
      */
     public List<ImpactReportSummaryDto> getReportsForScenario(UUID scenarioId) {
+        logger.info("getReportsForScenario scenarioId={}", scenarioId);
         if (!scenarioRepository.existsById(scenarioId)) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Scenario not found: " + scenarioId);
         }
@@ -73,6 +74,7 @@ public class ImpactReportService {
      *                                 or if the report does not belong to the given scenario
      */
     public ImpactReportDetailDto getReportDetail(UUID scenarioId, UUID reportId) {
+        logger.info("getReportDetail scenarioId={} reportId={}", scenarioId, reportId);
         if (!scenarioRepository.existsById(scenarioId)) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Scenario not found: " + scenarioId);
         }

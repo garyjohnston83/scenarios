@@ -1,4 +1,4 @@
-import axios from 'axios';
+import apiClient from '../../services/axiosInstance';
 import { runSaga } from 'redux-saga';
 import type { PayloadAction } from '@reduxjs/toolkit';
 import scenariosReducer, {
@@ -18,8 +18,8 @@ import * as scenarioApi from '../../services/scenarioApi';
 import { handleFetchScenarioDetail, handlePostMessage } from '../scenariosSaga';
 import { formatDate } from '../../utils/formatDate';
 
-jest.mock('axios');
-const mockedAxios = axios as jest.Mocked<typeof axios>;
+jest.mock('../../services/axiosInstance');
+const mockedApiClient = apiClient as jest.Mocked<typeof apiClient>;
 
 jest.mock('../../services/scenarioApi');
 const mockedApi = scenarioApi as jest.Mocked<typeof scenarioApi>;
@@ -133,19 +133,16 @@ describe('Increment 13 TG4 -- TypeScript Interfaces, Redux State, API Call Updat
       events: { rows: [], approvalsReceived: 0, approvalsRequired: 2 },
     };
 
-    mockedAxios.get.mockResolvedValueOnce({ data: mockResponse });
+    mockedApiClient.get.mockResolvedValueOnce({ data: mockResponse });
 
-    // Call the real (unmocked for this test) fetchScenarioDetail via axios
-    // We need to restore the original implementation for this specific test
-    const originalFetch = jest.requireActual('../../services/scenarioApi').fetchScenarioDetail;
-    // Instead, we directly test by calling axios and checking the URL
-    await axios.get('http://localhost:9090/scenarios/sc-ir-1?expand=header,summaryCards,events');
+    // Call the mocked apiClient directly and check the URL
+    await apiClient.get('http://localhost:9090/scenarios/sc-ir-1?expand=header,summaryCards,events');
 
-    expect(mockedAxios.get).toHaveBeenCalledWith(
+    expect(mockedApiClient.get).toHaveBeenCalledWith(
       expect.stringContaining('expand=header,summaryCards,events')
     );
     // Verify it does NOT contain reviewApproval
-    const calledUrl = mockedAxios.get.mock.calls[0][0] as string;
+    const calledUrl = mockedApiClient.get.mock.calls[0][0] as string;
     expect(calledUrl).not.toContain('reviewApproval');
   });
 

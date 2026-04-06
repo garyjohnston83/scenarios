@@ -2,6 +2,8 @@ package com.prototypes.scenarios.service;
 
 import com.prototypes.scenarios.dto.FactTypeCatalogEntry;
 import com.prototypes.scenarios.dto.RoleCatalogEntry;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -17,6 +19,8 @@ import java.util.List;
 @Service
 public class SignoffRulesCatalogService {
 
+    private static final Logger logger = LoggerFactory.getLogger(SignoffRulesCatalogService.class);
+
     private static final List<String> EQUALS_NOT_EQUALS_IN = List.of("EQUALS", "NOT_EQUALS", "IN");
     private static final List<String> EQUALS_NOT_EQUALS = List.of("EQUALS", "NOT_EQUALS");
 
@@ -26,13 +30,16 @@ public class SignoffRulesCatalogService {
     public SignoffRulesCatalogService() {
         this.factTypes = buildFactTypes();
         this.roles = buildRoles();
+        logger.info("SignoffRulesCatalogService initialized with {} fact types and {} roles", factTypes.size(), roles.size());
     }
 
     public List<FactTypeCatalogEntry> getFactTypes() {
+        logger.info("getFactTypes returning {} entries", factTypes.size());
         return factTypes;
     }
 
     public List<RoleCatalogEntry> getRoles() {
+        logger.info("getRoles returning {} entries", roles.size());
         return roles;
     }
 

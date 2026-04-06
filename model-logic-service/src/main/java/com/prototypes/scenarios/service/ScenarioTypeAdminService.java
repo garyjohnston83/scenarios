@@ -13,6 +13,8 @@ import com.prototypes.scenarios.repository.SignoffPolicyDefinitionRepository;
 import com.prototypes.scenarios.repository.SignoffPolicyRepository;
 import com.prototypes.scenarios.service.reporting.ReportDataProvider;
 import com.prototypes.scenarios.service.reporting.ReportDataProviderRegistry;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -22,6 +24,8 @@ import java.util.Optional;
 
 @Service
 public class ScenarioTypeAdminService {
+
+    private static final Logger logger = LoggerFactory.getLogger(ScenarioTypeAdminService.class);
 
     private final ScenarioTypeRepository scenarioTypeRepository;
     private final ReportDefinitionRepository reportDefinitionRepository;
@@ -45,12 +49,14 @@ public class ScenarioTypeAdminService {
     }
 
     public List<ScenarioTypeAdminDto> listAll() {
+        logger.info("listAll scenario types");
         return scenarioTypeRepository.findAllByOrderBySortOrderAsc().stream()
                 .map(this::toDto)
                 .toList();
     }
 
     public ScenarioTypeAdminDetailDto getDetail(String code) {
+        logger.info("getDetail code={}", code);
         ScenarioType entity = scenarioTypeRepository.findById(code)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
                         "Scenario type not found: " + code));
@@ -64,6 +70,7 @@ public class ScenarioTypeAdminService {
     }
 
     public ScenarioTypeAdminDetailDto update(String code, UpdateScenarioTypeRequest request) {
+        logger.info("update code={}", code);
         if (request.name() == null || request.name().isBlank()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Name is required");
         }
@@ -78,6 +85,7 @@ public class ScenarioTypeAdminService {
         entity.setSortOrder(request.sortOrder());
 
         scenarioTypeRepository.save(entity);
+        logger.info("update completed for code={}", code);
 
         long reportCount = reportDefinitionRepository.countByScenarioTypeCodeAndIsActiveTrue(code);
         long policyCount = signoffPolicyRepository.countByScenarioTypeCodeAndIsEnabledTrue(code);
@@ -88,6 +96,7 @@ public class ScenarioTypeAdminService {
     }
 
     public ScenarioTypeAdminDetailDto updateNavigationViewMode(String code, UpdateNavigationViewModeRequest request) {
+        logger.info("updateNavigationViewMode code={} directChangesMode={} impactDataMode={}", code, request.directChangesMode(), request.impactDataMode());
         if (!isValidMode(request.directChangesMode())) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
                     "Invalid mode value for directChangesMode: must be INTERNAL or EXTERNAL");
@@ -130,6 +139,7 @@ public class ScenarioTypeAdminService {
         entity.setDirectChangesInternalRenderMode(internalRenderMode);
 
         scenarioTypeRepository.save(entity);
+        logger.info("updateNavigationViewMode completed for code={}", code);
 
         long reportCount = reportDefinitionRepository.countByScenarioTypeCodeAndIsActiveTrue(code);
         long policyCount = signoffPolicyRepository.countByScenarioTypeCodeAndIsEnabledTrue(code);
@@ -140,6 +150,7 @@ public class ScenarioTypeAdminService {
     }
 
     public ImpactExecutionSummaryDto getImpactExecutionSummary(String code) {
+        logger.info("getImpactExecutionSummary code={}", code);
         scenarioTypeRepository.findById(code)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
                         "Scenario type not found: " + code));
@@ -147,12 +158,14 @@ public class ScenarioTypeAdminService {
         Optional<ReportDataProvider> provider = reportDataProviderRegistry.getProvider(code);
 
         if (provider.isPresent()) {
+            logger.debug("getImpactExecutionSummary provider found: {}", provider.get().getClass().getSimpleName());
             return new ImpactExecutionSummaryDto(
                     true,
                     provider.get().getClass().getSimpleName(),
                     provider.get().getClass().getName()
             );
         } else {
+            logger.debug("getImpactExecutionSummary no provider found for code={}", code);
             return new ImpactExecutionSummaryDto(false, null, null);
         }
     }

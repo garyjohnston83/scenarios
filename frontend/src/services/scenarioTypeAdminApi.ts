@@ -1,7 +1,4 @@
-import axios from 'axios';
-
-const API_BASE_URL =
-  process.env.REACT_APP_API_BASE_URL || 'http://localhost:9090';
+import apiClient from './axiosInstance';
 
 export interface ScenarioTypeAdminDto {
   code: string;
@@ -53,8 +50,8 @@ export interface ImpactExecutionSummaryDto {
 }
 
 export async function fetchScenarioTypes(): Promise<ScenarioTypeAdminDto[]> {
-  const response = await axios.get<ScenarioTypeAdminDto[]>(
-    `${API_BASE_URL}/admin/scenario-types`
+  const response = await apiClient.get<ScenarioTypeAdminDto[]>(
+    `/admin/scenario-types`
   );
   return response.data;
 }
@@ -62,8 +59,8 @@ export async function fetchScenarioTypes(): Promise<ScenarioTypeAdminDto[]> {
 export async function fetchScenarioTypeDetail(
   code: string
 ): Promise<ScenarioTypeAdminDetailDto> {
-  const response = await axios.get<ScenarioTypeAdminDetailDto>(
-    `${API_BASE_URL}/admin/scenario-types/${code}`
+  const response = await apiClient.get<ScenarioTypeAdminDetailDto>(
+    `/admin/scenario-types/${code}`
   );
   return response.data;
 }
@@ -72,8 +69,8 @@ export async function updateScenarioType(
   code: string,
   body: UpdateScenarioTypeRequest
 ): Promise<ScenarioTypeAdminDetailDto> {
-  const response = await axios.put<ScenarioTypeAdminDetailDto>(
-    `${API_BASE_URL}/admin/scenario-types/${code}`,
+  const response = await apiClient.put<ScenarioTypeAdminDetailDto>(
+    `/admin/scenario-types/${code}`,
     body
   );
   return response.data;
@@ -83,8 +80,8 @@ export async function updateNavigationViewMode(
   code: string,
   body: UpdateNavigationViewModeRequest
 ): Promise<ScenarioTypeAdminDetailDto> {
-  const response = await axios.put<ScenarioTypeAdminDetailDto>(
-    `${API_BASE_URL}/admin/scenario-types/${code}/navigation-view-mode`,
+  const response = await apiClient.put<ScenarioTypeAdminDetailDto>(
+    `/admin/scenario-types/${code}/navigation-view-mode`,
     body
   );
   return response.data;
@@ -93,8 +90,8 @@ export async function updateNavigationViewMode(
 export async function fetchImpactExecutionSummary(
   code: string
 ): Promise<ImpactExecutionSummaryDto> {
-  const response = await axios.get<ImpactExecutionSummaryDto>(
-    `${API_BASE_URL}/admin/scenario-types/${code}/impact-execution-summary`
+  const response = await apiClient.get<ImpactExecutionSummaryDto>(
+    `/admin/scenario-types/${code}/impact-execution-summary`
   );
   return response.data;
 }

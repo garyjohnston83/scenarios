@@ -4,6 +4,8 @@ import com.prototypes.scenarios.dto.DataTemplateDto;
 import com.prototypes.scenarios.entity.ScenarioTypeDataTemplate;
 import com.prototypes.scenarios.repository.ScenarioTypeDataTemplateRepository;
 import com.prototypes.scenarios.repository.ScenarioTypeRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -20,6 +22,8 @@ import java.util.UUID;
 
 @Service
 public class ScenarioTypeDataTemplateService {
+
+    private static final Logger logger = LoggerFactory.getLogger(ScenarioTypeDataTemplateService.class);
 
     private static final Set<String> ALLOWED_CONTENT_TYPES = Set.of(
             "text/csv",
@@ -39,6 +43,7 @@ public class ScenarioTypeDataTemplateService {
     }
 
     public List<DataTemplateDto> listTemplates(String scenarioTypeCode) {
+        logger.info("listTemplates scenarioTypeCode={}", scenarioTypeCode);
         if (!scenarioTypeRepository.existsById(scenarioTypeCode)) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND,
                     "Scenario type not found: " + scenarioTypeCode);
@@ -50,6 +55,7 @@ public class ScenarioTypeDataTemplateService {
     }
 
     public DataTemplateDto uploadTemplate(String scenarioTypeCode, String name, MultipartFile file) {
+        logger.info("uploadTemplate scenarioTypeCode={} name={} fileSize={}", scenarioTypeCode, name, file != null ? file.getSize() : 0);
         // Validate scenario type exists
         if (!scenarioTypeRepository.existsById(scenarioTypeCode)) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND,
@@ -83,6 +89,7 @@ public class ScenarioTypeDataTemplateService {
         // Compute next version
         Optional<Integer> maxVersion = dataTemplateRepository.findMaxVersion(scenarioTypeCode);
         int nextVersion = maxVersion.orElse(0) + 1;
+        logger.debug("uploadTemplate computed nextVersion={}", nextVersion);
 
         // Validate name
         if (name == null || name.isBlank()) {
@@ -95,8 +102,10 @@ public class ScenarioTypeDataTemplateService {
         // Save with optimistic concurrency retry
         try {
             ScenarioTypeDataTemplate saved = dataTemplateRepository.save(entity);
+            logger.info("uploadTemplate saved id={} version={}", saved.getId(), saved.getVersion());
             return toDto(saved);
         } catch (DataIntegrityViolationException e) {
+            logger.warn("uploadTemplate version conflict, retrying for scenarioTypeCode={}", scenarioTypeCode);
             // Retry: re-query max version, recompute, and save (up to 2 more attempts)
             for (int attempt = 0; attempt < 2; attempt++) {
                 try {
@@ -105,11 +114,13 @@ public class ScenarioTypeDataTemplateService {
 
                     ScenarioTypeDataTemplate retryEntity = buildEntity(scenarioTypeCode, name, file, retryNextVersion);
                     ScenarioTypeDataTemplate saved = dataTemplateRepository.save(retryEntity);
+                    logger.info("uploadTemplate retry saved id={} version={}", saved.getId(), saved.getVersion());
                     return toDto(saved);
                 } catch (DataIntegrityViolationException retryException) {
                     // Continue to next retry attempt
                 }
             }
+            logger.error("uploadTemplate failed after retries for scenarioTypeCode={}", scenarioTypeCode);
             throw new ResponseStatusException(HttpStatus.CONFLICT,
                     "Unable to save template due to concurrent version conflict");
         }
@@ -117,6 +128,7 @@ public class ScenarioTypeDataTemplateService {
 
     @Transactional
     public DataTemplateDto activateTemplate(UUID id) {
+        logger.info("activateTemplate id={}", id);
         ScenarioTypeDataTemplate template = dataTemplateRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
                         "Template not found: " + id));
@@ -130,15 +142,18 @@ public class ScenarioTypeDataTemplateService {
             activeTemplate.setActive(false);
             activeTemplate.setUpdatedAt(LocalDateTime.now());
             dataTemplateRepository.save(activeTemplate);
+            logger.debug("activateTemplate deactivated previous template id={}", activeTemplate.getId());
         }
 
         template.setActive(true);
         template.setUpdatedAt(LocalDateTime.now());
         ScenarioTypeDataTemplate saved = dataTemplateRepository.save(template);
+        logger.info("activateTemplate completed for id={}", id);
         return toDto(saved);
     }
 
     public DataTemplateDto deactivateTemplate(UUID id) {
+        logger.info("deactivateTemplate id={}", id);
         ScenarioTypeDataTemplate template = dataTemplateRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
                         "Template not found: " + id));
@@ -151,10 +166,12 @@ public class ScenarioTypeDataTemplateService {
         template.setActive(false);
         template.setUpdatedAt(LocalDateTime.now());
         ScenarioTypeDataTemplate saved = dataTemplateRepository.save(template);
+        logger.info("deactivateTemplate completed for id={}", id);
         return toDto(saved);
     }
 
     public ScenarioTypeDataTemplate downloadTemplate(UUID id) {
+        logger.info("downloadTemplate id={}", id);
         return dataTemplateRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
                         "Template not found: " + id));
@@ -179,6 +196,7 @@ public class ScenarioTypeDataTemplateService {
         try {
             entity.setFileData(file.getBytes());
         } catch (IOException e) {
+            logger.error("Failed to read file data for template upload: {}", e.getMessage());
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
                     "Failed to read file data");
         }

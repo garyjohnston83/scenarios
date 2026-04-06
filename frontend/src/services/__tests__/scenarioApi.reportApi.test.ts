@@ -1,9 +1,9 @@
-import axios from 'axios';
+import apiClient from '../axiosInstance';
 import { fetchImpactReportSummaries, fetchImpactReportDetail } from '../scenarioApi';
 import type { ImpactReportSummaryFe, ImpactReportDetailFe } from '../../types/renderedReport';
 
-jest.mock('axios');
-const mockedAxios = axios as jest.Mocked<typeof axios>;
+jest.mock('../axiosInstance');
+const mockedApiClient = apiClient as jest.Mocked<typeof apiClient>;
 
 describe('Report API functions', () => {
   beforeEach(() => {
@@ -30,15 +30,15 @@ describe('Report API functions', () => {
       },
     ];
 
-    mockedAxios.get.mockResolvedValueOnce({ data: mockSummaries });
+    mockedApiClient.get.mockResolvedValueOnce({ data: mockSummaries });
 
     const result = await fetchImpactReportSummaries('sc-1');
 
-    expect(mockedAxios.get).toHaveBeenCalledWith(
+    expect(mockedApiClient.get).toHaveBeenCalledWith(
       expect.stringContaining('/scenarios/sc-1/impact-reports')
     );
     // Ensure the URL does NOT contain a trailing report ID segment
-    const calledUrl = mockedAxios.get.mock.calls[0][0];
+    const calledUrl = mockedApiClient.get.mock.calls[0][0];
     expect(calledUrl).toMatch(/\/scenarios\/sc-1\/impact-reports$/);
     expect(result).toEqual(mockSummaries);
     expect(result).toHaveLength(2);
@@ -64,11 +64,11 @@ describe('Report API functions', () => {
       },
     };
 
-    mockedAxios.get.mockResolvedValueOnce({ data: mockDetail });
+    mockedApiClient.get.mockResolvedValueOnce({ data: mockDetail });
 
     const result = await fetchImpactReportDetail('sc-1', 'report-001');
 
-    expect(mockedAxios.get).toHaveBeenCalledWith(
+    expect(mockedApiClient.get).toHaveBeenCalledWith(
       expect.stringContaining('/scenarios/sc-1/impact-reports/report-001')
     );
     expect(result).toEqual(mockDetail);

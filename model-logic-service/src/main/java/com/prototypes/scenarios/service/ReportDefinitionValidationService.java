@@ -3,6 +3,8 @@ package com.prototypes.scenarios.service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -13,6 +15,8 @@ import java.util.regex.Pattern;
 
 @Service
 public class ReportDefinitionValidationService {
+
+    private static final Logger logger = LoggerFactory.getLogger(ReportDefinitionValidationService.class);
 
     private static final Pattern REPORT_KEY_PATTERN = Pattern.compile("^[a-z0-9_]+$");
     private static final Pattern SCENARIO_TYPE_PATTERN = Pattern.compile("^[A-Z0-9_]+$");
@@ -26,10 +30,12 @@ public class ReportDefinitionValidationService {
     }
 
     public List<String> validate(String definitionJson) {
+        logger.debug("validate: parsing report definition JSON");
         JsonNode root;
         try {
             root = objectMapper.readTree(definitionJson);
         } catch (JsonProcessingException e) {
+            logger.warn("validate: invalid JSON input: {}", e.getMessage());
             return List.of("Invalid JSON: " + e.getMessage());
         }
 
@@ -83,6 +89,10 @@ public class ReportDefinitionValidationService {
             errors.add("sections: must be a non-empty array");
         } else {
             validateSections(sectionsNode, errors);
+        }
+
+        if (!errors.isEmpty()) {
+            logger.warn("validate: report definition validation failed with {} error(s)", errors.size());
         }
 
         return errors;

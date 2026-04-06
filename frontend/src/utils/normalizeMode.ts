@@ -1,4 +1,7 @@
 import type { DataMode } from '../store/scenariosSlice';
+import { createLogger } from './logger';
+
+const logger = createLogger('normalizeMode');
 
 /**
  * Normalizes legacy mode values to the new EXTERNAL|INTERNAL enum.
@@ -14,7 +17,7 @@ export function normalizeMode(mode: string): DataMode {
     case 'INTERNAL':
       return 'INTERNAL';
     default:
-      console.warn(`Unknown scenario mode "${mode}", defaulting to EXTERNAL`);
+      logger.warn(`Unknown scenario mode "${mode}", defaulting to EXTERNAL`);
       return 'EXTERNAL';
   }
 }

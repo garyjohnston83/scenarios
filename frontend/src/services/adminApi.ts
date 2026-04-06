@@ -1,7 +1,4 @@
-import axios from 'axios';
-
-const API_BASE_URL =
-  process.env.REACT_APP_API_BASE_URL || 'http://localhost:9090';
+import apiClient from './axiosInstance';
 
 export interface SignoffPolicyDto {
   id: string;
@@ -30,8 +27,8 @@ export interface UpdateSignoffPolicyRequest {
 }
 
 export async function fetchSignoffPolicies(): Promise<SignoffPolicyDto[]> {
-  const response = await axios.get<SignoffPolicyDto[]>(
-    `${API_BASE_URL}/admin/signoff-policies`
+  const response = await apiClient.get<SignoffPolicyDto[]>(
+    `/admin/signoff-policies`
   );
   return response.data;
 }
@@ -39,8 +36,8 @@ export async function fetchSignoffPolicies(): Promise<SignoffPolicyDto[]> {
 export async function createSignoffPolicy(
   body: CreateSignoffPolicyRequest
 ): Promise<SignoffPolicyDto> {
-  const response = await axios.post<SignoffPolicyDto>(
-    `${API_BASE_URL}/admin/signoff-policies`,
+  const response = await apiClient.post<SignoffPolicyDto>(
+    `/admin/signoff-policies`,
     body
   );
   return response.data;
@@ -50,8 +47,8 @@ export async function updateSignoffPolicy(
   id: string,
   body: UpdateSignoffPolicyRequest
 ): Promise<SignoffPolicyDto> {
-  const response = await axios.put<SignoffPolicyDto>(
-    `${API_BASE_URL}/admin/signoff-policies/${id}`,
+  const response = await apiClient.put<SignoffPolicyDto>(
+    `/admin/signoff-policies/${id}`,
     body
   );
   return response.data;

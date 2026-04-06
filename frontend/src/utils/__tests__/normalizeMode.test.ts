@@ -21,7 +21,8 @@ describe('normalizeMode', () => {
     const warnSpy = jest.spyOn(console, 'warn').mockImplementation();
     expect(normalizeMode('FOOBAR')).toBe('EXTERNAL');
     expect(warnSpy).toHaveBeenCalledWith(
-      'Unknown scenario mode "FOOBAR", defaulting to EXTERNAL'
+      expect.stringContaining('Unknown scenario mode "FOOBAR", defaulting to EXTERNAL'),
+      expect.any(Object)
     );
     warnSpy.mockRestore();
   });

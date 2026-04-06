@@ -96,6 +96,9 @@ module.exports = (env, argv) => {
         'process.env.REACT_APP_API_BASE_URL': JSON.stringify(
           process.env.REACT_APP_API_BASE_URL || 'http://localhost:9090'
         ),
+        'process.env.REACT_APP_LOG_LEVEL': JSON.stringify(
+          process.env.REACT_APP_LOG_LEVEL || 'info'
+        ),
       }),
       ...(isProduction
         ? [

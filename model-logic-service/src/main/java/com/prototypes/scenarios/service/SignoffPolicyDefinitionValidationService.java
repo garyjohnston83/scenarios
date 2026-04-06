@@ -4,6 +4,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.stereotype.Service;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -13,6 +15,7 @@ import java.util.regex.Pattern;
 
 @Service
 public class SignoffPolicyDefinitionValidationService {
+    private static final Logger logger = LoggerFactory.getLogger(SignoffPolicyDefinitionValidationService.class);
 
     private static final Pattern POLICY_KEY_PATTERN = Pattern.compile("^[a-z0-9_]+$");
     private static final Pattern SCENARIO_TYPE_PATTERN = Pattern.compile("^[A-Z0-9_]+$");
@@ -26,10 +29,12 @@ public class SignoffPolicyDefinitionValidationService {
     }
 
     public List<String> validate(String definitionJson) {
+        logger.debug("validate: parsing signoff policy definition JSON");
         JsonNode root;
         try {
             root = objectMapper.readTree(definitionJson);
         } catch (JsonProcessingException e) {
+            logger.warn("validate: invalid JSON input: {}", e.getMessage());
             return List.of("Invalid JSON: " + e.getMessage());
         }
 
@@ -38,6 +43,9 @@ public class SignoffPolicyDefinitionValidationService {
         validateTopLevelFields(root, errors);
         validateRules(root, errors);
 
+        if (!errors.isEmpty()) {
+            logger.warn("validate: signoff policy definition validation failed with {} error(s)", errors.size());
+        }
         return errors;
     }
 
