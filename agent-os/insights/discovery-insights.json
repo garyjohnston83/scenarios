@@ -29,5 +29,53 @@
         "answer": "Here is the file"
       }
     ]
+  },
+  "architect--oas-spec": {
+    "taskLabel": "Interface Specification",
+    "persona": "architect",
+    "savedAt": "2026-04-09T12:13:33.486Z",
+    "insights": [
+      {
+        "questions": [
+          "Which interface would you like to generate an OpenAPI specification for? You can reply with the name or ID.",
+          "What is your preferred output format for the spec: yaml or json?"
+        ],
+        "answer": "1. Q: Which interface would you like to generate an OpenAPI specification for? You can reply with the name or ID. A: Scenarios REST API — id: ifc-mm3qlltl-fv8g5\n2. Q: What is your preferred output format for the spec: yaml or json? A: yaml"
+      },
+      {
+        "questions": [
+          "For GET /api/scenarios: should we include pagination and filtering (e.g., page, size, sort, owner, scenarioType, status)? Please list parameter names, types, and defaults. Also confirm if the response is a simple array of Scenario or a paged envelope (e.g., items + total + page/size).",
+          "For GET /api/audit: what query parameters are supported (e.g., scenarioId, eventType, dateFrom, dateTo, page, size, sort)? Please specify names/types and whether the response is paged or an array.",
+          "Please confirm the {id} path parameter for scenario routes is a UUID (string, format=uuid). Do you also want any filters on GET /api/scenarios/{id}/impacts (e.g., domain=FRTB|VaR) as query params?",
+          "For POST endpoints (/api/scenarios/{id}/approve, /reject, /messages): do you require any headers or query params (e.g., Idempotency-Key, If-Match for concurrency control)? Also confirm desired success status codes (201 Created vs 200 OK) for these POSTs."
+        ],
+        "answer": "1. Q: For GET /api/scenarios: should we include pagination and filtering (e.g., page, size, sort, owner, scenarioType, status)? Please list parameter names, types, and defaults. Also confirm if the response is a simple array of Scenario or a paged envelope (e.g., items + total + page/size). A: include pagination with page, size and and filtering and filtering for owner, scenarioType, status\n2. Q: For GET /api/audit: what query parameters are supported (e.g., scenarioId, eventType, dateFrom, dateTo, page, size, sort)? Please specify names/types and whether the response is paged or an array. A: Support scenarioId, eventType, dateFrom, dateTo, page, size\n3. Q: Please confirm the {id} path parameter for scenario routes is a UUID (string, format=uuid). Do you also want any filters on GET /api/scenarios/{id}/impacts (e.g., domain=FRTB|VaR) as query params? A: Id is a UUID. No other filters\n4. Q: For POST endpoints (/api/scenarios/{id}/approve, /reject, /messages): do you require any headers or query params (e.g., Idempotency-Key, If-Match for concurrency control)? Also confirm desired success status codes (201 Created vs 200 OK) for these POSTs. A: No hedaers, use 201 for successful POST"
+      },
+      {
+        "questions": [
+          "Paged responses: For GET /api/scenarios and GET /api/audit, should the response be a paged envelope? If yes, please confirm property names and types. Example: { items: array, total: integer, page: integer, size: integer }. If different, provide the exact field names.",
+          "GET /api/scenarios query params: confirm data types and defaults: page (integer, default?), size (integer, default? max?), owner (string?), scenarioType (string?), status (string with enum? if yes, list allowed values).",
+          "GET /api/audit query params: confirm types and formats: scenarioId (string, format=uuid?), eventType (string with enum? please list), dateFrom/dateTo (string, format=date-time, timezone/UTC assumed?), and defaults for page and size.",
+          "Schemas and required fields: Please provide field lists (name, type, required) for these logical entities used by this interface: Scenario (response), ImpactSummary (response), ApprovalDecision (request for approve/reject), Message (request/response), AuditEvent (response). If you prefer, you can paste minimal JSON Schemas for each."
+        ],
+        "answer": "1. Q: Paged responses: For GET /api/scenarios and GET /api/audit, should the response be a paged envelope? If yes, please confirm property names and types. Example: { items: array, total: integer, page: integer, size: integer }. If different, provide the exact field names. A: You decide\n2. Q: GET /api/scenarios query params: confirm data types and defaults: page (integer, default?), size (integer, default? max?), owner (string?), scenarioType (string?), status (string with enum? if yes, list allowed values). A: Choose sensible values\n3. Q: GET /api/audit query params: confirm types and formats: scenarioId (string, format=uuid?), eventType (string with enum? please list), dateFrom/dateTo (string, format=date-time, timezone/UTC assumed?), and defaults for page and size. A: Choose sensible values\n4. Q: Schemas and required fields: Please provide field lists (name, type, required) for these logical entities used by this interface: Scenario (response), ImpactSummary (response), ApprovalDecision (request for approve/reject), Message (request/response), AuditEvent (response). If you prefer, you can paste minimal JSON Schemas for each. A: Choose sensible values"
+      },
+      {
+        "questions": [
+          "Authentication: Should this API require OAuth2 Bearer tokens (JWT) issued by Google Cloud Identity? If yes, please provide the scope names to use (e.g., scenarios.read, scenarios.write, approvals.write, audit.read), or confirm that we will not model scopes (single global security requirement).",
+          "Standard error model: Can we use a common error object { code: string, message: string, details?: array, traceId?: string } for 4xx/5xx responses, with application/json content? If different, please provide the exact fields.",
+          "Response codes and headers: For 201 Created on POST /api/scenarios/{id}/approve, /reject, and /messages, do you want a Location header returned (e.g., pointing to the scenario or the new message resource)? If yes, specify which URL each should reference.",
+          "Any additional security or operational requirements to reflect (e.g., rate limiting 429, audit logging headers, correlation ID header such as X-Request-Id to echo back)?"
+        ],
+        "answer": "1. Q: Authentication: Should this API require OAuth2 Bearer tokens (JWT) issued by Google Cloud Identity? If yes, please provide the scope names to use (e.g., scenarios.read, scenarios.write, approvals.write, audit.read), or confirm that we will not model scopes (single global security requirement). A: Just simple OAuth2 Bearer token\n2. Q: Standard error model: Can we use a common error object { code: string, message: string, details?: array, traceId?: string } for 4xx/5xx responses, with application/json content? If different, please provide the exact fields. A: Come up with a sensible error model\n3. Q: Response codes and headers: For 201 Created on POST /api/scenarios/{id}/approve, /reject, and /messages, do you want a Location header returned (e.g., pointing to the scenario or the new message resource)? If yes, specify which URL each should reference. A: no location header\n4. Q: Any additional security or operational requirements to reflect (e.g., rate limiting 429, audit logging headers, correlation ID header such as X-Request-Id to echo back)? A: Nothing additional"
+      },
+      {
+        "questions": [
+          "Please review and confirm this OpenAPI (yaml) for the Scenarios REST API. If it looks good, reply “confirm” and I’ll finalize.",
+          "If you need any tweaks (fields, defaults, response codes), list them and I’ll update the spec."
+        ],
+        "answer": "1. Q: Please review and confirm this OpenAPI (yaml) for the Scenarios REST API. If it looks good, reply “confirm” and I’ll finalize. A: Confirm"
+      }
+    ]
   }
 }
